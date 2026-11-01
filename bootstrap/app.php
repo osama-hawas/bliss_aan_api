@@ -15,11 +15,6 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->api(append: [
             \App\Http\Middleware\SetApiLanguage::class,
-            \App\Http\Middleware\CheckCompanySubscription::class,
-        ]);
-
-        $middleware->alias([
-            'check.subscription' => \App\Http\Middleware\CheckCompanySubscription::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
