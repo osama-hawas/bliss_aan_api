@@ -2,68 +2,25 @@
 
 namespace App\Traits;
 
+use App\Enums\ErrorCode;
+use App\Helpers\ApiResponder;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Http\Resources\Json\ResourceCollection;
 
 trait ApiResponse
 {
     /**
-     * Return a success response.
-     *
-     * @param mixed $data
-     * @param array|string $metaOrMessage
-     * @param int $status
-     * @return JsonResponse
+     * Return a success response. Paginated resources get `links` and pagination `meta`.
      */
-    protected function success($data = null, $metaOrMessage = [], int $status = 200): JsonResponse
+    protected function success(mixed $data = null, ?string $message = null, int $status = 200, array $meta = []): JsonResponse
     {
-        $message = is_string($metaOrMessage) ? $metaOrMessage : null;
-        $meta = is_array($metaOrMessage) ? $metaOrMessage : [];
-
-        // Handle Paginated Resource Collection
-        if ($data instanceof ResourceCollection && $data->resource instanceof \Illuminate\Pagination\AbstractPaginator) {
-            $responseData = $data->response()->getData(true);
-
-            return response()->json([
-                'success' => true,
-                'data' => $responseData['data'] ?? [],
-                'links' => $responseData['links'] ?? null,
-                'meta' => array_merge($responseData['meta'] ?? [], $meta), // Merge custom meta if needed
-                'message' => $message,
-            ], $status);
-        }
-
-        // Handle Standard Response
-        $response = [
-            'success' => true,
-            'data' => $data,
-            'message' => $message,
-            'meta' => (object) $meta,
-        ];
-
-        // Clean up null values if desired, or keep structure consistent
-        if ($message === null) {
-            unset($response['message']);
-        }
-        
-        return response()->json($response, $status);
+        return ApiResponder::success($data, $message, $status, $meta);
     }
 
     /**
-     * Return an error response.
-     *
-     * @param string $message
-     * @param array $errors
-     * @param int $status
-     * @return JsonResponse
+     * Return an error response. Prefer throwing App\Exceptions\ApiException from services.
      */
-    protected function error(string $message, array $errors = [], int $status = 400): JsonResponse
+    protected function error(ErrorCode $code, ?string $message = null, array $errors = []): JsonResponse
     {
-        return response()->json([
-            'success' => false,
-            'message' => __($message),
-            'errors' => (object) $errors,
-        ], $status);
+        return ApiResponder::error($code, $message, $errors);
     }
 }

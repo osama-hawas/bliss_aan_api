@@ -1,7 +1,10 @@
 <?php
 
+use App\Models\User;
 use Illuminate\Support\Facades\Broadcast;
 
-Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
-    return (int) $user->id === (int) $id;
-});
+// Notifications and status changes for one user.
+Broadcast::channel('user.{id}', fn (User $user, int $id) => $user->id === $id);
+
+// Chat channel: authorized by the conversation Policy in Slice 7. Deny until then.
+Broadcast::channel('conversation.{id}', fn (User $user, int $id) => false);

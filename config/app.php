@@ -78,11 +78,20 @@ return [
     |
     */
 
-    'locale' => env('APP_LOCALE', 'en'),
+    'locale' => env('APP_LOCALE', 'ar'),
 
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
+
+    // Languages the API serves. Arabic is primary; English must be complete too.
+    'supported_locales' => ['ar', 'en'],
+
+    // Single platform currency. Money columns are decimal(12,2) without a currency column.
+    'currency' => 'SAR',
+
+    // Timezone the apps display in. Storage and API values are UTC.
+    'display_timezone' => 'Asia/Riyadh',
 
     /*
     |--------------------------------------------------------------------------

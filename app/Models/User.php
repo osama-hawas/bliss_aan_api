@@ -2,69 +2,84 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\UserStatus;
+use App\Enums\UserType;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, HasRoles, Notifiable, SoftDeletes;
 
     /**
-     * The attributes that are mass assignable.
-     *
+     * Roles and permissions are for admins only, on the `api` guard.
+     */
+    protected string $guard_name = 'api';
+
+    /**
      * @var list<string>
      */
     protected $fillable = [
+        'type',
         'name',
+        'phone',
         'email',
-        'password',
+        'city_id',
+        'birth_date',
+        'locale',
+        'status',
+        'status_reason',
+        'last_login_at',
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
-
-    /**
-     * Get the attributes that should be cast.
-     *
      * @return array<string, string>
      */
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'type' => UserType::class,
+            'status' => UserStatus::class,
+            'birth_date' => 'date',
+            'last_login_at' => 'datetime',
         ];
     }
 
-    /**
-     * Get the identifier that will be stored in the subject claim of the JWT.
-     *
-     * @return mixed
-     */
+    public function city(): BelongsTo
+    {
+        return $this->belongsTo(City::class);
+    }
+
+    public function devices(): HasMany
+    {
+        return $this->hasMany(UserDevice::class);
+    }
+
+    public function statusLogs(): HasMany
+    {
+        return $this->hasMany(AccountStatusLog::class);
+    }
+
+    public function isType(UserType $type): bool
+    {
+        return $this->type === $type;
+    }
+
     public function getJWTIdentifier()
     {
         return $this->getKey();
     }
 
-    /**
-     * Return a key value array, containing any custom claims to be added to the JWT.
-     *
-     * @return array
-     */
     public function getJWTCustomClaims()
     {
-        return [];
+        return ['type' => $this->type?->value];
     }
 }

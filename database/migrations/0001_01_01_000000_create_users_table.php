@@ -11,20 +11,23 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Phone + OTP accounts for every user type; no passwords (D3).
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+            $table->string('type', 20)->index();
             $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->rememberToken();
+            $table->string('phone', 20)->unique();
+            $table->string('email')->nullable()->index();
+            $table->unsignedBigInteger('city_id')->nullable()->index(); // FK added with the cities table
+            $table->date('birth_date')->nullable();
+            $table->string('locale', 5)->default('ar');
+            $table->string('status', 30)->default('active')->index();
+            $table->string('status_reason')->nullable();
+            $table->timestamp('last_login_at')->nullable();
             $table->timestamps();
-        });
+            $table->softDeletes();
 
-        Schema::create('password_reset_tokens', function (Blueprint $table) {
-            $table->string('email')->primary();
-            $table->string('token');
-            $table->timestamp('created_at')->nullable();
+            $table->index('created_at');
         });
 
         Schema::create('sessions', function (Blueprint $table) {
@@ -43,7 +46,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('users');
-        Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
     }
 };

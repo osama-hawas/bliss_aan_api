@@ -1,0 +1,38 @@
+{
+  "info": {
+    "name": "Bliss aan — shared",
+    "description": "Audience folder `shared/`. Tokens come from the Auth collection (Slice 1); until then generate one with `php artisan tinker` → `JWTAuth::fromUser(User::first())`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Upload file",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Accept-Language", "value": "{{lang}}" },
+          { "key": "Authorization", "value": "Bearer {{provider_token}}" }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            { "key": "context", "value": "provider_document", "type": "text", "description": "provider_document | portfolio | chat_image | chat_file | chat_voice | booking_update | catalog_image | banner" },
+            { "key": "file", "type": "file", "src": [] }
+          ]
+        },
+        "url": "{{base_url}}/shared/uploads",
+        "description": "Returns `data.id` (media_id) and `data.url` (signed, short-lived for private files). 409 NOT_CONFIGURED when limits for the context are not set in app_settings."
+      }
+    },
+    {
+      "name": "Download media (signed URL)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{media_url}}",
+        "description": "Use `data.url` from the upload response as-is. Tampered or expired → 403 FORBIDDEN."
+      }
+    }
+  ]
+}

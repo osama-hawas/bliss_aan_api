@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use Carbon\Carbon;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -9,23 +10,37 @@ use Symfony\Component\HttpFoundation\Response;
 class SetApiLanguage
 {
     /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * Resolve the locale from Accept-Language (primary tag, so `ar-SA` → `ar`).
+     * Unsupported or missing values fall back to the app locale (Arabic).
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $locale = $request->header('Accept-Language');
+        $supported = config('app.supported_locales');
+        $default = config('app.locale');
 
-        // Supported languages
-        $supported = ['ar', 'en'];
-
-        if (! $locale || ! in_array($locale, $supported)) {
-            $locale = 'en';
-        }
+        $locale = $request->hasHeader('Accept-Language')
+            ? $this->resolve($request, $supported, $default)
+            : $default;
 
         app()->setLocale($locale);
+        Carbon::setLocale($locale);
 
-        return $next($request);
+        $response = $next($request);
+        $response->headers->set('Content-Language', $locale);
+
+        return $response;
+    }
+
+    private function resolve(Request $request, array $supported, string $default): string
+    {
+        foreach ($request->getLanguages() as $language) {
+            $primary = strtolower(strtok(str_replace('-', '_', $language), '_'));
+
+            if (in_array($primary, $supported, true)) {
+                return $primary;
+            }
+        }
+
+        return $default;
     }
 }

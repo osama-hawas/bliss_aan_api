@@ -15,6 +15,9 @@ return [
 
     'default' => env('FILESYSTEM_DISK', 'local'),
 
+    // Lifetime of signed URLs for private media (documents, chat, execution attachments).
+    'signed_url_minutes' => (int) env('MEDIA_SIGNED_URL_MINUTES', 10),
+
     /*
     |--------------------------------------------------------------------------
     | Filesystem Disks

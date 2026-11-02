@@ -35,4 +35,17 @@ return [
         ],
     ],
 
+    // Bliss aan vendors (Q8 open). Only `fake` drivers exist so far.
+    'sms' => [
+        'driver' => env('SMS_DRIVER', 'fake'),
+    ],
+
+    'payments' => [
+        'driver' => env('PAYMENT_DRIVER', 'fake'),
+    ],
+
+    'push' => [
+        'driver' => env('PUSH_DRIVER', 'fake'),
+    ],
+
 ];
