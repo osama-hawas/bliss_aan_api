@@ -6,6 +6,24 @@
   },
   "item": [
     {
+      "name": "List cities",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept-Language",
+            "value": "{{lang}}"
+          }
+        ],
+        "url": "{{base_url}}/shared/cities",
+        "description": "Public. Active cities ordered by `sort`: `[{id, name}]`, name in the request language. Used by the client sign-up form (D30)."
+      }
+    },
+    {
       "name": "Upload file",
       "request": {
         "method": "POST",
