@@ -38,6 +38,7 @@ When a question is answered, move it to **Decided** with the date and source.
 | D28 | Terms acceptance at sign-up is recorded as an `activity_events` row (`registered`, meta `terms_policy_version_id`, `null` while no terms version is published). Suspended users can log out but not log in, refresh or use other endpoints. `pending_deletion` users log in normally until Slice 12 defines otherwise | Slice 1 | 2026-11-02 |
 | D29 | Admin login (Q9): staff sign in with phone + OTP like the mobile apps, through the same `auth/*` endpoints with `app=dashboard` (JWT, refresh, logout, device sessions). No passwords (D3). The dashboard cannot register accounts. `GET auth/me` adds `roles` and `permissions` for admins only. The Store dashboard is the same login scoped by permissions (D10); every `admin/*` route must add `permission:*` — the UI only hides what the API already forbids | Project owner (auth cycle) | 2026-11-02 |
 | D30 | `GET shared/cities` is public (no token): the client sign-up form needs it before there is a session. Returns active cities ordered by `sort` as `{id, name}` (the `city` shape of `auth/me`). The Flutter app no longer mocks auth or cities | Auth cycle QA fixes | 2026-11-02 |
+| D31 | Temporary dev aid: `OTP_FIXED_CODE` (e.g. `1111`) makes every OTP that code, only while `APP_ENV=local`; any other environment ignores it and sends random codes. The SMS (fake driver) still goes out. Remove once a real SMS provider is set up (Q8) | Project owner (dev testing) | 2026-11-02 |
 
 ## Open — blocking (needed before the related slice)
 

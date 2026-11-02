@@ -35,6 +35,21 @@ class RequestOtpTest extends TestCase
         $this->assertDatabaseHas('otp_codes', ['phone' => '+966512345678', 'purpose' => 'login', 'consumed_at' => null]);
     }
 
+    public function test_fixed_dev_code_applies_only_in_local(): void
+    {
+        config(['services.sms.fixed_otp' => '1111']);
+
+        $this->postJson(self::URL, ['phone' => '+966512345678', 'purpose' => 'register', 'app' => 'client'])->assertOk();
+        // Testing env: random code (a 1-in-10,000 collision with 1111 is accepted).
+        $this->assertNotSame('1111', $this->lastSentCode());
+
+        $this->app['env'] = 'local';
+        $this->travel(61)->seconds();
+
+        $this->postJson(self::URL, ['phone' => '+966512345678', 'purpose' => 'register', 'app' => 'client'])->assertOk();
+        $this->assertSame('1111', $this->lastSentCode());
+    }
+
     public function test_register_code_is_sent_for_a_new_phone_in_the_requested_language(): void
     {
         $this->withHeader('Accept-Language', 'en')

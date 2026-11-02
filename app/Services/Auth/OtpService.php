@@ -50,7 +50,8 @@ class OtpService
 
             $this->pending($phone, $purpose)->update(['consumed_at' => now()]);
 
-            $code = str_pad((string) random_int(0, 10 ** $length - 1), $length, '0', STR_PAD_LEFT);
+            $code = $this->fixedCode($length)
+                ?? str_pad((string) random_int(0, 10 ** $length - 1), $length, '0', STR_PAD_LEFT);
 
             OtpCode::query()->create([
                 'phone' => $phone,
@@ -165,6 +166,17 @@ class OtpService
         }
 
         return $otp;
+    }
+
+    /**
+     * D31: a fixed code for local development only, so testers need not read the SMS log.
+     * Ignored outside APP_ENV=local or when it does not match `otp.length` digits.
+     */
+    private function fixedCode(int $length): ?string
+    {
+        $code = (string) config('services.sms.fixed_otp');
+
+        return app()->environment('local') && preg_match('/^\d{'.$length.'}$/', $code) ? $code : null;
     }
 
     private function pending(string $phone, OtpPurpose $purpose)
