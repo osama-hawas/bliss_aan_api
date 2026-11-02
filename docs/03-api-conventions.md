@@ -1,6 +1,6 @@
 # 03 — API Conventions
 
-Every endpoint follows these rules so the Flutter apps and the Vue dashboard parse one shape.
+Every endpoint follows these rules so the Flutter apps and the React dashboard parse one shape.
 Status: **fixed** (confirmed in Slice 0, see D12).
 
 ## Base
@@ -71,7 +71,7 @@ Error:
 
 ## Authentication
 
-- Phone + OTP (4 digits, SMS). No passwords for clients/providers. Admin login method [?].
+- Phone + OTP (4 digits, SMS) for every user type, no passwords. `app` is `client`, `provider` or `dashboard` (admin staff, D29).
 - JWT (`php-open-source-saver/jwt-auth`), guard `api`: `Authorization: Bearer <access_token>`.
   Access TTL 60 min, refresh window 14 days, blacklist enabled.
 - Each login creates a `user_devices` row keyed by the token `jti`. Logout = blacklist + `revoked_at`.

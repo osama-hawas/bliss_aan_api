@@ -35,7 +35,7 @@ Status values: Not Started · In Analysis · Ready · In Progress · Blocked · 
 
 | # | Slice | Scope | Priority | Status |
 |---|---|---|---|---|
-| 14 | Admin auth & RBAC | Staff accounts, login method [?], roles/permissions management | P0 for Phase 2 | Not Started |
+| 14 | Admin auth & RBAC | Staff accounts, login method (D29: phone + OTP), roles/permissions management | P0 for Phase 2 | In Progress — dashboard login, session, `auth/me` roles/permissions and permission enforcement done (2026-11-02); staff account and roles management screens/APIs not started |
 | 15 | Accounts & providers | Clients list/detail/suspend, provider applications queue, documents, verification, suspend | P1 | Not Started |
 | 16 | Catalog management | Categories, services, inclusions, add-ons, tags, packages, guide price with impact preview | P1 | Not Started |
 | 17 | Operations & support | Requests/bookings lists, intervention with reason, cancellations, refunds, tickets, chat review via ticket (logged), review moderation | P1 | Not Started |
@@ -46,7 +46,7 @@ Status values: Not Started · In Analysis · Ready · In Progress · Blocked · 
 
 ## Later stages
 
-- Vue dashboard development (after admin designs exist).
+- React dashboard development in `blies-aan/dashboard` (after admin designs exist).
 - Full-system testing: role matrix, concurrency, idempotency, AR/EN, privacy; acceptance cases from
   BRD rules 17–18.
 - Production preparation and deployment.

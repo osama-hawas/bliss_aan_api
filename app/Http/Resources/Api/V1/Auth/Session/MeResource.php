@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Api\V1\Auth\Session;
 
+use App\Enums\UserType;
 use App\Http\Resources\Concerns\FormatsApiValues;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -31,6 +32,9 @@ class MeResource extends JsonResource
             'status_label' => $this->status->label(),
             'last_login_at' => $this->dateTime($this->last_login_at),
             'created_at' => $this->dateTime($this->created_at),
+            // Admins only: what the dashboard may show. The API checks permissions on every route.
+            'roles' => $this->when($this->isType(UserType::Admin), fn () => $this->getRoleNames()->values()),
+            'permissions' => $this->when($this->isType(UserType::Admin), fn () => $this->getAllPermissions()->pluck('name')->sort()->values()),
         ];
     }
 }

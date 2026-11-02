@@ -17,7 +17,7 @@ Components [C]:
 |---|---|
 | Client app | Flutter |
 | Provider app ("Bliss aan Partner") | Flutter (separate app) |
-| Admin dashboard (incl. Store sections) | Vue.js |
+| Admin dashboard (incl. Store sections) | React (D10) |
 | Landing site (blissaan.app) | Web (scope not specified) |
 | API | Laravel (this repo) |
 

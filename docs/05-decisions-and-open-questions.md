@@ -17,7 +17,7 @@ When a question is answered, move it to **Decided** with the date and source.
 | D7 | Providers have a wallet with IBAN payout account and transfer requests | Designs | 2026-11-01 |
 | D8 | Payment methods: Mada, Apple Pay, credit card (gateway tokens only); store also supports cash on delivery | Designs | 2026-11-01 |
 | D9 | Cities at launch: Riyadh, Jeddah, Dammam, Makkah, Madinah, Khobar (managed list) | Designs | 2026-11-01 |
-| D10 | Admin dashboard is Vue.js; the "Store dashboard" is a permission-scoped section of it | Project owner | 2026-11-02 |
+| D10 | Admin dashboard is React (Vite + TypeScript), based on the Hirz dashboard copied to `blies-aan/dashboard`; the "Store dashboard" is a permission-scoped section of it. Vue was a team preference, not a client/contract requirement | Project owner | 2026-11-02 |
 | D11 | Development order: mobile backend first (vertical slices), dashboard backend second, whole database designed upfront | Project owner | 2026-11-02 |
 | D12 | API conventions (`03-…`) are fixed. Added codes: `METHOD_NOT_ALLOWED` (405), `NOT_CONFIGURED` (409, a required setting/policy is not specified yet). `message` is always present (may be `null`); `debug` appears only when `APP_DEBUG=true` | Slice 0 | 2026-11-02 |
 | D13 | Local DB: MySQL 8 via `compose.yaml` (MySQL service only; PHP runs on the host). Tests run on the MySQL `testing` database, not SQLite | Slice 0 (approved) | 2026-11-02 |
@@ -32,10 +32,11 @@ When a question is answered, move it to **Decided** with the date and source.
 | D22 | OTP numbers stay data: `otp.length` = 4 (D3); `otp.expiry_seconds`, `otp.max_attempts`, `otp.resend_cooldown_seconds` are `null` → OTP endpoints return `409 NOT_CONFIGURED` until set. `DemoSeeder` sets local-only values (300 s / 5 / 60 s). Wrong codes count attempts; reaching the limit burns the code (`429 TOO_MANY_ATTEMPTS`); a new code replaces the old one | Slice 1 (approved) | 2026-11-02 |
 | D23 | Registration is two steps: verifying a `register` code returns a one-time `registration_token` (sha256 stored in `otp_codes`), valid for `otp.expiry_seconds` after verification, exchanged by `POST auth/register` | Slice 1 (approved) | 2026-11-02 |
 | D24 | OTP login for an unregistered phone returns `404 ACCOUNT_NOT_FOUND` (the app routes to sign-up; no SMS is sent). Accepted trade-off: it reveals whether a number is registered | Slice 1 (approved) | 2026-11-02 |
-| D25 | Only clients self-register in Slice 1. Provider account creation moves to Slice 3 with the application draft. Admins have no OTP login (Q9). `app` must match `users.type` | Slice 1 (approved) | 2026-11-02 |
+| D25 | Only clients self-register in Slice 1. Provider account creation moves to Slice 3 with the application draft. Admins sign in only through `app=dashboard` (D29). `app` must match `users.type` (`dashboard` ↔ `admin`) | Slice 1 (approved) | 2026-11-02 |
 | D26 | Notification preferences: client keys offers/messages/promotions/reminders; provider keys new_requests/messages/promotions/reminders. A key without a stored row is on. Channels are still open (S6) | Slice 1 (approved) | 2026-11-02 |
 | D27 | Sessions: one `user_devices` row per token `jti`; `device.session` middleware rejects tokens of revoked rows (jwt-auth can only blacklist tokens it holds). Refresh blacklists the old token and moves the row to the new `jti`. The `type` claim is persisted across refresh. The 14-day refresh window is sliding (the library resets `iat` on each refresh), so a session ends after 14 days without use | Slice 1 | 2026-11-02 |
 | D28 | Terms acceptance at sign-up is recorded as an `activity_events` row (`registered`, meta `terms_policy_version_id`, `null` while no terms version is published). Suspended users can log out but not log in, refresh or use other endpoints. `pending_deletion` users log in normally until Slice 12 defines otherwise | Slice 1 | 2026-11-02 |
+| D29 | Admin login (Q9): staff sign in with phone + OTP like the mobile apps, through the same `auth/*` endpoints with `app=dashboard` (JWT, refresh, logout, device sessions). No passwords (D3). The dashboard cannot register accounts. `GET auth/me` adds `roles` and `permissions` for admins only. The Store dashboard is the same login scoped by permissions (D10); every `admin/*` route must add `permission:*` — the UI only hides what the API already forbids | Project owner (auth cycle) | 2026-11-02 |
 
 ## Open — blocking (needed before the related slice)
 
@@ -49,7 +50,6 @@ When a question is answered, move it to **Decided** with the date and source.
 | Q6 | Required provider documents per account type (CR, freelance document, ID, authorization) and file limits | 3 |
 | Q7 | Is there a managed list of districts for coverage matching, or free text? | 3, 4 |
 | Q8 | Which SMS provider, payment gateway, shipping carrier, maps provider? (Slice 1 ships with the fake SMS driver) | 1 (go-live), 9, 10 |
-| Q9 | Admin login method (email + password, OTP, 2FA?) | 14 |
 | Q10 | OTP expiry, max wrong attempts and resend cooldown (`app_settings` `otp.*`, D22). Also: a daily send cap per phone? | 1 (go-live) |
 
 ## Open — design vs BRD conflicts

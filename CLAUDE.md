@@ -3,7 +3,7 @@
 Laravel 12 (PHP 8.3) backend for **Bliss aan**, a Saudi women-only platform for occasion services
 (weddings, engagements, events) plus an integrated supplies store.
 
-Clients: two Flutter apps (Client app, Provider app "Bliss aan Partner") and one Vue.js admin
+Clients: two Flutter apps (Client app, Provider app "Bliss aan Partner") and one React admin
 dashboard (which also contains the Store sections). Owner of the BRD: Awamer AlShabaka.
 
 ## Read before any work
@@ -90,6 +90,7 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
   (`auth:api` + `device.session`). The current `UserDevice` is `$request->attributes->get('device')`.
 - Tokens are issued only by `Services\Auth\DeviceSessionService::issue()` (creates the `user_devices` row);
   `JWTAuth::fromUser()` alone gives a token that every route rejects.
+- Admin staff use the same OTP login with `app=dashboard` (D29); `DeviceApp::userType()` maps each app to the user type it may sign in. `auth/me` adds `roles`/`permissions` for admins.
 - OTP: `Services\Auth\OtpService` (settings `otp.*`). Push opt-outs: `NotificationPreferenceService::isEnabled()`.
 - Tests: `Tests\Concerns\InteractsWithOtp` (`configureOtp()`, `plantOtp()`, `sentSms()`), `withApiToken($token)`.
 

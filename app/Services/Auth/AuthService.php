@@ -19,7 +19,7 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Phone + OTP login, client registration and phone change (D3: no passwords).
- * Each app signs in only its own user type; admins have no OTP login (Q9).
+ * Each app signs in only its own user type; admin staff sign in to the dashboard app (Q9).
  */
 class AuthService
 {
@@ -138,7 +138,7 @@ class AuthService
         $user = User::query()->where('phone', $phone)->first()
             ?? throw new ApiException(ErrorCode::AccountNotFound);
 
-        if ($user->type->value !== $app->value) {
+        if ($user->type !== $app->userType()) {
             throw new ApiException(ErrorCode::Forbidden);
         }
 

@@ -14,4 +14,16 @@ enum DeviceApp: string
     case Client = 'client';
     case Provider = 'provider';
     case Dashboard = 'dashboard';
+
+    /**
+     * The only user type this app signs in; the dashboard is for admin staff (Q9).
+     */
+    public function userType(): UserType
+    {
+        return match ($this) {
+            self::Client => UserType::Client,
+            self::Provider => UserType::Provider,
+            self::Dashboard => UserType::Admin,
+        };
+    }
 }

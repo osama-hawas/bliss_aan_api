@@ -31,11 +31,11 @@ trait AuthInput
     }
 
     /**
-     * Only the two mobile apps sign in with OTP; the dashboard login is undecided (Q9).
+     * Every app signs in with phone + OTP, including the dashboard (Q9).
      */
     protected function appRules(): array
     {
-        return ['required', Rule::in([DeviceApp::Client->value, DeviceApp::Provider->value])];
+        return ['required', Rule::enum(DeviceApp::class)];
     }
 
     protected function deviceRules(): array

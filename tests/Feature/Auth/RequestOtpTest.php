@@ -52,7 +52,7 @@ class RequestOtpTest extends TestCase
             ->assertJsonPath('code', 'VALIDATION_FAILED')
             ->assertJsonValidationErrors(['phone', 'purpose', 'app']);
 
-        $this->postJson(self::URL, ['phone' => '0512345678', 'purpose' => 'login', 'app' => 'dashboard'])
+        $this->postJson(self::URL, ['phone' => '0512345678', 'purpose' => 'login', 'app' => 'web'])
             ->assertJsonValidationErrors(['app']);
     }
 
