@@ -29,6 +29,13 @@ When a question is answered, move it to **Decided** with the date and source.
 | D19 | Seeded reference data is limited to confirmed facts: 6 cities (D9), 8 categories (BRD), event types Wedding / Engagement / Other occasion. Catalog services, prices, pages and FAQs are fake `[DEMO]` rows, local only | Slice 0 (approved) | 2026-11-02 |
 | D20 | The shared Flutter/Dart package is not part of this repo's Slice 0; it belongs to the Flutter track | Slice 0 (approved) | 2026-11-02 |
 | D21 | The demo product CRUD from the boilerplate was removed | Slice 0 (approved) | 2026-11-02 |
+| D22 | OTP numbers stay data: `otp.length` = 4 (D3); `otp.expiry_seconds`, `otp.max_attempts`, `otp.resend_cooldown_seconds` are `null` → OTP endpoints return `409 NOT_CONFIGURED` until set. `DemoSeeder` sets local-only values (300 s / 5 / 60 s). Wrong codes count attempts; reaching the limit burns the code (`429 TOO_MANY_ATTEMPTS`); a new code replaces the old one | Slice 1 (approved) | 2026-11-02 |
+| D23 | Registration is two steps: verifying a `register` code returns a one-time `registration_token` (sha256 stored in `otp_codes`), valid for `otp.expiry_seconds` after verification, exchanged by `POST auth/register` | Slice 1 (approved) | 2026-11-02 |
+| D24 | OTP login for an unregistered phone returns `404 ACCOUNT_NOT_FOUND` (the app routes to sign-up; no SMS is sent). Accepted trade-off: it reveals whether a number is registered | Slice 1 (approved) | 2026-11-02 |
+| D25 | Only clients self-register in Slice 1. Provider account creation moves to Slice 3 with the application draft. Admins have no OTP login (Q9). `app` must match `users.type` | Slice 1 (approved) | 2026-11-02 |
+| D26 | Notification preferences: client keys offers/messages/promotions/reminders; provider keys new_requests/messages/promotions/reminders. A key without a stored row is on. Channels are still open (S6) | Slice 1 (approved) | 2026-11-02 |
+| D27 | Sessions: one `user_devices` row per token `jti`; `device.session` middleware rejects tokens of revoked rows (jwt-auth can only blacklist tokens it holds). Refresh blacklists the old token and moves the row to the new `jti`. The `type` claim is persisted across refresh. The 14-day refresh window is sliding (the library resets `iat` on each refresh), so a session ends after 14 days without use | Slice 1 | 2026-11-02 |
+| D28 | Terms acceptance at sign-up is recorded as an `activity_events` row (`registered`, meta `terms_policy_version_id`, `null` while no terms version is published). Suspended users can log out but not log in, refresh or use other endpoints. `pending_deletion` users log in normally until Slice 12 defines otherwise | Slice 1 | 2026-11-02 |
 
 ## Open — blocking (needed before the related slice)
 
@@ -41,8 +48,9 @@ When a question is answered, move it to **Decided** with the date and source.
 | Q5 | Booking time model: duration or end time, buffers/travel time, simultaneous capacity per provider, timezone | 5 |
 | Q6 | Required provider documents per account type (CR, freelance document, ID, authorization) and file limits | 3 |
 | Q7 | Is there a managed list of districts for coverage matching, or free text? | 3, 4 |
-| Q8 | Which SMS provider, payment gateway, shipping carrier, maps provider? | 1, 9, 10 |
+| Q8 | Which SMS provider, payment gateway, shipping carrier, maps provider? (Slice 1 ships with the fake SMS driver) | 1 (go-live), 9, 10 |
 | Q9 | Admin login method (email + password, OTP, 2FA?) | 14 |
+| Q10 | OTP expiry, max wrong attempts and resend cooldown (`app_settings` `otp.*`, D22). Also: a daily send cap per phone? | 1 (go-live) |
 
 ## Open — design vs BRD conflicts
 

@@ -62,10 +62,10 @@ Error:
 | 200 / 201 | OK / created | — |
 | 401 | Missing/expired/revoked token | `UNAUTHENTICATED`, `TOKEN_EXPIRED` |
 | 403 | Wrong user type, not owner, missing permission, suspended | `FORBIDDEN`, `ACCOUNT_SUSPENDED` |
-| 404 | Not found **or not visible to this user** (never leak existence) | `NOT_FOUND` |
+| 404 | Not found **or not visible to this user** (never leak existence); unknown phone at OTP login | `NOT_FOUND`, `ACCOUNT_NOT_FOUND` |
 | 405 | HTTP method not supported on this URL | `METHOD_NOT_ALLOWED` |
 | 409 | State conflict, or a required setting/policy is not specified yet | `INVALID_STATE`, `NOT_CONFIGURED`, `OFFER_EXPIRED`, `SLOT_UNAVAILABLE`, `ALREADY_BOOKED`, `DUPLICATE_REQUEST` |
-| 422 | Validation | `VALIDATION_FAILED`, `OTP_INVALID`, `OUT_OF_COVERAGE`, `OUT_OF_STOCK` |
+| 422 | Validation | `VALIDATION_FAILED`, `OTP_INVALID`, `OTP_EXPIRED`, `OUT_OF_COVERAGE`, `OUT_OF_STOCK` |
 | 429 | Rate limited | `TOO_MANY_ATTEMPTS` |
 | 500 | Server error (no trace when `APP_DEBUG=false`) | `SERVER_ERROR` |
 
@@ -75,6 +75,13 @@ Error:
 - JWT (`php-open-source-saver/jwt-auth`), guard `api`: `Authorization: Bearer <access_token>`.
   Access TTL 60 min, refresh window 14 days, blacklist enabled.
 - Each login creates a `user_devices` row keyed by the token `jti`. Logout = blacklist + `revoked_at`.
+  Every authenticated route also runs `device.session` (`ApiRouteLoader::AUTHENTICATED`): a token whose
+  device row is missing or revoked gets `401 UNAUTHENTICATED`, so "log out other devices" is immediate.
+- Login flow (Slice 1): `POST auth/otp/request` → `POST auth/otp/verify` (`purpose: login`) → token.
+  Register: request + verify with `purpose: register` → one-time `registration_token` → `POST auth/register`.
+  `app` (`client` | `provider`) must match the user type, otherwise `403 FORBIDDEN`.
+- `401 TOKEN_EXPIRED` → call `POST auth/token/refresh` with the expired token; `401 UNAUTHENTICATED` there
+  means the refresh window is over (or the session was closed) → log in again.
 - Middleware per audience folder: `auth:api` + user-type check (`client` / `provider` / `admin`)
   + `permission:*` for admin routes. Ownership is always checked by a Policy.
 - Suspended accounts get `403 ACCOUNT_SUSPENDED` with the user-visible reason.

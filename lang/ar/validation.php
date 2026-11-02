@@ -168,6 +168,13 @@ return [
     'custom' => [],
 
     'attributes' => [
+        'current_phone' => 'رقم الجوال الحالي',
+        'purpose' => 'الغرض',
+        'app' => 'التطبيق',
+        'registration_token' => 'رمز التسجيل',
+        'terms_accepted' => 'الشروط والأحكام',
+        'fcm_token' => 'رمز الإشعارات',
+        'preferences' => 'التفضيلات',
         'phone' => 'رقم الجوال',
         'name' => 'الاسم',
         'email' => 'البريد الإلكتروني',

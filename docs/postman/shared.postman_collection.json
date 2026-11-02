@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Bliss aan — shared",
-    "description": "Audience folder `shared/`. Tokens come from the Auth collection (Slice 1); until then generate one with `php artisan tinker` → `JWTAuth::fromUser(User::first())`.",
+    "description": "Audience folder `shared/`. Get tokens from the Auth collection (Login / Register save `client_token` and `provider_token`).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -10,15 +10,33 @@
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Accept", "value": "application/json" },
-          { "key": "Accept-Language", "value": "{{lang}}" },
-          { "key": "Authorization", "value": "Bearer {{provider_token}}" }
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept-Language",
+            "value": "{{lang}}"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{provider_token}}"
+          }
         ],
         "body": {
           "mode": "formdata",
           "formdata": [
-            { "key": "context", "value": "provider_document", "type": "text", "description": "provider_document | portfolio | chat_image | chat_file | chat_voice | booking_update | catalog_image | banner" },
-            { "key": "file", "type": "file", "src": [] }
+            {
+              "key": "context",
+              "value": "provider_document",
+              "type": "text",
+              "description": "provider_document | portfolio | chat_image | chat_file | chat_voice | booking_update | catalog_image | banner"
+            },
+            {
+              "key": "file",
+              "type": "file",
+              "src": []
+            }
           ]
         },
         "url": "{{base_url}}/shared/uploads",
@@ -33,6 +51,164 @@
         "url": "{{media_url}}",
         "description": "Use `data.url` from the upload response as-is. Tampered or expired → 403 FORBIDDEN."
       }
+    },
+    {
+      "name": "Devices",
+      "item": [
+        {
+          "name": "List devices",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/shared/devices",
+            "description": "Open sessions, most recent first. `is_current` marks this one. Clients and providers only."
+          }
+        },
+        {
+          "name": "Log out other devices",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/shared/devices/logout-others",
+            "description": "Returns `revoked_count`. Their tokens get 401 right away."
+          }
+        },
+        {
+          "name": "Set FCM token",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/shared/devices/current/fcm-token",
+            "description": "For the device that sends the request. `null` clears it.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fcm_token\": \"fcm-token-from-firebase\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notification preferences",
+      "item": [
+        {
+          "name": "Get preferences",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/shared/notification-preferences",
+            "description": "Client keys: offers, messages, promotions, reminders. Provider keys: new_requests, messages, promotions, reminders. On by default."
+          }
+        },
+        {
+          "name": "Update preferences",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/shared/notification-preferences",
+            "description": "Partial map key → enabled. A key of the other user type → 422.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"preferences\": {\n    \"promotions\": false\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
     }
   ]
 }

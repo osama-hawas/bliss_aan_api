@@ -1,0 +1,423 @@
+{
+  "info": {
+    "name": "Bliss aan — auth",
+    "description": "Audience folder `auth/` (Slice 1). Phone + OTP, no passwords. Locally the fake SMS driver writes the code to `storage/logs/laravel.log` (`[fake-sms]`). OTP expiry/attempts/cooldown are seeded only by `DemoSeeder` (local); elsewhere they are `null` → `409 NOT_CONFIGURED`.\n\nLogin and register save `client_token` / `provider_token` in the environment; `Refresh` and `Logout` use `client_token`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Login",
+      "item": [
+        {
+          "name": "Request login code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/otp/request",
+            "description": "Returns `expires_in`, `resend_in`, `length`. 404 ACCOUNT_NOT_FOUND (go to register), 403 FORBIDDEN (number belongs to the other app), 403 ACCOUNT_SUSPENDED (`errors.reason`), 429 TOO_MANY_ATTEMPTS (`errors.retry_after`).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{client_phone}}\",\n  \"purpose\": \"login\",\n  \"app\": \"client\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Verify login code (client)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/otp/verify",
+            "description": "Returns `access_token`, `token_type`, `expires_in` (seconds) and `user`. 422 OTP_INVALID / OTP_EXPIRED; 429 TOO_MANY_ATTEMPTS burns the code.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{client_phone}}\",\n  \"purpose\": \"login\",\n  \"code\": \"1234\",\n  \"app\": \"client\",\n  \"device\": {\n    \"platform\": \"ios\",\n    \"device_name\": \"iPhone 15\",\n    \"fcm_token\": null\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.success && body.data.access_token) pm.environment.set('client_token', body.data.access_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify login code (provider)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/otp/verify",
+            "description": "Provider app. Provider accounts are created in Slice 3.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{provider_phone}}\",\n  \"purpose\": \"login\",\n  \"code\": \"1234\",\n  \"app\": \"provider\",\n  \"device\": {\n    \"platform\": \"ios\",\n    \"device_name\": \"iPhone 15\",\n    \"fcm_token\": null\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.success && body.data.access_token) pm.environment.set('provider_token', body.data.access_token);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Register (client)",
+      "item": [
+        {
+          "name": "Request register code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/otp/request",
+            "description": "422 `errors.phone` when the number is already registered. 403 FORBIDDEN for `app: provider`.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{new_phone}}\",\n  \"purpose\": \"register\",\n  \"app\": \"client\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Verify register code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/otp/verify",
+            "description": "Returns a one-time `registration_token`, valid for `expires_in` seconds.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{new_phone}}\",\n  \"purpose\": \"register\",\n  \"code\": \"1234\",\n  \"app\": \"client\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.success) pm.environment.set('registration_token', body.data.registration_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/register",
+            "description": "201 with a session (same shape as login). Email and city are optional. Reused token → 422 OTP_INVALID, expired → 422 OTP_EXPIRED.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"registration_token\": \"{{registration_token}}\",\n  \"name\": \"سارة\",\n  \"email\": null,\n  \"city_id\": 1,\n  \"terms_accepted\": true,\n  \"app\": \"client\",\n  \"device\": {\n    \"platform\": \"ios\",\n    \"device_name\": \"iPhone 15\",\n    \"fcm_token\": null\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.success && body.data.access_token) pm.environment.set('client_token', body.data.access_token);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Session",
+      "item": [
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/auth/me",
+            "description": "The signed-in user. Any user type."
+          }
+        },
+        {
+          "name": "Refresh token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/auth/token/refresh",
+            "description": "Send the current token, even if expired, within the 14-day refresh window. The old token stops working. 401 UNAUTHENTICATED → log in again."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.success && body.data.access_token) pm.environment.set('client_token', body.data.access_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/auth/logout",
+            "description": "Blacklists this token and closes its device session."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Change phone",
+      "item": [
+        {
+          "name": "Request change-phone code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/auth/change-phone/otp",
+            "description": "Sends the code to the NEW number. 422 `errors.phone` if it is the current number or already registered.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{new_phone}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Change phone",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/auth/change-phone",
+            "description": "Returns the updated user.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{new_phone}}\",\n  \"code\": \"1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

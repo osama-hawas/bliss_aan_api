@@ -199,6 +199,13 @@ return [
     */
 
     'attributes' => [
+        'current_phone' => 'current mobile number',
+        'purpose' => 'purpose',
+        'app' => 'app',
+        'registration_token' => 'registration token',
+        'terms_accepted' => 'terms',
+        'fcm_token' => 'notification token',
+        'preferences' => 'preferences',
         'phone' => 'mobile number',
         'city_id' => 'city',
         'birth_date' => 'birth date',

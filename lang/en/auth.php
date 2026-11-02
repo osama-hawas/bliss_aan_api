@@ -17,4 +17,6 @@ return [
     'password' => 'The provided password is incorrect.',
     'throttle' => 'Too many login attempts. Please try again in :seconds seconds.',
 
+    // Slice 1 (Auth)
+    'otp_sms' => 'Your Bliss aan verification code is :code. Do not share it with anyone.',
 ];

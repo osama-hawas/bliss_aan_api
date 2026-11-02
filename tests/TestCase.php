@@ -2,9 +2,11 @@
 
 namespace Tests;
 
+use App\Enums\DeviceApp;
+use App\Enums\UserType;
 use App\Models\User;
+use App\Services\Auth\DeviceSessionService;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
-use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -15,14 +17,31 @@ abstract class TestCase extends BaseTestCase
      */
     protected function actingAsApi(User $user): static
     {
+        return $this->withApiToken($this->tokenFor($user));
+    }
+
+    /**
+     * Send the next requests with this raw token, starting from a fresh guard.
+     */
+    protected function withApiToken(string $token): static
+    {
         $this->app['tymon.jwt']->unsetToken();
         $this->app['auth']->forgetGuards();
 
-        return $this->withToken($this->tokenFor($user));
+        return $this->withToken($token);
     }
 
+    /**
+     * Issues a token the way login does, with its user_devices session row.
+     */
     protected function tokenFor(User $user): string
     {
-        return JWTAuth::fromUser($user);
+        $app = match ($user->type) {
+            UserType::Provider => DeviceApp::Provider,
+            UserType::Admin => DeviceApp::Dashboard,
+            default => DeviceApp::Client,
+        };
+
+        return app(DeviceSessionService::class)->issue($user, $app)['access_token'];
     }
 }

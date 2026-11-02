@@ -1,3 +1,10 @@
 {
-    "File uploaded.": "تم رفع الملف."
+    "File uploaded.": "تم رفع الملف.",
+    "Verification code sent.": "تم إرسال رمز التحقق.",
+    "Logged in.": "تم تسجيل الدخول.",
+    "Account created.": "تم إنشاء الحساب.",
+    "Logged out.": "تم تسجيل الخروج.",
+    "Mobile number changed.": "تم تغيير رقم الجوال.",
+    "Other devices logged out.": "تم تسجيل الخروج من الأجهزة الأخرى.",
+    "Saved.": "تم الحفظ."
 }

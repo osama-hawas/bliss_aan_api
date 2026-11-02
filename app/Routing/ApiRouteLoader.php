@@ -13,14 +13,20 @@ use Symfony\Component\Finder\Finder;
 class ApiRouteLoader
 {
     /**
-     * Middleware per audience folder. `auth/` and `shared/` routes opt in to auth per route.
+     * A valid token whose device session is still open.
+     */
+    public const AUTHENTICATED = ['auth:api', 'device.session'];
+
+    /**
+     * Middleware per audience folder. `auth/` and `shared/` routes opt in to auth per route
+     * (use AUTHENTICATED there). `device.session` rejects tokens of logged-out devices.
      */
     public const AUDIENCES = [
         'auth' => [],
         'shared' => [],
-        'client' => ['auth:api', 'account.active', 'user.type:client'],
-        'provider' => ['auth:api', 'account.active', 'user.type:provider'],
-        'admin' => ['auth:api', 'account.active', 'user.type:admin'],
+        'client' => [...self::AUTHENTICATED, 'account.active', 'user.type:client'],
+        'provider' => [...self::AUTHENTICATED, 'account.active', 'user.type:provider'],
+        'admin' => [...self::AUTHENTICATED, 'account.active', 'user.type:admin'],
     ];
 
     public static function load(string $basePath): void

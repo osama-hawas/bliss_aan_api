@@ -2,6 +2,7 @@
 
 use App\Exceptions\ApiExceptionRenderer;
 use App\Http\Middleware\EnsureAccountActive;
+use App\Http\Middleware\EnsureDeviceSession;
 use App\Http\Middleware\EnsureUserType;
 use App\Http\Middleware\SetApiLanguage;
 use Illuminate\Foundation\Application;
@@ -40,6 +41,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'user.type' => EnsureUserType::class,
             'account.active' => EnsureAccountActive::class,
+            'device.session' => EnsureDeviceSession::class,
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
         ]);

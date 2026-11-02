@@ -6,6 +6,13 @@ return [
     'user_status' => ['active' => 'Active', 'suspended' => 'Suspended', 'pending_deletion' => 'Pending deletion'],
     'otp_purpose' => ['login' => 'Login', 'register' => 'Registration', 'change_phone' => 'Change mobile number'],
     'device_app' => ['client' => 'Client app', 'provider' => 'Provider app', 'dashboard' => 'Dashboard'],
+    'notification_preference_key' => [
+        'offers' => 'Offers',
+        'messages' => 'Messages',
+        'promotions' => 'Offers and promotions',
+        'reminders' => 'Reminders',
+        'new_requests' => 'New requests',
+    ],
     'media_visibility' => ['private' => 'Private', 'public' => 'Public'],
     'policy_type' => [
         'payment' => 'Payment policy',

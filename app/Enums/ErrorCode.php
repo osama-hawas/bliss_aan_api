@@ -14,19 +14,22 @@ enum ErrorCode: string
     case Forbidden = 'FORBIDDEN';
     case AccountSuspended = 'ACCOUNT_SUSPENDED';
     case NotFound = 'NOT_FOUND';
+    case AccountNotFound = 'ACCOUNT_NOT_FOUND';
     case MethodNotAllowed = 'METHOD_NOT_ALLOWED';
     case InvalidState = 'INVALID_STATE';
     case NotConfigured = 'NOT_CONFIGURED';
+    case OtpInvalid = 'OTP_INVALID';
+    case OtpExpired = 'OTP_EXPIRED';
     case TooManyAttempts = 'TOO_MANY_ATTEMPTS';
     case ServerError = 'SERVER_ERROR';
 
     public function status(): int
     {
         return match ($this) {
-            self::ValidationFailed => 422,
+            self::ValidationFailed, self::OtpInvalid, self::OtpExpired => 422,
             self::Unauthenticated, self::TokenExpired => 401,
             self::Forbidden, self::AccountSuspended => 403,
-            self::NotFound => 404,
+            self::NotFound, self::AccountNotFound => 404,
             self::MethodNotAllowed => 405,
             self::InvalidState, self::NotConfigured => 409,
             self::TooManyAttempts => 429,

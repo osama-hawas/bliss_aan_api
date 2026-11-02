@@ -84,6 +84,15 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
 - Vendors: `SmsGateway`, `PaymentGateway`, `PushNotifier` in `app/Integrations`, fake drivers only.
 - Tests: `$this->actingAsApi($user)` sends a real JWT; tests run on MySQL database `testing`.
 
+## Auth (Slice 1, done)
+
+- Authenticated routes in `auth/` and `shared/` use `[...ApiRouteLoader::AUTHENTICATED, 'account.active', …]`
+  (`auth:api` + `device.session`). The current `UserDevice` is `$request->attributes->get('device')`.
+- Tokens are issued only by `Services\Auth\DeviceSessionService::issue()` (creates the `user_devices` row);
+  `JWTAuth::fromUser()` alone gives a token that every route rejects.
+- OTP: `Services\Auth\OtpService` (settings `otp.*`). Push opt-outs: `NotificationPreferenceService::isEnabled()`.
+- Tests: `Tests\Concerns\InteractsWithOtp` (`configureOtp()`, `plantOtp()`, `sentSms()`), `withApiToken($token)`.
+
 ## Commands
 
 - `docker compose up -d mysql` — local MySQL 8 (databases `bliss_aan` and `testing`)

@@ -1,5 +1,8 @@
 <?php
 
+use PHPOpenSourceSaver\JWTAuth\Providers\Auth\Illuminate;
+use PHPOpenSourceSaver\JWTAuth\Providers\JWT\Lcobucci;
+
 return [
     /*
     |--------------------------------------------------------------------------
@@ -158,8 +161,7 @@ return [
     */
 
     'persistent_claims' => [
-        // 'foo',
-        // 'bar',
+        'type', // User::getJWTCustomClaims(); dropped on refresh unless listed here
     ],
 
     /*
@@ -284,7 +286,7 @@ return [
         |
         */
 
-        'jwt' => PHPOpenSourceSaver\JWTAuth\Providers\JWT\Lcobucci::class,
+        'jwt' => Lcobucci::class,
 
         /*
         |--------------------------------------------------------------------------
@@ -295,7 +297,7 @@ return [
         |
         */
 
-        'auth' => PHPOpenSourceSaver\JWTAuth\Providers\Auth\Illuminate::class,
+        'auth' => Illuminate::class,
 
         /*
         |--------------------------------------------------------------------------

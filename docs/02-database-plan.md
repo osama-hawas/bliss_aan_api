@@ -24,12 +24,12 @@ Labels: **[C]** confirmed · **[R]** recommendation · **[?]** open question.
 | Table | Key columns | Relations | Stage |
 |---|---|---|---|
 | `users` | type (client/provider/admin), name, **phone unique**, email nullable (not unique), no password, city_id, birth_date nullable, locale, status (active/suspended/pending_deletion), status_reason, last_login_at, soft deletes | 1–1 providers; 1–n addresses, user_devices | F |
-| `otp_codes` | phone, code_hash, purpose (login/register/change_phone), attempts, expires_at, consumed_at | — | F |
+| `otp_codes` | phone, code_hash, purpose (login/register/change_phone), attempts, expires_at, verified_at, verification_token_hash (sha256, unique; one-time registration token, D23), consumed_at | — | F (+ verification columns in Slice 1) |
 | `user_devices` | user_id, jti, app (client/provider/dashboard), platform, device_name, fcm_token, last_seen_at, revoked_at | n–1 users | F |
 | `roles`, `permissions`, `model_has_roles`, `model_has_permissions`, `role_has_permissions` | spatie/laravel-permission structure (admins only) | users ↔ roles | F |
 | `account_status_logs` | user_id, action, reason (user-visible), internal_note, actor_id | n–1 users | F |
 | `account_deletion_requests` | user_id, reason, status, processed_by, processed_at | n–1 users | M |
-| `notification_preferences` | user_id, key (offers/messages/promotions/reminders/new_requests), enabled | n–1 users | M |
+| `notification_preferences` | user_id, key (offers/messages/promotions/reminders/new_requests), enabled, unique(user_id, key). Missing row = enabled (D26) | n–1 users | M (Slice 1) |
 
 ## 2. Locations
 

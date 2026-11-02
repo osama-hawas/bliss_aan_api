@@ -6,6 +6,13 @@ return [
     'user_status' => ['active' => 'نشط', 'suspended' => 'موقوف', 'pending_deletion' => 'بانتظار الحذف'],
     'otp_purpose' => ['login' => 'تسجيل الدخول', 'register' => 'إنشاء حساب', 'change_phone' => 'تغيير رقم الجوال'],
     'device_app' => ['client' => 'تطبيق العميلة', 'provider' => 'تطبيق مقدمة الخدمة', 'dashboard' => 'لوحة التحكم'],
+    'notification_preference_key' => [
+        'offers' => 'العروض المقدمة',
+        'messages' => 'الرسائل',
+        'promotions' => 'العروض الترويجية',
+        'reminders' => 'التذكيرات',
+        'new_requests' => 'الطلبات الجديدة',
+    ],
     'media_visibility' => ['private' => 'خاص', 'public' => 'عام'],
     'policy_type' => [
         'payment' => 'سياسة الدفع',

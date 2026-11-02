@@ -27,6 +27,7 @@ class DemoSeeder extends Seeder
         $this->catalog();
         $this->content();
         $this->uploadLimits();
+        $this->otpSettings();
     }
 
     private function users(): void
@@ -127,6 +128,22 @@ class DemoSeeder extends Seeder
 
         foreach ($limits as $context => $value) {
             AppSetting::query()->where('key', "uploads.{$context}")->whereNull('value')->update(['value' => json_encode($value)]);
+        }
+    }
+
+    /**
+     * [DEMO] OTP numbers for local testing only; the real values are undecided.
+     */
+    private function otpSettings(): void
+    {
+        $values = [
+            'otp.expiry_seconds' => 300,
+            'otp.max_attempts' => 5,
+            'otp.resend_cooldown_seconds' => 60,
+        ];
+
+        foreach ($values as $key => $value) {
+            AppSetting::query()->where('key', $key)->whereNull('value')->update(['value' => json_encode($value)]);
         }
     }
 }
