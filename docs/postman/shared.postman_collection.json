@@ -227,6 +227,136 @@
           }
         }
       ]
+    },
+    {
+      "name": "Discovery (public)",
+      "description": "Slice 2. No token needed. Sending a client token (optional) only fills `is_favorite`; a token that is sent must be valid (401 → refresh).",
+      "item": [
+        {
+          "name": "Home",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/shared/home?city_id=1",
+            "description": "Banners running now for the client app (all cities + `city_id`), active categories, admin-featured providers (D32, max 10) covering the city. `city_id` optional; unknown/inactive → 422."
+          }
+        },
+        {
+          "name": "Categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              }
+            ],
+            "url": "{{base_url}}/shared/categories",
+            "description": "Active categories ordered by `sort`: `{id, name, description, image_url}`."
+          }
+        },
+        {
+          "name": "Catalog services",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              }
+            ],
+            "url": "{{base_url}}/shared/services?filter[category_id]=1",
+            "description": "Active catalog services. No guide price (clients only see the provider's price)."
+          }
+        },
+        {
+          "name": "Search providers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/shared/providers?q=&filter[city_id]=1&filter[category_id]=&filter[service_id]=&filter[min_rating]=&filter[verified]=&sort=-rating&per_page=15",
+            "description": "Paginated provider cards. `q` matches the provider name or an offered service name (ar/en). `sort`: `-rating` (default), `rating`, `price`, `-price`, `-activated_at`, `activated_at`; missing ratings/prices go last. `starting_price` = lowest current price of the matching services, null when none is set. No `nearest` sort yet (Q11)."
+          }
+        },
+        {
+          "name": "Provider profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/shared/providers/1",
+            "description": "Public profile: card fields + bio, started_year, coverage_cities, offered services with prices, published portfolio. 404 when not visible."
+          }
+        },
+        {
+          "name": "Provider service details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/shared/providers/1/services/1",
+            "description": "`services/{id}` is the provider-service id from the profile. Price, catalog description, inclusions the provider kept, add-ons she offers with this service and their prices, execution place flags, provider summary."
+          }
+        }
+      ]
     }
   ]
 }

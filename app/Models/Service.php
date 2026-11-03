@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Spatie\Translatable\HasTranslations;
 
 /**
@@ -28,6 +29,11 @@ class Service extends Model
         ];
     }
 
+    public function image(): MorphOne
+    {
+        return $this->mediaIn('image');
+    }
+
     public function category(): BelongsTo
     {
         return $this->belongsTo(ServiceCategory::class, 'category_id');
@@ -36,6 +42,11 @@ class Service extends Model
     public function inclusions(): HasMany
     {
         return $this->hasMany(ServiceInclusion::class)->orderBy('sort');
+    }
+
+    public function providerServices(): HasMany
+    {
+        return $this->hasMany(ProviderService::class);
     }
 
     public function addons(): BelongsToMany

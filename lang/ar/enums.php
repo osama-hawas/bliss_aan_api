@@ -41,4 +41,13 @@ return [
         'catalog_image' => 'صورة الكتالوج',
         'banner' => 'بانر',
     ],
+    'provider_account_type' => ['individual' => 'فرد', 'establishment' => 'منشأة'],
+    'provider_status' => [
+        'draft' => 'مسودة',
+        'submitted' => 'قيد المراجعة',
+        'needs_completion' => 'بحاجة لاستكمال',
+        'active' => 'مفعّلة',
+        'suspended' => 'موقوفة',
+    ],
+    'favorite_type' => ['provider' => 'مقدمة خدمة', 'provider_service' => 'خدمة'],
 ];

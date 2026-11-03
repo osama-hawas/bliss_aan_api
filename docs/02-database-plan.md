@@ -56,21 +56,21 @@ Labels: **[C]** confirmed · **[R]** recommendation · **[?]** open question.
 
 | Table | Key columns | Stage |
 |---|---|---|
-| `providers` | user_id (owner, unique), **account_type** (individual/establishment), display_name, legal_name, representative_name/title, bio, city_id, started_year, **status** (draft/submitted/needs_completion/active/suspended), is_verified (admin only), accepts_open_requests, quick_offer_enabled, rating_avg, rating_count, response_time_minutes (cached), activated_at | M |
+| `providers` | user_id (owner, unique), **account_type** (individual/establishment), display_name, legal_name, representative_name/title, bio, city_id, started_year, **status** (draft/submitted/needs_completion/active/suspended), is_verified (admin only), **is_featured (admin only, D32)**, accepts_open_requests, quick_offer_enabled, rating_avg, rating_count, response_time_minutes (cached), activated_at | M (Slice 2) |
 | `document_types` | applies_to (individual/establishment/both), is_required, name (ar/en), allowed_mimes, max_size_kb, is_active, sort. Configurable because the list is undecided [C] | F |
 | `provider_documents` | provider_id, document_type_id, media_id, status (pending/accepted/rejected), rejection_reason | M |
 | `provider_review_notes` | provider_id, reviewer_id, note_to_provider, internal_note | M |
-| `provider_services` | provider_id, service_id, **custom_price nullable (null = follow guide price)**, at_provider_location, at_event_location, is_active, **unique(provider_id, service_id)** | M |
-| `provider_service_inclusions` | provider_service_id, service_inclusion_id, enabled (+ custom_text if conflict #4 approved [?]) | M |
-| `provider_addons` | provider_id, addon_id, price, is_active | M |
-| `provider_addon_service` | provider_addon_id, provider_service_id | M |
-| `provider_coverage_areas` | provider_id, city_id, district_id nullable | M |
+| `provider_services` | provider_id, service_id, **custom_price nullable (null = follow guide price)**, at_provider_location, at_event_location, is_active, **unique(provider_id, service_id)** | M (Slice 2) |
+| `provider_service_inclusions` | provider_service_id, service_inclusion_id, enabled (+ custom_text if conflict #4 approved [?]) | M (Slice 2) |
+| `provider_addons` | provider_id, addon_id, price, is_active | M (Slice 2) |
+| `provider_addon_service` | provider_addon_id, provider_service_id | M (Slice 2) |
+| `provider_coverage_areas` | provider_id, city_id, district_id nullable | M (Slice 2) |
 | `provider_working_hours` | provider_id, weekday, opens_at, closes_at | M |
 | `availability_blocks` | provider_id, starts_at, ends_at, reason | M |
-| `portfolio_items` | provider_id, media_id, caption, hidden_by_admin, hidden_reason, sort | M |
+| `portfolio_items` | provider_id, media_id, caption, hidden_by_admin, hidden_reason, sort | M (Slice 2) |
 | `provider_team_members` [?] | provider_id, user_id nullable, name, title, scope, status | M/D |
 | `booking_assignments` [?] | booking_id, team_member_id, task, status, assigned_by | M/D |
-| `favorites` | user_id, favoritable_type (provider / provider_service), favoritable_id, unique per user+item | M |
+| `favorites` | user_id, favoritable_type (`App\Enums\FavoriteType` string: provider / provider_service, not a class name), favoritable_id, unique per user+item (D35) | M (Slice 2) |
 
 ## 5. Requests, offers, bookings
 

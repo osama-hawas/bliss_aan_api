@@ -18,6 +18,8 @@ trait HasMedia
      */
     public function mediaIn(string $collection): MorphOne
     {
-        return $this->morphOne(Media::class, 'attachable')->where('collection', $collection)->latestOfMany();
+        // The collection filter must be inside ofMany(), or the "latest" row is picked across all collections.
+        return $this->morphOne(Media::class, 'attachable')
+            ->ofMany(['id' => 'max'], fn ($query) => $query->where('collection', $collection), "latest_{$collection}");
     }
 }

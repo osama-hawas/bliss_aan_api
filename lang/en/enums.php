@@ -41,4 +41,13 @@ return [
         'catalog_image' => 'Catalog image',
         'banner' => 'Banner',
     ],
+    'provider_account_type' => ['individual' => 'Individual', 'establishment' => 'Establishment'],
+    'provider_status' => [
+        'draft' => 'Draft',
+        'submitted' => 'Under review',
+        'needs_completion' => 'Needs completion',
+        'active' => 'Active',
+        'suspended' => 'Suspended',
+    ],
+    'favorite_type' => ['provider' => 'Provider', 'provider_service' => 'Service'],
 ];

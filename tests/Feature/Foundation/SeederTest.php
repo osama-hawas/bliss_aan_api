@@ -7,10 +7,13 @@ use App\Enums\Permission as PermissionName;
 use App\Models\AppSetting;
 use App\Models\City;
 use App\Models\DocumentType;
+use App\Models\Provider;
 use App\Models\Service;
 use App\Models\ServiceCategory;
 use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\DemoSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -42,6 +45,21 @@ class SeederTest extends TestCase
 
         $this->assertSame(6, City::count());
         $this->assertSame(5, Role::count());
+    }
+
+    public function test_demo_seeder_builds_browsable_providers_and_is_idempotent(): void
+    {
+        Storage::fake('public');
+        $this->seed(DatabaseSeeder::class);
+        $this->seed(DemoSeeder::class);
+        $this->seed(DemoSeeder::class);
+
+        $this->assertSame(11, Provider::count());
+        $this->assertSame(10, Provider::query()->listed()->count());
+        Storage::disk('public')->assertExists('demo/hall3.jpg');
+
+        $this->getJson('/api/v1/shared/providers?per_page=50')->assertOk()->assertJsonPath('meta.total', 10);
+        $this->getJson('/api/v1/shared/home')->assertOk()->assertJsonCount(1, 'data.banners');
     }
 
     public function test_translations_resolve_by_locale(): void

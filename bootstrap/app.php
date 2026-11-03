@@ -1,6 +1,7 @@
 <?php
 
 use App\Exceptions\ApiExceptionRenderer;
+use App\Http\Middleware\AuthenticateOptionally;
 use App\Http\Middleware\EnsureAccountActive;
 use App\Http\Middleware\EnsureDeviceSession;
 use App\Http\Middleware\EnsureUserType;
@@ -42,6 +43,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'user.type' => EnsureUserType::class,
             'account.active' => EnsureAccountActive::class,
             'device.session' => EnsureDeviceSession::class,
+            'auth.optional' => AuthenticateOptionally::class,
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
         ]);

@@ -6,6 +6,7 @@ use App\Enums\Audience;
 use App\Models\Concerns\HasMedia;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Spatie\Translatable\HasTranslations;
 
@@ -25,6 +26,11 @@ class Banner extends Model
             'ends_at' => 'datetime',
             'is_active' => 'boolean',
         ];
+    }
+
+    public function image(): MorphOne
+    {
+        return $this->mediaIn('image');
     }
 
     public function destination(): MorphTo

@@ -1,0 +1,102 @@
+{
+  "info": {
+    "name": "Bliss aan — client",
+    "description": "Audience folder `client/` (client token from the Auth collection).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Favorites",
+      "item": [
+        {
+          "name": "List favorites",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/client/favorites?filter[type]=&per_page=15",
+            "description": "Newest first. `type` `provider` or `provider_service`; each row carries the matching card (`provider` or `provider_service`). Items no longer visible are hidden but kept."
+          }
+        },
+        {
+          "name": "Add provider",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/client/favorites/provider/1",
+            "description": "Idempotent. 404 when the provider is not visible."
+          }
+        },
+        {
+          "name": "Add provider service",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/client/favorites/provider_service/1",
+            "description": "Idempotent. Uses the provider-service id."
+          }
+        },
+        {
+          "name": "Remove",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/client/favorites/provider/1",
+            "description": "Idempotent; works even if the item is no longer visible."
+          }
+        }
+      ]
+    }
+  ]
+}

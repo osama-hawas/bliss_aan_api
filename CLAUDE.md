@@ -94,6 +94,20 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
 - OTP: `Services\Auth\OtpService` (settings `otp.*`). Push opt-outs: `NotificationPreferenceService::isEnabled()`.
 - Tests: `Tests\Concerns\InteractsWithOtp` (`configureOtp()`, `plantOtp()`, `sentSms()`), `withApiToken($token)`.
 
+## Discovery (Slice 2, done)
+
+- Public read endpoints live in `routes/api/v1/shared/catalog.php` behind `auth.optional`
+  (`AuthenticateOptionally`: no token = guest; a sent token must be valid). `FavoriteLookup::for($request)`
+  fills `is_favorite`, loading the client's favorites once per request.
+- Visibility goes through `Provider::listed()`, `ProviderService::offered()` / `visible()` and
+  `PortfolioItem::published()`; anything else is a 404. `ProviderService::price()` = custom ?? guide price ?? null.
+- Queries: `Services\Providers\ProviderDirectory` (search, featured, profile, service, `startingPrice()` subquery),
+  `Services\Catalog\CatalogBrowser`, `Services\Catalog\FavoriteService`.
+- Single-file media collections: `HasMedia::mediaIn()` (relations `image`, `avatar`, `cover`).
+- Tests: `Tests\Concerns\BuildsCatalog` (`category()`, `service()`, `provider()`, `offer()`, `media()`).
+- `DemoSeeder` adds `[DEMO]` providers, services, add-ons and photos from `database/seeders/demo-images/`
+  (local only). Local `APP_URL` must include the port (`http://127.0.0.1:8000`) for image URLs to load.
+
 ## Commands
 
 - `docker compose up -d mysql` — local MySQL 8 (databases `bliss_aan` and `testing`)
