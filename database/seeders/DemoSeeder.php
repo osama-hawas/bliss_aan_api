@@ -314,6 +314,7 @@ class DemoSeeder extends Seeder
             UploadContext::BookingUpdate->value => $image,
             UploadContext::CatalogImage->value => $image,
             UploadContext::Banner->value => $image,
+            UploadContext::Avatar->value => $image,
         ];
 
         foreach ($limits as $context => $value) {

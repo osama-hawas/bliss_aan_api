@@ -23,7 +23,7 @@ class Provider extends Model
 
     protected $fillable = [
         'user_id', 'account_type', 'display_name', 'legal_name', 'representative_name', 'representative_title',
-        'bio', 'city_id', 'started_year', 'status', 'is_verified', 'is_featured', 'accepts_open_requests',
+        'bio', 'city_id', 'started_year', 'status', 'status_reason', 'submitted_at', 'is_verified', 'is_featured', 'accepts_open_requests',
         'quick_offer_enabled', 'rating_avg', 'rating_count', 'response_time_minutes', 'activated_at',
     ];
 
@@ -41,6 +41,7 @@ class Provider extends Model
             'response_time_minutes' => 'integer',
             'started_year' => 'integer',
             'activated_at' => 'datetime',
+            'submitted_at' => 'datetime',
         ];
     }
 
@@ -96,5 +97,23 @@ class Provider extends Model
     public function portfolioItems(): HasMany
     {
         return $this->hasMany(PortfolioItem::class)->orderBy('sort')->orderBy('id');
+    }
+
+    public function workingHours(): HasMany
+    {
+        return $this->hasMany(ProviderWorkingHour::class)->orderBy('weekday');
+    }
+
+    public function documents(): HasMany
+    {
+        return $this->hasMany(ProviderDocument::class);
+    }
+
+    /**
+     * Newest first.
+     */
+    public function reviewNotes(): HasMany
+    {
+        return $this->hasMany(ProviderReviewNote::class)->latest('id');
     }
 }

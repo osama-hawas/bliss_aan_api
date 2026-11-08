@@ -40,6 +40,7 @@ return [
         'booking_update' => 'مرفق تحديث الحجز',
         'catalog_image' => 'صورة الكتالوج',
         'banner' => 'بانر',
+        'avatar' => 'الصورة الشخصية',
     ],
     'provider_account_type' => ['individual' => 'فرد', 'establishment' => 'منشأة'],
     'provider_status' => [
@@ -49,5 +50,6 @@ return [
         'active' => 'مفعّلة',
         'suspended' => 'موقوفة',
     ],
+    'provider_document_status' => ['pending' => 'قيد المراجعة', 'accepted' => 'مقبول', 'rejected' => 'مرفوض'],
     'favorite_type' => ['provider' => 'مقدمة خدمة', 'provider_service' => 'خدمة'],
 ];

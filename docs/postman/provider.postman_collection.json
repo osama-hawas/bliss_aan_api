@@ -1,0 +1,541 @@
+{
+  "info": {
+    "name": "Bliss aan — provider",
+    "description": "Audience folder `provider/` (provider token from the Auth collection: register with `app=provider`, D37). Slice 3. Her own application only.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Application",
+      "item": [
+        {
+          "name": "Show my application",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": "{{base_url}}/provider/application",
+            "description": "Her application and account state (draft, submitted, needs_completion with the reviewer's note, active, suspended with the reason). 200. Response `data` (ApplicationResource): `id, status, status_label, editable, status_reason` (suspended only), `completion {items[], note, requested_at}` (needs_completion only), `notes[{id, note, created_at}]` (notes to her; internal notes never sent), `account_type(_label), display_name, legal_name, representative_name, representative_title, email, phone, bio, city{id,name}, started_year, services[{id,name}], coverage[{id,name}], documents[{document_type{id,name,is_required}, document{id,status,status_label,rejection_reason,file{name,mime,size,url (signed, 10 min)},uploaded_at}|null}], photos[{id,url,caption}], submitted_at, activated_at`. Errors: 401 UNAUTHENTICATED · 403 FORBIDDEN (not a provider) / ACCOUNT_SUSPENDED · 404 NOT_FOUND · 409 INVALID_STATE (not editable / wrong state) · 422 VALIDATION_FAILED."
+          }
+        },
+        {
+          "name": "Update application",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/provider/application",
+            "description": "Partial update; only sent fields change. Only in `draft`/`needs_completion` (else 409). Rules: account_type individual|establishment; display_name ≤60; legal_name ≤120, representative_name ≤60, representative_title ≤60 (cleared for individuals); email ≤120 (email); bio ≤400; city_id active city; started_year 1950–this year; service_ids[] active services (≤50); coverage_city_ids[] active cities (≤20). Empty strings → null. 200 + ApplicationResource. Errors: 401 UNAUTHENTICATED · 403 FORBIDDEN (not a provider) / ACCOUNT_SUSPENDED · 404 NOT_FOUND · 409 INVALID_STATE (not editable / wrong state) · 422 VALIDATION_FAILED.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account_type\": \"establishment\",\n  \"display_name\": \"لمسة الفن\",\n  \"legal_name\": \"شركة لمسة الفن للمناسبات\",\n  \"representative_name\": \"نورة العتيبي\",\n  \"representative_title\": \"مالكة\",\n  \"email\": \"noura@example.com\",\n  \"bio\": \"تنسيق حفلات الزفاف منذ 2019\",\n  \"city_id\": 1,\n  \"started_year\": 2019,\n  \"service_ids\": [\n    1,\n    2\n  ],\n  \"coverage_city_ids\": [\n    1,\n    2\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Attach document",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/provider/application/documents",
+            "description": "Upload first with `POST shared/uploads` (context `provider_document`, private). `media_id` must be hers, of that context and unused; `document_type_id` an active type for her account type. Replaces the file of that type and resets it to `pending`. 201 + ApplicationResource. Errors: 401 UNAUTHENTICATED · 403 FORBIDDEN (not a provider) / ACCOUNT_SUSPENDED · 404 NOT_FOUND · 409 INVALID_STATE (not editable / wrong state) · 422 VALIDATION_FAILED.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"document_type_id\": 1,\n  \"media_id\": 10\n}"
+            }
+          }
+        },
+        {
+          "name": "Remove document",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": "{{base_url}}/provider/application/documents/{{document_id}}",
+            "description": "Her own document only (else 404). Editable states only. 200 + ApplicationResource. Errors: 401 UNAUTHENTICATED · 403 FORBIDDEN (not a provider) / ACCOUNT_SUSPENDED · 404 NOT_FOUND · 409 INVALID_STATE (not editable / wrong state) · 422 VALIDATION_FAILED."
+          }
+        },
+        {
+          "name": "Add work photo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/provider/application/photos",
+            "description": "Upload with context `portfolio`. Up to 10 (D40). caption ≤200. 201 + ApplicationResource. Errors: 401 UNAUTHENTICATED · 403 FORBIDDEN (not a provider) / ACCOUNT_SUSPENDED · 404 NOT_FOUND · 409 INVALID_STATE (not editable / wrong state) · 422 VALIDATION_FAILED.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"media_id\": 11,\n  \"caption\": \"زفاف 2025\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Remove work photo",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": "{{base_url}}/provider/application/photos/{{photo_id}}",
+            "description": "200 + ApplicationResource. Errors: 401 UNAUTHENTICATED · 403 FORBIDDEN (not a provider) / ACCOUNT_SUSPENDED · 404 NOT_FOUND · 409 INVALID_STATE (not editable / wrong state) · 422 VALIDATION_FAILED."
+          }
+        },
+        {
+          "name": "Submit / resubmit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": "{{base_url}}/provider/application/submit",
+            "description": "draft|needs_completion → submitted. 422 with field errors when something is missing (display_name, city_id, legal_name + representative_name for establishments, service_ids, coverage_city_ids, required documents). A second submit while under review → 409 INVALID_STATE. 200 + ApplicationResource. Errors: 401 UNAUTHENTICATED · 403 FORBIDDEN (not a provider) / ACCOUNT_SUSPENDED · 404 NOT_FOUND · 409 INVALID_STATE (not editable / wrong state) · 422 VALIDATION_FAILED."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Setup",
+      "item": [
+        {
+          "name": "Catalog",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/provider/catalog",
+            "description": "Catalog services she can offer with guide price, inclusions and add-ons. Active providers only (409 INVALID_STATE otherwise)."
+          }
+        },
+        {
+          "name": "My services",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/provider/services",
+            "description": "Her services with effective price, inclusions (enabled flags) and add-on prices. Active providers only (409 INVALID_STATE otherwise)."
+          }
+        },
+        {
+          "name": "Add service",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/provider/services",
+            "description": "Adds a catalog service on the guide price. 201. Active providers only (409 INVALID_STATE otherwise).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"service_id\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Update service",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/provider/services/{{provider_service_id}}",
+            "description": "custom_price null resets to the guide price. Active providers only (409 INVALID_STATE otherwise).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"custom_price\": 1800,\n  \"at_provider_location\": true,\n  \"at_event_location\": true,\n  \"is_active\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Set inclusions",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/provider/services/{{provider_service_id}}/inclusions",
+            "description": "Catalog inclusions to switch off. Active providers only (409 INVALID_STATE otherwise).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"disabled_inclusion_ids\": []\n}"
+            }
+          }
+        },
+        {
+          "name": "Price add-on",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/provider/addons/{{addon_id}}",
+            "description": "Catalog add-on; services must belong to it. Active providers only (409 INVALID_STATE otherwise).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 300,\n  \"is_active\": true,\n  \"provider_service_ids\": [\n    1\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/provider/profile",
+            "description": "Bio, avatar, open requests, working hours, portfolio. Active providers only (409 INVALID_STATE otherwise)."
+          }
+        },
+        {
+          "name": "Update profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/provider/profile",
+            "description": " Active providers only (409 INVALID_STATE otherwise).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bio\": \"…\",\n  \"accepts_open_requests\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Set avatar",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/provider/profile/avatar",
+            "description": "Upload first with context avatar; null removes. Active providers only (409 INVALID_STATE otherwise).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"media_id\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Set working hours",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/provider/working-hours",
+            "description": "Replaces the week; 0 = Sunday; missing day = closed. Active providers only (409 INVALID_STATE otherwise).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hours\": [\n    {\n      \"weekday\": 0,\n      \"opens_at\": \"10:00\",\n      \"closes_at\": \"18:00\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Add portfolio photo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/provider/portfolio",
+            "description": "Upload context portfolio. Active providers only (409 INVALID_STATE otherwise).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"media_id\": 1,\n  \"caption\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "Remove portfolio photo",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/provider/portfolio/{{portfolio_id}}",
+            "description": " Active providers only (409 INVALID_STATE otherwise)."
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -56,16 +56,16 @@ Labels: **[C]** confirmed · **[R]** recommendation · **[?]** open question.
 
 | Table | Key columns | Stage |
 |---|---|---|
-| `providers` | user_id (owner, unique), **account_type** (individual/establishment), display_name, legal_name, representative_name/title, bio, city_id, started_year, **status** (draft/submitted/needs_completion/active/suspended), is_verified (admin only), **is_featured (admin only, D32)**, accepts_open_requests, quick_offer_enabled, rating_avg, rating_count, response_time_minutes (cached), activated_at | M (Slice 2) |
+| `providers` | user_id (owner, unique), **account_type** (individual/establishment), display_name, legal_name, representative_name/title, bio, city_id, started_year, **status** (draft/submitted/needs_completion/active/suspended), is_verified (admin only), **is_featured (admin only, D32)**, accepts_open_requests, quick_offer_enabled, rating_avg, rating_count, response_time_minutes (cached), activated_at, **status_reason** (user-visible suspension reason), **submitted_at** (review queue order) | M (Slice 2; status_reason/submitted_at Slice 3) |
 | `document_types` | applies_to (individual/establishment/both), is_required, name (ar/en), allowed_mimes, max_size_kb, is_active, sort. Configurable because the list is undecided [C] | F |
-| `provider_documents` | provider_id, document_type_id, media_id, status (pending/accepted/rejected), rejection_reason | M |
-| `provider_review_notes` | provider_id, reviewer_id, note_to_provider, internal_note | M |
+| `provider_documents` | provider_id, document_type_id, media_id, status (pending/accepted/rejected), rejection_reason, reviewed_by, reviewed_at; unique(provider_id, document_type_id) — a new upload replaces the file of that type | M (Slice 3) |
+| `provider_review_notes` | provider_id, reviewer_id, note_to_provider, internal_note, **completion_items** JSON (set = a request to complete the application, D38) | M (Slice 3) |
 | `provider_services` | provider_id, service_id, **custom_price nullable (null = follow guide price)**, at_provider_location, at_event_location, is_active, **unique(provider_id, service_id)** | M (Slice 2) |
 | `provider_service_inclusions` | provider_service_id, service_inclusion_id, enabled (+ custom_text if conflict #4 approved [?]) | M (Slice 2) |
 | `provider_addons` | provider_id, addon_id, price, is_active | M (Slice 2) |
 | `provider_addon_service` | provider_addon_id, provider_service_id | M (Slice 2) |
 | `provider_coverage_areas` | provider_id, city_id, district_id nullable | M (Slice 2) |
-| `provider_working_hours` | provider_id, weekday, opens_at, closes_at | M |
+| `provider_working_hours` | provider_id, weekday (0 = Sunday … 6), opens_at, closes_at; unique(provider_id, weekday) — a missing weekday = closed | M (Slice 3) |
 | `availability_blocks` | provider_id, starts_at, ends_at, reason | M |
 | `portfolio_items` | provider_id, media_id, caption, hidden_by_admin, hidden_reason, sort | M (Slice 2) |
 | `provider_team_members` [?] | provider_id, user_id nullable, name, title, scope, status | M/D |

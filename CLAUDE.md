@@ -108,6 +108,17 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
 - `DemoSeeder` adds `[DEMO]` providers, services, add-ons and photos from `database/seeders/demo-images/`
   (local only). Local `APP_URL` must include the port (`http://127.0.0.1:8000`) for image URLs to load.
 
+## Provider onboarding (Slice 3, backend done)
+
+- The application is the `providers` row (D38). Provider side: `Services\Providers\ProviderOnboarding`
+  (`createDraft`, `update`, `attachDocument`, `addPhoto`, `submit`, `providerOf()` = her own provider or 404).
+  Admin side: `Services\Providers\ProviderReview` (`queue`, document accept/reject, `addNote`, `requestCompletion`,
+  `activate`, `suspend`, `reactivate`). Moves are checked by `ProviderStatus::canMoveTo()` / `isEditable()`.
+- Files reach an application only as `media` she uploaded herself with the matching context and not yet attached.
+- Setup after activation: `Services\Providers\ProviderSetup` (`activeProvider()` = 404 / 409 unless active; catalog
+  services, prices, inclusions, add-ons, hours, profile/avatar/portfolio). Contract: `docs/slice-3-contract.md`.
+- Tests: `Tests\Concerns\BuildsApplications` (`applicant()`, `application($status)`, `documentType()`, `uploaded()`, `staff($role)`).
+
 ## Commands
 
 - `docker compose up -d mysql` — local MySQL 8 (databases `bliss_aan` and `testing`)

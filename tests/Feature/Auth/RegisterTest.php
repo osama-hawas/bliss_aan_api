@@ -84,11 +84,25 @@ class RegisterTest extends TestCase
         $this->assertSame(0, User::query()->count());
     }
 
-    public function test_wrong_app_is_forbidden(): void
+    public function test_staff_cannot_self_register(): void
     {
-        $this->register(['app' => 'provider'])->assertForbidden()->assertJsonPath('code', 'FORBIDDEN');
+        // Staff accounts are created by an admin (D29); only clients and providers sign up.
+        $this->register(['app' => 'dashboard'])->assertForbidden()->assertJsonPath('code', 'FORBIDDEN');
 
         $this->assertSame(0, User::query()->count());
+    }
+
+    public function test_provider_registers_with_a_draft_application(): void
+    {
+        // D25: the provider account is created with its application draft (Slice 3).
+        $this->register(['app' => 'provider', 'name' => 'Noura'])
+            ->assertCreated()
+            ->assertJsonPath('data.user.type', 'provider');
+
+        $user = User::query()->sole();
+        $this->assertSame('provider', $user->type->value);
+        $this->assertSame('draft', $user->provider->status->value);
+        $this->assertSame('Noura', $user->provider->display_name);
     }
 
     public function test_unknown_or_used_registration_token(): void

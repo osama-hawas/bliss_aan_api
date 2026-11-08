@@ -16,4 +16,8 @@ return [
     'OTP_EXPIRED' => 'The verification code has expired. Please request a new one.',
     'TOO_MANY_ATTEMPTS' => 'Too many attempts. Please try again later.',
     'SERVER_ERROR' => 'Something went wrong. Please try again.',
+
+    // Messages for specific INVALID_STATE cases.
+    'application_documents_open' => 'Accept every attached document before activating the account.',
+    'application_documents_missing' => 'A required document is missing.',
 ];

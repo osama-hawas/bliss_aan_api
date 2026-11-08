@@ -8,17 +8,17 @@ use App\Enums\ErrorCode;
 use App\Enums\OtpPurpose;
 use App\Enums\PolicyType;
 use App\Enums\UserStatus;
-use App\Enums\UserType;
 use App\Exceptions\ApiException;
 use App\Models\User;
 use App\Services\Audit\ActivityRecorder;
+use App\Services\Providers\ProviderOnboarding;
 use App\Services\Settings\PolicyResolver;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Phone + OTP login, client registration and phone change (D3: no passwords).
+ * Phone + OTP login, client and provider registration, and phone change (D3: no passwords).
  * Each app signs in only its own user type; admin staff sign in to the dashboard app (Q9).
  */
 class AuthService
@@ -28,6 +28,7 @@ class AuthService
         private readonly DeviceSessionService $sessions,
         private readonly ActivityRecorder $activity,
         private readonly PolicyResolver $policies,
+        private readonly ProviderOnboarding $onboarding,
     ) {}
 
     /**
@@ -75,16 +76,14 @@ class AuthService
      */
     public function register(string $registrationToken, array $profile, DeviceApp $app, array $device): array
     {
-        if ($app !== DeviceApp::Client) {
-            throw new ApiException(ErrorCode::Forbidden);
-        }
+        $this->ensureSelfRegistration($app);
 
         return DB::transaction(function () use ($registrationToken, $profile, $app, $device) {
             $phone = $this->otp->consumeRegistrationToken($registrationToken);
             $this->ensurePhoneIsFree($phone);
 
             $user = User::query()->create([
-                'type' => UserType::Client,
+                'type' => $app->userType(),
                 'name' => $profile['name'],
                 'phone' => $phone,
                 'email' => $profile['email'] ?? null,
@@ -98,6 +97,11 @@ class AuthService
                 'terms_accepted_at' => now()->toIso8601ZuluString(),
                 'terms_policy_version_id' => $this->policies->current(PolicyType::Terms)?->id,
             ]);
+
+            // A provider account starts as a draft application she completes before review (D25).
+            if ($app === DeviceApp::Provider) {
+                $this->onboarding->createDraft($user);
+            }
 
             return ['user' => $user, 'token' => $this->sessions->issue($user, $app, $device)];
         });
@@ -149,16 +153,20 @@ class AuthService
         return $user;
     }
 
-    /**
-     * Only clients register here; provider accounts are created in Slice 3.
-     */
     private function ensureCanRegister(string $phone, DeviceApp $app): void
     {
-        if ($app !== DeviceApp::Client) {
+        $this->ensureSelfRegistration($app);
+        $this->ensurePhoneIsFree($phone);
+    }
+
+    /**
+     * Clients and providers sign themselves up; staff accounts are created by an admin (D29).
+     */
+    private function ensureSelfRegistration(DeviceApp $app): void
+    {
+        if ($app === DeviceApp::Dashboard) {
             throw new ApiException(ErrorCode::Forbidden);
         }
-
-        $this->ensurePhoneIsFree($phone);
     }
 
     private function ensureNewPhone(User $user, string $newPhone): void

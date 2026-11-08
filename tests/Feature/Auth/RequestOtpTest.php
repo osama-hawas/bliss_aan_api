@@ -90,9 +90,11 @@ class RequestOtpTest extends TestCase
         $this->postJson(self::URL, ['phone' => '0512345679', 'purpose' => 'login', 'app' => 'provider'])
             ->assertForbidden();
 
-        // Provider accounts are created in Slice 3, not through client registration.
-        $this->postJson(self::URL, ['phone' => '0512345670', 'purpose' => 'register', 'app' => 'provider'])
+        // Staff never self-register (D29); providers do since Slice 3 (D25).
+        $this->postJson(self::URL, ['phone' => '0512345670', 'purpose' => 'register', 'app' => 'dashboard'])
             ->assertForbidden();
+        $this->postJson(self::URL, ['phone' => '0512345670', 'purpose' => 'register', 'app' => 'provider'])
+            ->assertOk();
     }
 
     public function test_suspended_account_gets_the_reason(): void

@@ -40,6 +40,7 @@ return [
         'booking_update' => 'Booking update attachment',
         'catalog_image' => 'Catalog image',
         'banner' => 'Banner',
+        'avatar' => 'Profile photo',
     ],
     'provider_account_type' => ['individual' => 'Individual', 'establishment' => 'Establishment'],
     'provider_status' => [
@@ -49,5 +50,6 @@ return [
         'active' => 'Active',
         'suspended' => 'Suspended',
     ],
+    'provider_document_status' => ['pending' => 'Under review', 'accepted' => 'Accepted', 'rejected' => 'Rejected'],
     'favorite_type' => ['provider' => 'Provider', 'provider_service' => 'Service'],
 ];

@@ -16,4 +16,8 @@ return [
     'OTP_EXPIRED' => 'انتهت صلاحية رمز التحقق. يرجى طلب رمز جديد.',
     'TOO_MANY_ATTEMPTS' => 'محاولات كثيرة. يرجى المحاولة لاحقًا.',
     'SERVER_ERROR' => 'حدث خطأ ما. يرجى المحاولة مرة أخرى.',
+
+    // رسائل حالات INVALID_STATE المحددة.
+    'application_documents_open' => 'اقبلي كل المستندات المرفقة قبل تفعيل الحساب.',
+    'application_documents_missing' => 'مستند مطلوب غير مرفق.',
 ];

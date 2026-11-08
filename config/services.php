@@ -40,6 +40,13 @@ return [
         'driver' => env('SMS_DRIVER', 'fake'),
         // Dev only (D31): every OTP is this code while APP_ENV=local. Ignored in any other environment.
         'fixed_otp' => env('OTP_FIXED_CODE'),
+        // Abuse protection on the OTP endpoints (technical limits, not the business values of Q10).
+        // Applied before any account lookup, so a registered and an unregistered number behave alike.
+        'rate_limits' => [
+            'request_per_phone_per_hour' => (int) env('OTP_REQUESTS_PER_PHONE_PER_HOUR', 5),
+            'request_per_ip_per_hour' => (int) env('OTP_REQUESTS_PER_IP_PER_HOUR', 20),
+            'verify_per_ip_per_minute' => (int) env('OTP_VERIFY_PER_IP_PER_MINUTE', 10),
+        ],
     ],
 
     'payments' => [

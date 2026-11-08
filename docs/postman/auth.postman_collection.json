@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Bliss aan — auth",
-    "description": "Audience folder `auth/` (Slice 1). Phone + OTP, no passwords. Locally the fake SMS driver writes the code to `storage/logs/laravel.log` (`[fake-sms]`). OTP expiry/attempts/cooldown are seeded only by `DemoSeeder` (local); elsewhere they are `null` → `409 NOT_CONFIGURED`.\n\nLogin and register save `client_token` / `provider_token` in the environment; `Refresh` and `Logout` use `client_token`.",
+    "description": "Audience folder `auth/` (Slice 1). Phone + OTP, no passwords. Locally the fake SMS driver writes the code to `storage/logs/laravel.log` (`[fake-sms]`). OTP expiry/attempts/cooldown are seeded only by `DemoSeeder` (local); elsewhere they are `null` → `409 NOT_CONFIGURED`.\n\nLogin and register save `client_token` / `provider_token` in the environment; `Refresh` and `Logout` use `client_token`. Slice 3: `app=provider` may register (creates a draft application, D37); `auth/me` adds `provider{id,status,status_label}` for providers (D42). OTP endpoints are rate limited (D41): 429 TOO_MANY_ATTEMPTS.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [

@@ -32,6 +32,13 @@ class MeResource extends JsonResource
             'status_label' => $this->status->label(),
             'last_login_at' => $this->dateTime($this->last_login_at),
             'created_at' => $this->dateTime($this->created_at),
+            // Providers only: the account state the app routes on (application under review, sent back,
+            // suspended, active). Details come from `GET provider/application`.
+            'provider' => $this->when($this->isType(UserType::Provider) && $this->provider !== null, fn () => [
+                'id' => $this->provider->id,
+                'status' => $this->provider->status->value,
+                'status_label' => $this->provider->status->label(),
+            ]),
             // Admins only: what the dashboard may show. The API checks permissions on every route.
             'roles' => $this->when($this->isType(UserType::Admin), fn () => $this->getRoleNames()->values()),
             'permissions' => $this->when($this->isType(UserType::Admin), fn () => $this->getAllPermissions()->pluck('name')->sort()->values()),

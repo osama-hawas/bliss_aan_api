@@ -199,6 +199,19 @@ return [
     */
 
     'attributes' => [
+        'display_name' => 'business name',
+        'legal_name' => 'legal name',
+        'representative_name' => 'representative name',
+        'representative_title' => 'representative title',
+        'service_ids' => 'services',
+        'coverage_city_ids' => 'cities served',
+        'document_type_id' => 'document type',
+        'media_id' => 'file',
+        'photos' => 'work photos',
+        'started_year' => 'year started',
+        'account_type' => 'account type',
+        'items' => 'items to complete',
+        'note_to_provider' => 'note to the provider',
         'current_phone' => 'current mobile number',
         'purpose' => 'purpose',
         'app' => 'app',

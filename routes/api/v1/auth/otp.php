@@ -4,5 +4,5 @@ use App\Http\Controllers\Api\V1\Auth\Otp\RequestOtpController;
 use App\Http\Controllers\Api\V1\Auth\Otp\VerifyOtpController;
 use Illuminate\Support\Facades\Route;
 
-Route::post('/otp/request', RequestOtpController::class);
-Route::post('/otp/verify', VerifyOtpController::class);
+Route::post('/otp/request', RequestOtpController::class)->middleware('throttle:otp-request');
+Route::post('/otp/verify', VerifyOtpController::class)->middleware('throttle:otp-verify');

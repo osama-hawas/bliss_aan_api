@@ -1,0 +1,265 @@
+{
+  "info": {
+    "name": "Bliss aan — admin",
+    "description": "Audience folder `admin/` (staff token: OTP login with `app=dashboard`, D29). Every route checks a permission. Editable text comes as `{ar, en}`. Slice 3: provider applications and standing.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Provider applications (providers.review)",
+      "item": [
+        {
+          "name": "List applications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/provider-applications?q=&filter[status]=submitted&filter[account_type]=&filter[city_id]=&sort=-submitted_at&per_page=15",
+            "description": "Review queue, paginated. `q` searches name, legal name, phone. sort: submitted_at, -submitted_at (default), created_at, -created_at. Rows: id, provider_id, status, status_label, name, account_type(_label), city_id, city{ar,en}, phone, services_count, documents_total, documents_pending, submitted_at, created_at. Errors: 401 · 403 FORBIDDEN (not staff / missing permission) · 404 NOT_FOUND · 409 INVALID_STATE · 422 VALIDATION_FAILED."
+          }
+        },
+        {
+          "name": "Show application",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/provider-applications/{{provider_id}}",
+            "description": "200. Response `data` (ApplicationDetailResource): list fields + `status_reason, legal_name, representative_name, representative_title, email, phone_verified, bio, started_year, activated_at, services[{id,name{ar,en}}], coverage[{city_id,city{ar,en},districts[]}], working_hours[], past_work[{id,image,caption}], documents[{id,document_type_id,type_name{ar,en},file_name,mime,size_kb,preview (signed, 10 min),status,status_label,rejection_note,reviewed_by,uploaded_at}], missing_documents[{document_type_id,name{ar,en},is_required}], conflicts[], notes[{id,note_to_provider,internal_note,actor,created_at}], completion_requests[{id,items[],reason,internal_note,actor,created_at}], events[{id,kind,note,internal_note,actor,created_at}]`. Errors: 401 · 403 FORBIDDEN (not staff / missing permission) · 404 NOT_FOUND · 409 INVALID_STATE · 422 VALIDATION_FAILED."
+          }
+        },
+        {
+          "name": "Accept document",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/provider-applications/{{provider_id}}/documents/{{document_id}}/accept",
+            "description": "Application `submitted`, document `pending` (else 409). Audited. 200 + detail. Errors: 401 · 403 FORBIDDEN (not staff / missing permission) · 404 NOT_FOUND · 409 INVALID_STATE · 422 VALIDATION_FAILED."
+          }
+        },
+        {
+          "name": "Reject document",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/provider-applications/{{provider_id}}/documents/{{document_id}}/reject",
+            "description": "reason required ≤1000 (shown to the provider), internal_note ≤2000. 200 + detail. Errors: 401 · 403 FORBIDDEN (not staff / missing permission) · 404 NOT_FOUND · 409 INVALID_STATE · 422 VALIDATION_FAILED.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"صورة الهوية غير واضحة\",\n  \"internal_note\": \"\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Add note",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/provider-applications/{{provider_id}}/notes",
+            "description": "note_to_provider and/or internal_note (one required, ≤2000). submitted|needs_completion. 201 + detail. Errors: 401 · 403 FORBIDDEN (not staff / missing permission) · 404 NOT_FOUND · 409 INVALID_STATE · 422 VALIDATION_FAILED.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note_to_provider\": \"نرجو توضيح نطاق الخدمة\",\n  \"internal_note\": \"\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Request completion",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/provider-applications/{{provider_id}}/request-completion",
+            "description": "submitted → needs_completion. items[] 1–20 (≤300 each), reason required ≤1000 (shown to the provider), internal_note. 200 + detail. Errors: 401 · 403 FORBIDDEN (not staff / missing permission) · 404 NOT_FOUND · 409 INVALID_STATE · 422 VALIDATION_FAILED.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    \"صورة الهوية\"\n  ],\n  \"reason\": \"لا يمكن التفعيل قبل استبدال الملف غير الواضح\",\n  \"internal_note\": \"\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Activate",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/provider-applications/{{provider_id}}/activate",
+            "description": "submitted → active. 409 when a document is not accepted or a required type is missing. reason, internal_note optional. 200 + detail. Errors: 401 · 403 FORBIDDEN (not staff / missing permission) · 404 NOT_FOUND · 409 INVALID_STATE · 422 VALIDATION_FAILED.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"\",\n  \"internal_note\": \"\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Provider standing (providers.suspend)",
+      "item": [
+        {
+          "name": "Suspend provider",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/providers/{{provider_id}}/suspend",
+            "description": "active → suspended; reason required (shown to the provider), internal_note. Hidden from discovery; history kept. 200 + application detail. Errors: 401 · 403 FORBIDDEN (not staff / missing permission) · 404 NOT_FOUND · 409 INVALID_STATE · 422 VALIDATION_FAILED.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"تكرر التأخر عن المواعيد المؤكدة\",\n  \"internal_note\": \"\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Reactivate provider",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/providers/{{provider_id}}/reactivate",
+            "description": "suspended → active; reason required. 200 + application detail. Errors: 401 · 403 FORBIDDEN (not staff / missing permission) · 404 NOT_FOUND · 409 INVALID_STATE · 422 VALIDATION_FAILED.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"تمت المراجعة\",\n  \"internal_note\": \"\"\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

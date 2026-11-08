@@ -20,11 +20,12 @@ enum UploadContext: string
     case BookingUpdate = 'booking_update';
     case CatalogImage = 'catalog_image';
     case Banner = 'banner';
+    case Avatar = 'avatar';
 
     public function visibility(): MediaVisibility
     {
         return match ($this) {
-            self::Portfolio, self::CatalogImage, self::Banner => MediaVisibility::Public,
+            self::Portfolio, self::CatalogImage, self::Banner, self::Avatar => MediaVisibility::Public,
             default => MediaVisibility::Private,
         };
     }
@@ -39,6 +40,7 @@ enum UploadContext: string
             self::ChatImage, self::ChatFile, self::ChatVoice => [UserType::Client, UserType::Provider],
             self::BookingUpdate => [UserType::Provider],
             self::CatalogImage, self::Banner => [UserType::Admin],
+            self::Avatar => [UserType::Client, UserType::Provider],
         };
     }
 

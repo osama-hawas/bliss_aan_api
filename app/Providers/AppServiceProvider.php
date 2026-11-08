@@ -9,6 +9,7 @@ use App\Integrations\Push\PushNotifier;
 use App\Integrations\Sms\FakeSmsGateway;
 use App\Integrations\Sms\SmsGateway;
 use App\Services\Settings\AppSettings;
+use App\Support\Phone;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -59,5 +60,13 @@ class AppServiceProvider extends ServiceProvider
         Model::preventSilentlyDiscardingAttributes(! $this->app->isProduction());
 
         RateLimiter::for('api', fn (Request $request) => Limit::perMinute(120)->by($request->user()?->id ?: $request->ip()));
+
+        // OTP abuse (SMS pumping, code guessing): per number and per IP, checked before the account lookup.
+        $phone = fn (Request $request) => Phone::normalizeSaudiMobile($request->string('phone')->toString()) ?? 'invalid';
+        RateLimiter::for('otp-request', fn (Request $request) => [
+            Limit::perHour(config('services.sms.rate_limits.request_per_phone_per_hour'))->by('otp-phone:'.$phone($request)),
+            Limit::perHour(config('services.sms.rate_limits.request_per_ip_per_hour'))->by('otp-ip:'.$request->ip()),
+        ]);
+        RateLimiter::for('otp-verify', fn (Request $request) => Limit::perMinute(config('services.sms.rate_limits.verify_per_ip_per_minute'))->by('otp-verify:'.$request->ip()));
     }
 }
