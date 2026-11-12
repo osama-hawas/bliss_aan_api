@@ -1,0 +1,32 @@
+<?php
+
+namespace App\Policies;
+
+use App\Models\Address;
+use App\Models\User;
+
+/**
+ * Saved addresses belong to one client (§20). Queries are scoped to her first, so another id is already a 404.
+ */
+class AddressPolicy
+{
+    public function view(User $user, Address $address): bool
+    {
+        return $address->user_id === $user->id;
+    }
+
+    public function update(User $user, Address $address): bool
+    {
+        return $this->view($user, $address);
+    }
+
+    public function delete(User $user, Address $address): bool
+    {
+        return $this->view($user, $address);
+    }
+
+    public function setDefault(User $user, Address $address): bool
+    {
+        return $this->view($user, $address);
+    }
+}

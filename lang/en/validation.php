@@ -182,6 +182,33 @@ return [
     'saudi_mobile' => 'The :attribute field must be a valid Saudi mobile number.',
 
     'custom' => [
+        'service_id' => [
+            'unavailable' => 'This service is not available.',
+            'not_offered' => 'This provider does not offer this service.',
+        ],
+        'provider_id' => ['unavailable' => 'This provider is not available.'],
+        'execution_place' => [
+            'not_offered' => 'This provider does not offer the service at the selected place.',
+            'no_city' => 'This provider cannot receive requests at her location yet.',
+            'open_event_only' => 'An open request is only possible at the event location.',
+        ],
+        'address_id' => [
+            'required' => 'Choose a saved address or enter the event address.',
+            'mine' => 'The selected address was not found.',
+            'pin' => 'The selected address has no location pin. Add a pin to the address first.',
+            'provider_location' => 'No address is needed when the service is at the provider\'s location.',
+        ],
+        'address' => ['prohibited_with_id' => 'Send either a saved address or a new address, not both.'],
+        'start_time' => ['future' => 'The event start must be in the future.'],
+        'guests_count' => [
+            'hidden' => 'This service does not ask for the number of guests.',
+            'required' => 'Enter the number of guests.',
+        ],
+        'addon_ids' => [
+            'unavailable' => 'One of the selected add-ons is not available for this service.',
+            'not_offered' => 'This provider does not offer one of the selected add-ons with this service.',
+        ],
+        'media_ids' => ['unavailable' => 'This file cannot be attached. Upload it again.'],
         'execution_places' => [
             'required' => 'Choose at least one place where you deliver this service: at the client\'s event location or at your location.',
             'last' => 'At least one place to deliver this service must stay on. Turn on the other place first.',
@@ -207,6 +234,7 @@ return [
     */
 
     'attributes' => [
+        'media_ids' => 'attachments',
         'at_provider_location' => 'service at your location',
         'execution_places' => 'service places',
         'coverage_city_ids.*' => 'selected city',

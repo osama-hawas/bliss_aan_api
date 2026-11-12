@@ -260,6 +260,77 @@
           }
         }
       ]
+    },
+    {
+      "name": "Service requests (bookings.view)",
+      "item": [
+        {
+          "name": "List requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/service-requests?q=&filter[status]=&filter[type]=&filter[execution_place]=&filter[city_id]=&filter[service_id]=&filter[provider_id]=&filter[client_id]=&filter[event_from]=&filter[event_to]=&sort=-created_at&per_page=15",
+            "description": "Read-only. q: reference, client name or phone, provider name. Event dates are Riyadh dates. Rows add client{id,name,phone} and recipients_count."
+          }
+        },
+        {
+          "name": "Show request",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/service-requests/1",
+            "description": "Complete request incl. address details, pin and client phone (D64), recipients with declines, full history (internal too). attachments[].url is null without requests.attachments.view."
+          }
+        },
+        {
+          "name": "Attachment URL",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/service-requests/1/attachments/1",
+            "description": "Needs requests.attachments.view too (super_admin only), else 403."
+          }
+        }
+      ]
     }
   ]
 }

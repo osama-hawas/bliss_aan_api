@@ -1,8 +1,8 @@
 # Slice 4 — Service requests: contract
 
-**Status: decisions closed (2026-11-09) — Ready, implementation NOT authorized.** Business decisions D47–D73 are
-approved; the items in §19 stay pending and are not implemented by guessing. Coding starts only after the project
-owner explicitly authorizes Slice 4 implementation.
+**Status: implementation authorized by the project owner (2026-11-12); backend implemented (branch
+`slice-4-service-requests`, see `04-roadmap.md` § Slice 4 backend).** Business decisions D47–D73 are approved; the items
+in §19 stay pending and are not implemented by guessing. Flutter (§16) and dashboard (§17) integration are not started.
 
 Envelope, errors, auth, lists and formats follow `03-api-conventions.md` (fixed, D12). Base `/api/v1`.
 Route middleware is the audience folder's (`ApiRouteLoader`): `client/*` → client token, `provider/*` → provider
@@ -122,8 +122,9 @@ Reused:
 
 - `media` — attachments are `media` rows uploaded with context `request_attachment` (private) and attached to the
   `service_requests` row (`attachable`), collection `request_attachment` (D52). No second attachment table.
-- `activity_events` — `request_created`, `request_cancelled`, `request_declined` (direct), `recipient_declined`;
-  visibility `all` / `client` / `provider` / `internal`. Drives the history in §6.
+- `activity_events` — `request_created` (`all`), `request_cancelled` (`all`), `request_declined` (direct only, `all`),
+  `recipient_declined` (`internal`, D76). Drives the history in §6: the client sees `all`/`client` entries; admins see
+  every entry.
 - `app_settings` — `uploads.request_attachment` (types/size) and `requests.max_attachments` (count). Both `null`
   until the business approves production values (D53, Q14).
 - `provider_services` (`at_event_location`, `at_provider_location`, plus the D73 confirmation added by follow-up 3a —
@@ -180,6 +181,8 @@ Reused:
 ```
 
 `provider` is `null` for open requests (recipients of an open request are never listed to the client in Slice 4).
+`history` lists only `all`/`client` entries: a provider's decline of an **open** request is never shown to the client
+(D76); a declined **direct** request shows `request_declined` and status `declined` (D68).
 `address` is `null` for `provider_location` requests. List items omit `address`, `notes`, `attachments`, `history`.
 
 | Method | Path | Body / query | Returns / errors |
@@ -237,8 +240,8 @@ is a recipient are visible; any other id → `404`.
 }
 ```
 
-Never included before booking: address `details`, `lat`/`lng`, address label, client phone, client last name, other
-recipients. `district` is `null` for `provider_location`. `attachments` is `[]` unless her status is
+`client.first_name` = the first whitespace-separated word of the client's account name (D77). Never included before
+booking: address `details`, `lat`/`lng`, address label, client phone, the rest of the client's name, other recipients. `district` is `null` for `provider_location`. `attachments` is `[]` unless her status is
 `new`/`offer_sent`. `decline` = `{reason{id,code,name}, explanation, declined_at}` when she declined.
 
 | Method | Path | Body / query | Returns / errors |
@@ -260,10 +263,12 @@ resource across audiences).
 | GET | `admin/service-requests/{id}` | `bookings.view` | full request (below) |
 | GET | `admin/service-requests/{id}/attachments/{mediaId}` | `bookings.view` **and** `requests.attachments.view` | fresh signed URL |
 
+Admin list rows = the client list-item fields plus `client{id, name, phone}` and `recipients_count`.
+
 Admin detail (D64) = every client-resource field, including the complete `address` snapshot with `details` and
 `lat`/`lng`, plus `client{id, name, phone}`, `recipients[{provider{id, display_name}, status, status_label, seen_at,
 declined_at, decline{reason{code,name}, explanation}, closed_at}]`, `history` with every visibility (incl.
-`internal`), and `attachments[{id, name, mime, size, url}]` where `url` is `null` without
+`internal`, D76), and `attachments[{id, name, mime, size, url, expires_at}]` where `url` and `expires_at` are `null` without
 `requests.attachments.view`. Booking/offers blocks arrive in Slice 5.
 
 ## 7. Matching and eligibility (D55, D59, D63, D65, D66)
@@ -434,15 +439,17 @@ written and never translated. Limits marked [P] are technical defaults, not busi
 
 - **Idempotency:** `POST client/service-requests` requires `Idempotency-Key`. Stored per client with a SHA-256
   fingerprint of the normalized body. Same key + same body → the original request (`200`). Same key + different body
-  → `409 DUPLICATE_REQUEST`. A concurrent duplicate hits unique(client_id, idempotency_key); the loser reloads and
-  replays.
+  → `409 DUPLICATE_REQUEST`. A concurrent duplicate waits on the client lock (D78), then finds the committed request and
+  replays it (same body) or answers `409 DUPLICATE_REQUEST` (other body); unique(client_id, idempotency_key) stays the
+  last guard, and a collision there is also answered as a replay.
 - **Reference (D72):** `RN-` + exactly 7 random digits (`random_int` over `0000000–9999999`, zero-padded), generated
   inside the creation transaction before commit and written with the insert. A collision on unique(reference) is
   told apart from an idempotency collision by the constraint name and retried with a new value, at most 5 attempts
   [P]; then §13's `500`. No sequential ids, no counter table. The reference is for display and communication only:
   lookups by reference (admin `q`) still go through the same ownership/permission checks, and no endpoint authorizes
   by reference.
-- **Creation transaction:** validate → lock media rows → match recipients (open: none → `422`, rollback) → insert
+- **Creation transaction (D78):** validate → lock the client's `users` row and re-check the key under that lock (a
+  committed request with this key → replay, see Idempotency) → lock media rows → match recipients (open: none → `422`, rollback) → insert
   request with reference → add-on snapshots → recipients → attach media → activity event.
 - Cancel and decline lock the request row first, then recipient rows (one order everywhere, no deadlock), then
   re-check state (the current state wins).

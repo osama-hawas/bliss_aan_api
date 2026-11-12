@@ -596,6 +596,129 @@
           }
         }
       ]
+    },
+    {
+      "name": "Service requests",
+      "item": [
+        {
+          "name": "Decline reasons",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": "{{base_url}}/provider/decline-reasons",
+            "description": "Active reasons by sort: [{id, code, name}]."
+          }
+        },
+        {
+          "name": "Inbox",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": "{{base_url}}/provider/service-requests?filter[status]=&filter[type]=&sort=-received_at&per_page=15",
+            "description": "Active providers only (409 otherwise). filter[status] = her recipient status (new, offer_sent, declined, closed). sort: received_at, -received_at, starts_at, -starts_at. Items omit notes and attachments."
+          }
+        },
+        {
+          "name": "Show request",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": "{{base_url}}/provider/service-requests/1",
+            "description": "Privacy Model A (D56): city, district, client first name only; never address details, pin, label, phone or other recipients. Attachments only while she is new/offer_sent. Sets seen_at once."
+          }
+        },
+        {
+          "name": "Decline",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/provider/service-requests/1/decline",
+            "description": "Reason and explanation required. Only while her status is new and the request is open, else 409. Direct → request declined; open → request unchanged.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decline_reason_id\": 1,\n  \"explanation\": \"Booked that night\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Attachment URL",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": "{{base_url}}/provider/service-requests/1/attachments/1",
+            "description": "404 after she declined or the client cancelled."
+          }
+        }
+      ]
     }
   ]
 }

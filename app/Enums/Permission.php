@@ -17,6 +17,8 @@ enum Permission: string
     case ProvidersVerify = 'providers.verify';
     case CatalogManage = 'catalog.manage';
     case BookingsView = 'bookings.view';
+    // Request attachment files in the dashboard (D58, D64); super_admin only.
+    case RequestsAttachmentsView = 'requests.attachments.view';
     case BookingsIntervene = 'bookings.intervene';
     case CancellationsDecide = 'cancellations.decide';
     case RefundsProcess = 'refunds.process';

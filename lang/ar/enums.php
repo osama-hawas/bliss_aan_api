@@ -41,6 +41,7 @@ return [
         'catalog_image' => 'صورة الكتالوج',
         'banner' => 'بانر',
         'avatar' => 'الصورة الشخصية',
+        'request_attachment' => 'مرفق الطلب',
     ],
     'provider_account_type' => ['individual' => 'فرد', 'establishment' => 'منشأة'],
     'provider_status' => [
@@ -52,4 +53,17 @@ return [
     ],
     'provider_document_status' => ['pending' => 'قيد المراجعة', 'accepted' => 'مقبول', 'rejected' => 'مرفوض'],
     'favorite_type' => ['provider' => 'مقدمة خدمة', 'provider_service' => 'خدمة'],
+    'service_request_type' => ['direct' => 'طلب مباشر', 'open' => 'طلب مفتوح'],
+    'service_request_status' => [
+        'awaiting_offers' => 'بانتظار العروض',
+        'offers_received' => 'وصلت عروض',
+        'confirmed' => 'مؤكد',
+        'in_progress' => 'قيد التنفيذ',
+        'completed' => 'مكتمل',
+        'cancelled' => 'ملغي',
+        'declined' => 'مرفوض',
+    ],
+    'recipient_status' => ['new' => 'جديد', 'offer_sent' => 'تم إرسال عرض', 'declined' => 'مرفوض', 'closed' => 'مغلق'],
+    'execution_place' => ['event_location' => 'في موقع المناسبة', 'provider_location' => 'في موقع مقدمة الخدمة'],
+    'guest_count_mode' => ['hidden' => 'غير مطلوب', 'optional' => 'اختياري', 'required' => 'إلزامي'],
 ];

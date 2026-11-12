@@ -97,6 +97,294 @@
           }
         }
       ]
+    },
+    {
+      "name": "Addresses",
+      "item": [
+        {
+          "name": "List addresses",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/client/addresses",
+            "description": "Not paginated. Default first, then newest. AddressResource: id, label, city{id,name}, district, details, lat, lng, recipient_name, recipient_phone, is_default, created_at."
+          }
+        },
+        {
+          "name": "Add address",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/client/addresses",
+            "description": "201. city_id (active) and details required; lat/lng together; recipient_phone Saudi mobile. Her first address becomes the default.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"city_id\": 1,\n  \"details\": \"Villa 12, King Fahd Rd\",\n  \"label\": \"Home\",\n  \"district\": \"Al Malqa\",\n  \"lat\": 24.7136,\n  \"lng\": 46.6753,\n  \"recipient_name\": null,\n  \"recipient_phone\": null,\n  \"is_default\": false\n}"
+            }
+          }
+        },
+        {
+          "name": "Update address",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/client/addresses/1",
+            "description": "Any field. 404 when it is not hers.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"details\": \"Villa 14\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete address",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/client/addresses/1",
+            "description": "Soft delete, data:null. Past requests keep their snapshot. Deleting the default leaves no default."
+          }
+        },
+        {
+          "name": "Set default",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/client/addresses/1/default",
+            "description": "The previous default is cleared in the same transaction."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Service requests",
+      "item": [
+        {
+          "name": "Open-request eligibility",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/client/open-request-eligibility?service_id=1&city_id=1&addon_ids[]=",
+            "description": "Hint only (D65): {service_id, city_id, open_request_available}. Show the open option only when true and the place is event_location; creation re-checks."
+          }
+        },
+        {
+          "name": "Create request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/client/service-requests",
+            "description": "Header Idempotency-Key (uuid) required. 201 created; same key + same body → 200 same request; same key + other body → 409 DUPLICATE_REQUEST. type direct|open (open: event_location only, no provider_id). event_location: exactly one of address_id / address (with pin); provider_location: no address (city = provider's). guests_count per service guest_count_mode. Errors: 422 OUT_OF_COVERAGE (direct), 422 NO_MATCHING_PROVIDERS (open, nothing created), 409 NOT_CONFIGURED (media_ids without requests.max_attachments).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"direct\",\n  \"provider_id\": 1,\n  \"service_id\": 1,\n  \"event_type_id\": 1,\n  \"execution_place\": \"event_location\",\n  \"event_date\": \"2026-12-05\",\n  \"start_time\": \"19:00\",\n  \"duration_minutes\": 180,\n  \"address_id\": null,\n  \"address\": {\n    \"city_id\": 1,\n    \"district\": \"Al Malqa\",\n    \"details\": \"Villa 12\",\n    \"lat\": 24.7136,\n    \"lng\": 46.6753,\n    \"label\": \"Home\"\n  },\n  \"guests_count\": 80,\n  \"addon_ids\": [],\n  \"notes\": \"\",\n  \"media_ids\": []\n}"
+            }
+          }
+        },
+        {
+          "name": "List my requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/client/service-requests?filter[status]=&filter[type]=&sort=-created_at&per_page=15",
+            "description": "Paginated. filter[status] one value or comma list. sort: created_at, -created_at, starts_at, -starts_at. Items omit address, notes, attachments, history."
+          }
+        },
+        {
+          "name": "Show request",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/client/service-requests/1",
+            "description": "ClientRequestResource with address snapshot, notes, attachments (10-min signed URLs), history. provider is null for open requests. event_passed is display-only."
+          }
+        },
+        {
+          "name": "Cancel request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/client/service-requests/1/cancel",
+            "description": "Reason optional (≤500). Only awaiting_offers / offers_received, else 409 INVALID_STATE. Recipients are closed.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Date changed\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Attachment URL",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/client/service-requests/1/attachments/1",
+            "description": "Fresh signed URL: {id, name, mime, size, url, expires_at}."
+          }
+        }
+      ]
     }
   ]
 }

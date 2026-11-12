@@ -21,17 +21,20 @@ enum ErrorCode: string
     case OtpInvalid = 'OTP_INVALID';
     case OtpExpired = 'OTP_EXPIRED';
     case TooManyAttempts = 'TOO_MANY_ATTEMPTS';
+    case OutOfCoverage = 'OUT_OF_COVERAGE';
+    case NoMatchingProviders = 'NO_MATCHING_PROVIDERS';
+    case DuplicateRequest = 'DUPLICATE_REQUEST';
     case ServerError = 'SERVER_ERROR';
 
     public function status(): int
     {
         return match ($this) {
-            self::ValidationFailed, self::OtpInvalid, self::OtpExpired => 422,
+            self::ValidationFailed, self::OtpInvalid, self::OtpExpired, self::OutOfCoverage, self::NoMatchingProviders => 422,
             self::Unauthenticated, self::TokenExpired => 401,
             self::Forbidden, self::AccountSuspended => 403,
             self::NotFound, self::AccountNotFound => 404,
             self::MethodNotAllowed => 405,
-            self::InvalidState, self::NotConfigured => 409,
+            self::InvalidState, self::NotConfigured, self::DuplicateRequest => 409,
             self::TooManyAttempts => 429,
             self::ServerError => 500,
         };

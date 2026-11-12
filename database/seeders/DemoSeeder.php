@@ -315,11 +315,14 @@ class DemoSeeder extends Seeder
             UploadContext::CatalogImage->value => $image,
             UploadContext::Banner->value => $image,
             UploadContext::Avatar->value => $image,
+            // Proposed, not approved (D53): local only so the request flow can be tried.
+            UploadContext::RequestAttachment->value => ['mimes' => ['jpg', 'jpeg', 'png', 'webp', 'heic', 'pdf'], 'max_kb' => 10240],
         ];
 
         foreach ($limits as $context => $value) {
             AppSetting::query()->where('key', "uploads.{$context}")->whereNull('value')->update(['value' => json_encode($value)]);
         }
+        AppSetting::query()->where('key', 'requests.max_attachments')->whereNull('value')->update(['value' => json_encode(5)]);
     }
 
     /**

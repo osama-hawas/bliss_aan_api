@@ -24,6 +24,7 @@ class ServiceResource extends JsonResource
             'name' => $this->name,
             'description' => $this->description,
             'image_url' => $this->publicUrl($this->image),
+            'guest_count_mode' => $this->guest_count_mode?->value, // D54
         ];
     }
 }

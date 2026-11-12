@@ -29,6 +29,7 @@ class ProviderServiceDetailResource extends ProviderServiceResource
     {
         return [
             ...parent::toArray($request),
+            'guest_count_mode' => $this->service->guest_count_mode?->value, // D54
             'inclusions' => $this->inclusions->map(fn (ServiceInclusion $inclusion) => $inclusion->text)->values(),
             'addons' => $this->addons->map(fn (ProviderAddon $addon) => [
                 'id' => $addon->id,

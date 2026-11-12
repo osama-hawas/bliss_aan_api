@@ -21,6 +21,7 @@ enum UploadContext: string
     case CatalogImage = 'catalog_image';
     case Banner = 'banner';
     case Avatar = 'avatar';
+    case RequestAttachment = 'request_attachment';
 
     public function visibility(): MediaVisibility
     {
@@ -41,6 +42,7 @@ enum UploadContext: string
             self::BookingUpdate => [UserType::Provider],
             self::CatalogImage, self::Banner => [UserType::Admin],
             self::Avatar => [UserType::Client, UserType::Provider],
+            self::RequestAttachment => [UserType::Client],
         };
     }
 

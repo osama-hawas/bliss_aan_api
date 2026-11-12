@@ -65,7 +65,7 @@ Error:
 | 404 | Not found **or not visible to this user** (never leak existence); unknown phone at OTP login | `NOT_FOUND`, `ACCOUNT_NOT_FOUND` |
 | 405 | HTTP method not supported on this URL | `METHOD_NOT_ALLOWED` |
 | 409 | State conflict, or a required setting/policy is not specified yet | `INVALID_STATE`, `NOT_CONFIGURED`, `OFFER_EXPIRED`, `SLOT_UNAVAILABLE`, `ALREADY_BOOKED`, `DUPLICATE_REQUEST` |
-| 422 | Validation | `VALIDATION_FAILED`, `OTP_INVALID`, `OTP_EXPIRED`, `OUT_OF_COVERAGE`, `OUT_OF_STOCK` |
+| 422 | Validation | `VALIDATION_FAILED`, `OTP_INVALID`, `OTP_EXPIRED`, `OUT_OF_COVERAGE`, `NO_MATCHING_PROVIDERS`, `OUT_OF_STOCK` |
 | 429 | Rate limited | `TOO_MANY_ATTEMPTS` |
 | 500 | Server error (no trace when `APP_DEBUG=false`) | `SERVER_ERROR` |
 
@@ -117,7 +117,8 @@ returns the original result instead of creating a duplicate. Chat messages may u
 - Upload through `POST /api/v1/shared/uploads` (multipart: `context`, `file`) → returns `data.id`
   (`media_id`) and `data.url`; then reference the `media_id` in the feature request.
   Contexts: `provider_document`, `portfolio`, `chat_image`, `chat_file`, `chat_voice`, `booking_update`,
-  `catalog_image`, `banner` (each limited to certain user types).
+  `catalog_image`, `banner`, `avatar`, `request_attachment` (client, private; Slice 4) (each limited to certain user
+  types).
 - Private files (documents, chat, execution attachments) are served by short-lived signed URLs only.
 - Allowed types/sizes per context come from `app_settings` `uploads.<context>` (values undecided →
   `409 NOT_CONFIGURED` until set).

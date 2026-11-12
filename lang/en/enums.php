@@ -41,6 +41,7 @@ return [
         'catalog_image' => 'Catalog image',
         'banner' => 'Banner',
         'avatar' => 'Profile photo',
+        'request_attachment' => 'Request attachment',
     ],
     'provider_account_type' => ['individual' => 'Individual', 'establishment' => 'Establishment'],
     'provider_status' => [
@@ -52,4 +53,17 @@ return [
     ],
     'provider_document_status' => ['pending' => 'Under review', 'accepted' => 'Accepted', 'rejected' => 'Rejected'],
     'favorite_type' => ['provider' => 'Provider', 'provider_service' => 'Service'],
+    'service_request_type' => ['direct' => 'Direct request', 'open' => 'Open request'],
+    'service_request_status' => [
+        'awaiting_offers' => 'Awaiting offers',
+        'offers_received' => 'Offers received',
+        'confirmed' => 'Confirmed',
+        'in_progress' => 'In progress',
+        'completed' => 'Completed',
+        'cancelled' => 'Cancelled',
+        'declined' => 'Declined',
+    ],
+    'recipient_status' => ['new' => 'New', 'offer_sent' => 'Offer sent', 'declined' => 'Declined', 'closed' => 'Closed'],
+    'execution_place' => ['event_location' => 'At the event location', 'provider_location' => "At the provider's location"],
+    'guest_count_mode' => ['hidden' => 'Not asked', 'optional' => 'Optional', 'required' => 'Required'],
 ];

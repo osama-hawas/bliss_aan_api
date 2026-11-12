@@ -119,6 +119,21 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
   services, prices, inclusions, add-ons, hours, profile/avatar/portfolio). Contract: `docs/slice-3-contract.md`.
 - Tests: `Tests\Concerns\BuildsApplications` (`applicant()`, `application($status)`, `documentType()`, `uploaded()`, `staff($role)`).
 
+## Service requests (Slice 4, backend done)
+
+- Contract: `docs/slice-4-contract.md`. Services in `app/Services/ServiceRequests/`: `AddressBook` (one default per client
+  under a row lock), `ServiceRequestCreator` (idempotency replay first, then business rules, then one transaction:
+  lock the client row + re-check the key (same-key creates replay, `Database/IdempotencyConcurrencyTest`) → lock media → match → insert with `ReferenceGenerator` retries → add-on snapshots → recipients → attach → history),
+  `RequestMatcher` (the five open-request conditions, `ProviderService::openRequestCapable()`), `ServiceRequestLifecycle`
+  (cancel / decline / seen; lock request row, then recipients), `ServiceRequestQueries` (scoped lookups and lists),
+  `RequestAttachments` (signed URLs after `ServiceRequestPolicy::viewAttachments`).
+- First Policies in the codebase: `AddressPolicy`, `ServiceRequestPolicy` (auto-discovered). Lookups are scoped first, so a
+  foreign id is a 404 before a Policy runs.
+- Provider responses follow Privacy Model A (D56): no address details, pin, label, phone or other recipients.
+- Tests: `Tests\Concerns\BuildsServiceRequests` (`setUpMarket()`, `matchingProvider()`, `openBody()`, `directBody()`,
+  `submit()`, `created()`, `attachmentUpload()`, `allowAttachments()`). Bind a fake `ReferenceGenerator` before the
+  first request: routes keep their controller instance between test requests.
+
 ## Commands
 
 - `docker compose up -d mysql` — local MySQL 8 (databases `bliss_aan` and `testing`)

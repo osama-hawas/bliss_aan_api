@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\GuestCountMode;
 use App\Models\Concerns\HasMedia;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,12 +20,18 @@ class Service extends Model
 
     public array $translatable = ['name', 'description'];
 
-    protected $fillable = ['category_id', 'name', 'description', 'guide_price', 'is_active', 'sort'];
+    /**
+     * Same default as the column (D54), so a new model reads it before a refresh.
+     */
+    protected $attributes = ['guest_count_mode' => 'optional'];
+
+    protected $fillable = ['category_id', 'name', 'description', 'guide_price', 'guest_count_mode', 'is_active', 'sort'];
 
     protected function casts(): array
     {
         return [
             'guide_price' => 'decimal:2',
+            'guest_count_mode' => GuestCountMode::class,
             'is_active' => 'boolean',
         ];
     }

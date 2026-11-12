@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             CitySeeder::class,
             ServiceCategorySeeder::class,
             EventTypeSeeder::class,
+            DeclineReasonSeeder::class,
             AppSettingSeeder::class,
         ]);
 

@@ -27,5 +27,11 @@
     "Add-on saved.": "تم حفظ الإضافة.",
     "Profile saved.": "تم حفظ الملف.",
     "Working hours saved.": "تم حفظ ساعات العمل.",
-    "Coverage saved.": "تم حفظ مدن التغطية."
+    "Coverage saved.": "تم حفظ مدن التغطية.",
+    "Address saved.": "تم حفظ العنوان.",
+    "Address deleted.": "تم حذف العنوان.",
+    "Default address updated.": "تم تحديث العنوان الافتراضي.",
+    "Request sent.": "تم إرسال الطلب.",
+    "Request cancelled.": "تم إلغاء الطلب.",
+    "Request declined.": "تم الاعتذار عن الطلب."
 }
