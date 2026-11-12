@@ -31,7 +31,8 @@ class CatalogBrowser
             ->where('is_active', true)
             ->whereHas('category', fn (Builder $category) => $category->where('is_active', true))
             ->when($categoryId, fn (Builder $query, int $id) => $query->where('category_id', $id))
-            ->with('image')
+            // Active catalog add-ons: an open request may ask for them (Slice 4, §6.3).
+            ->with(['image', 'addons' => fn ($addons) => $addons->where('addons.is_active', true)->orderBy('addons.id')])
             ->orderBy('category_id')->orderBy('sort')->orderBy('id')
             ->get();
     }

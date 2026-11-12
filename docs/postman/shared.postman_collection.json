@@ -355,6 +355,24 @@
             "url": "{{base_url}}/shared/providers/1/services/1",
             "description": "`services/{id}` is the provider-service id from the profile. Price, catalog description, inclusions the provider kept, add-ons she offers with this service and their prices, execution place flags, provider summary."
           }
+        },
+        {
+          "name": "List event types",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              }
+            ],
+            "url": "{{base_url}}/shared/event-types",
+            "description": "Public. Active event types by sort: [{id, name}]. Source of `event_type_id` for client/service-requests (Slice 4)."
+          }
         }
       ]
     }

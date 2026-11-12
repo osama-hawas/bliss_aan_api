@@ -33,6 +33,8 @@ class ProviderServiceDetailResource extends ProviderServiceResource
             'inclusions' => $this->inclusions->map(fn (ServiceInclusion $inclusion) => $inclusion->text)->values(),
             'addons' => $this->addons->map(fn (ProviderAddon $addon) => [
                 'id' => $addon->id,
+                // The catalog add-on: what a request sends in `addon_ids[]` (Slice 4).
+                'addon_id' => $addon->addon_id,
                 'name' => $addon->addon->name,
                 'description' => $addon->addon->description,
                 'price' => Money::format($addon->price),

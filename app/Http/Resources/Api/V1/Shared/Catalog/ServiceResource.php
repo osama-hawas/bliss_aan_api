@@ -25,6 +25,12 @@ class ServiceResource extends JsonResource
             'description' => $this->description,
             'image_url' => $this->publicUrl($this->image),
             'guest_count_mode' => $this->guest_count_mode?->value, // D54
+            // Catalog add-ons a request may ask for (`addon_ids[]`); listed only where loaded (`shared/services`).
+            'addons' => $this->whenLoaded('addons', fn () => $this->addons->map(fn ($addon) => [
+                'id' => $addon->id,
+                'name' => $addon->name,
+                'description' => $addon->description,
+            ])->values()),
         ];
     }
 }

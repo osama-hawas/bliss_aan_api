@@ -140,6 +140,9 @@ Reused:
 |---|---|---|
 | POST | `shared/uploads` | New context `request_attachment` (client only, private). Without `uploads.request_attachment` → `409 NOT_CONFIGURED` (existing D17 behaviour) |
 | GET | `shared/services`, `shared/providers/{id}/services/{id}` | Add `guest_count_mode` (additive) |
+| GET | `shared/services` | Add `addons[{id, name, description}]` — the service's active catalog add-ons, for an open request's `addon_ids[]` (additive, app integration 2026-11-12) |
+| GET | `shared/providers/{id}/services/{id}` | Add `addons[].addon_id` — the catalog add-on id a direct request sends in `addon_ids[]`; `addons[].id` stays the provider add-on id (additive, app integration 2026-11-12) |
+| GET | `shared/event-types` (new, public) | `[{id, name}]`, active event types by `sort` — the source of `event_type_id` (app integration 2026-11-12) |
 | GET | `shared/media/{media}` (signed) | Unchanged; serves the attachment URLs |
 
 ### 6.2 Client — addresses (`client/addresses`)
