@@ -99,7 +99,7 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
 - Public read endpoints live in `routes/api/v1/shared/catalog.php` behind `auth.optional`
   (`AuthenticateOptionally`: no token = guest; a sent token must be valid). `FavoriteLookup::for($request)`
   fills `is_favorite`, loading the client's favorites once per request.
-- Visibility goes through `Provider::listed()`, `ProviderService::offered()` / `visible()` and
+- Visibility goes through `Provider::visibleToClients()` (listed + one offered service, D75), `ProviderService::offered()` / `visible()` and
   `PortfolioItem::published()`; anything else is a 404. `ProviderService::price()` = custom ?? guide price ?? null.
 - Queries: `Services\Providers\ProviderDirectory` (search, featured, profile, service, `startingPrice()` subquery),
   `Services\Catalog\CatalogBrowser`, `Services\Catalog\FavoriteService`.

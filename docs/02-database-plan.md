@@ -36,15 +36,15 @@ Labels: **[C]** confirmed · **[R]** recommendation · **[?]** open question.
 | Table | Key columns | Stage |
 |---|---|---|
 | `cities` | name (ar/en), is_active, sort | F |
-| `districts` [?] | city_id, name (ar/en), is_active | F |
-| `addresses` | user_id, label, city_id, district (id or text [?]), details, lat, lng, recipient_name, recipient_phone, is_default, soft deletes | M |
+| `districts` | city_id, name (ar/en), is_active. Exists, left empty: districts are free text for now (D59) | F |
+| `addresses` | user_id, label nullable, city_id, **district text** nullable (D59), details, lat, lng nullable, recipient_name, recipient_phone nullable, is_default (one per user, enforced in the service [R]), soft deletes. Requests copy a snapshot; editing/deleting never changes a request | M (Slice 4) |
 
 ## 3. Service catalog (admin-owned [C])
 
 | Table | Key columns | Stage |
 |---|---|---|
 | `service_categories` | name, description (ar/en), image (media), is_active, sort | F (seeded) |
-| `services` | category_id, name, description (ar/en), image, **guide_price nullable** (null = not set), is_active, sort | F (demo seed only) |
+| `services` | category_id, name, description (ar/en), image, **guide_price nullable** (null = not set), is_active, sort, **guest_count_mode** (hidden/optional/required, default optional — D54; added in Slice 4, managed in Slice 16) | F (demo seed only) |
 | `service_inclusions` | service_id, text (ar/en), sort | F |
 | `addons` | name, description (ar/en), image, is_active (+ nullable provider_id if design conflict #3 approved [?]) | F |
 | `addon_service` | addon_id, service_id | F |
@@ -60,7 +60,7 @@ Labels: **[C]** confirmed · **[R]** recommendation · **[?]** open question.
 | `document_types` | applies_to (individual/establishment/both), is_required, name (ar/en), allowed_mimes, max_size_kb, is_active, sort. Configurable because the list is undecided [C] | F |
 | `provider_documents` | provider_id, document_type_id, media_id, status (pending/accepted/rejected), rejection_reason, reviewed_by, reviewed_at; unique(provider_id, document_type_id) — a new upload replaces the file of that type | M (Slice 3) |
 | `provider_review_notes` | provider_id, reviewer_id, note_to_provider, internal_note, **completion_items** JSON (set = a request to complete the application, D38) | M (Slice 3) |
-| `provider_services` | provider_id, service_id, **custom_price nullable (null = follow guide price)**, at_provider_location, at_event_location, is_active, **unique(provider_id, service_id)** | M (Slice 2) |
+| `provider_services` | provider_id, service_id, **custom_price nullable (null = follow guide price)**, at_provider_location (default false), at_event_location, is_active, **unique(provider_id, service_id)**. The two location flags are the only execution-place capability (D65; no catalog-level flag); an offered service needs at least one, otherwise it is hidden from clients (D74; no data change). **Event-location confirmation (D73, follow-up 3a, implemented 2026-11-09):** `at_event_location` default `false` (new rows; onboarding and setup also write `false`); **`event_location_confirmed_at`** nullable timestamp, set only by `PUT provider/services/{id}/event-location` with `confirm: true`, cleared when she turns it off. Open matching = `ProviderService::openRequestCapable()` (`at_event_location = true AND event_location_confirmed_at IS NOT NULL`); direct requests and the public catalogue read the stored flag. Migration `2026_11_09_100000_add_event_location_confirmation_to_provider_services`: changes the default and adds the empty column — **no backfill**, so rows that were `true` before stay usable for direct requests but are unconfirmed (`event_location_needs_review`) until she confirms. `DemoSeeder` is unchanged: its `[DEMO]` rows stay unconfirmed | M (Slice 2; D73 in 3a) |
 | `provider_service_inclusions` | provider_service_id, service_inclusion_id, enabled (+ custom_text if conflict #4 approved [?]) | M (Slice 2) |
 | `provider_addons` | provider_id, addon_id, price, is_active | M (Slice 2) |
 | `provider_addon_service` | provider_addon_id, provider_service_id | M (Slice 2) |
@@ -76,9 +76,10 @@ Labels: **[C]** confirmed · **[R]** recommendation · **[?]** open question.
 
 | Table | Key columns | Stage |
 |---|---|---|
-| `service_requests` | **reference** (RN-…), client_id, **type** (direct/open), target_provider_id nullable, service_id, event_type_id, event_date, start_time, end_time/duration nullable [?], city_id, **address snapshot** (district, details, lat, lng), guests_count, notes, status, cancelled_at, cancel_reason, idempotency_key unique | M |
-| `service_request_addons` | service_request_id, addon_id, **name snapshot** | M |
-| `service_request_recipients` | service_request_id, provider_id, status (new/offer_sent/declined/closed), decline_reason, seen_at, unique(request, provider). Drives the provider inbox for direct and open requests | M |
+| `service_requests` | **reference** `RN-` + 7 random digits, **unique index**, bounded retry on collision; no sequential id, no counter table; display only, never an authorization key (D72), client_id, **type** (direct/open), target_provider_id nullable, provider_service_id nullable (direct), service_id, event_type_id, **execution_place** (event_location/provider_location, BRD Req 14), event_date, start_time (Asia/Riyadh), **duration_minutes** (D48; may cross midnight, D61), **starts_at / ends_at** UTC (computed, D50), city_id (event location: the address city; provider location: the provider's city, D66), address_id nullable (source only), **address snapshot** JSON (label, district, details, lat, lng) — `null` for provider-location requests (D66), guests_count nullable (D54), notes, status (BRD §5), cancelled_at, cancel_reason, **idempotency_key + idempotency_fingerprint, unique(client_id, idempotency_key)**. No `event_passed` column (computed: `now >= ends_at`, D49/D62). Attachments = `media` rows (§7) | M (Slice 4) |
+| `service_request_addons` | service_request_id, addon_id, provider_addon_id nullable (direct), **name snapshot** JSON (ar/en), unique(request, addon). No quantity (D54) | M (Slice 4) |
+| `service_request_recipients` | service_request_id, provider_id, status (new/offer_sent/declined/closed, D60), **decline_reason_id + decline_explanation** (both required on decline, D51), declined_at, seen_at, closed_at, unique(request, provider). Drives the provider inbox for direct and open requests; open-request rows are created at creation time for matching providers (D55) | M (Slice 4) |
+| `decline_reasons` | code unique, name (ar/en), is_active, sort. Seeded reference data (D51); deactivated, never deleted; managed in Slice 16 | M (Slice 4) |
 | `offers` | **reference** (Q-…), service_request_id, provider_id, title, total, valid_until, notes, is_quick, status (active/selected/not_selected/expired/superseded/closed), policy_version_id, sent_at | M |
 | `offer_items` | offer_id, description, quantity, unit_price, line_total, source_type/source_id nullable (provider_service/provider_addon) | M |
 | `bookings` | reference, **service_request_id unique**, **offer_id unique**, client_id, provider_id, starts_at, ends_at nullable, address snapshot, **total snapshot**, status (confirmed/in_progress/completed/cancelled), payment_status, **policy_version_id**, completion_code_hash nullable [?], confirmed_at, started_at, completed_at | M |
@@ -104,7 +105,7 @@ Labels: **[C]** confirmed · **[R]** recommendation · **[?]** open question.
 
 | Table | Key columns | Stage |
 |---|---|---|
-| `media` | attachable_type/attachable_id (nullable until attached), collection, disk, path, original_name, mime, size, duration, **visibility (private/public)**, uploaded_by | F |
+| `media` | attachable_type/attachable_id (nullable until attached), collection, disk, path, original_name, mime, size, duration, **visibility (private/public)**, uploaded_by. Request attachments: context/collection `request_attachment`, private, attached to `service_requests` at creation (D52) | F |
 | `conversations` | client_id, provider_id, service_request_id nullable, status (active/read_only/closed), last_message_at | M |
 | `messages` | conversation_id, sender_id, type (text/image/file/voice/offer_card/system), body, offer_id nullable, **client_uuid unique** (dedupe), flagged | M |
 | `conversation_reads` | conversation_id, user_id, last_read_message_id | M |
@@ -137,7 +138,7 @@ Labels: **[C]** confirmed · **[R]** recommendation · **[?]** open question.
 |---|---|---|
 | `banners` | title (ar/en), media, destination_type/destination_id, app (client/provider), city_id nullable, starts_at, ends_at, is_active, sort | F |
 | `pages` | slug, title, body (ar/en), audience (client/provider), is_active, unique(slug, audience) | F (demo seed only) |
-| `app_settings` | key, value JSON, **null = not specified** (OTP length/expiry, offer validity options, upload limits `uploads.<context>`…) | F |
+| `app_settings` | key, value JSON, **null = not specified** (OTP length/expiry, offer validity options, upload limits `uploads.<context>` incl. `uploads.request_attachment`, `requests.max_attachments` — not approved and left `null`, D53/Q14: upload → `409 NOT_CONFIGURED`, create with files → `409 NOT_CONFIGURED`…) | F |
 | `notifications` | Laravel built-in database notifications | M |
 | `broadcast_campaigns` | title, body (ar/en), audience filter JSON, destination, status, scheduled_at, sent_at, created_by | D |
 | `audit_logs` | actor_id, subject_type/id, action, reason, old JSON, new JSON (spatie/laravel-activitylog or custom) | F |
@@ -152,7 +153,8 @@ Permission examples (view / edit / sensitive action):
 `support.view|reply|assign`, `chats.view_for_ticket`, `reviews.moderate`, `products.manage`,
 `orders.view|update_status`, `delivery.assigned`, `finance.view|process`, `payouts.process`,
 `content.manage`, `notifications.broadcast`, `settings.manage`, `roles.manage`, `audit.view`,
-`reports.export`.
+`reports.export`, `requests.attachments.view` (Slice 4, D58; assigned to `super_admin` only, D64). Request
+list/detail uses `bookings.view`, which covers the complete request incl. exact address, pin and client phone (D57, D64).
 
 ## 11. Frozen before coding (core tables)
 
@@ -169,4 +171,6 @@ Permission examples (view / edit / sensitive action):
 | Booking duration/capacity | `bookings.ends_at` (already nullable) + provider capacity column |
 | Team member login | `provider_team_members.user_id` (already nullable) |
 | Provider-created add-ons/inclusions | Nullable `provider_id` / `custom_text` columns |
-| Districts managed list | `districts` table + FK in addresses/coverage |
+| Districts managed list | `districts` table + FK in addresses/coverage (free text today, D59) |
+| Request/booking time rules (Q5) | Validation and the computed `event_passed` only; `duration_minutes`/`ends_at` already stored |
+| Verified execution places (D73) | `provider_services` default change + confirmation column (3a); matching adds one condition |

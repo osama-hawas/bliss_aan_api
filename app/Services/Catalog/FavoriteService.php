@@ -68,7 +68,7 @@ class FavoriteService
     private function visibleTarget(FavoriteType $type): Builder
     {
         return match ($type) {
-            FavoriteType::Provider => Provider::query()->listed(),
+            FavoriteType::Provider => Provider::query()->visibleToClients(),
             FavoriteType::ProviderService => ProviderService::query()->visible(),
         };
     }

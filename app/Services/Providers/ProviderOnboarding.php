@@ -279,7 +279,7 @@ class ProviderOnboarding
         $ids = Service::query()->whereIn('id', $serviceIds)->where('is_active', true)->pluck('id')->all();
         $provider->services()->whereNotIn('service_id', $ids)->delete();
         foreach ($ids as $id) {
-            $provider->services()->firstOrCreate(['service_id' => $id], ['is_active' => true, 'at_event_location' => true]);
+            $provider->services()->firstOrCreate(['service_id' => $id], ['is_active' => true, 'at_event_location' => false]); // she confirms it in setup (D73)
         }
     }
 

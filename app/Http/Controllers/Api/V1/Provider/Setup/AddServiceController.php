@@ -16,7 +16,7 @@ class AddServiceController extends Controller
 
     public function __invoke(AddServiceRequest $request)
     {
-        $offered = $this->setup->addService($this->setup->activeProvider($request->user()), (int) $request->validated('service_id'));
+        $offered = $this->setup->addService($this->setup->activeProvider($request->user()), (int) $request->validated('service_id'), $request->places());
 
         return $this->success(new ProviderServiceResource(ProviderServiceResource::load($offered)), __('Service added.'), 201);
     }

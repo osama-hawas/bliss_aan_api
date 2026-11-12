@@ -12,7 +12,8 @@ use Illuminate\Database\Eloquent\Collection;
 
 /**
  * What clients can find about providers: search, featured list, public profile, service details.
- * Everything goes through Provider::listed() and ProviderService::offered(); anything else is a 404.
+ * Providers go through Provider::visibleToClients() (D75), services through ProviderService::offered() / visible();
+ * anything else is a 404.
  */
 class ProviderDirectory
 {
@@ -59,7 +60,7 @@ class ProviderDirectory
 
     public function profile(int $providerId): Provider
     {
-        return Provider::query()->listed()
+        return Provider::query()->visibleToClients()
             ->with([
                 'city', 'avatar', 'cover', 'coverageCities',
                 'services' => fn ($query) => $query->offered()->with(['service.category', 'service.image'])->orderBy('id'),
@@ -123,11 +124,11 @@ class ProviderDirectory
     }
 
     /**
-     * Listed providers with at least one matching offered service, with their `starting_price`.
+     * Providers visible to clients with at least one matching offered service, with their `starting_price`.
      */
     private function cards(array $filters): Builder
     {
-        return Provider::query()->listed()
+        return Provider::query()->visibleToClients()
             ->whereHas('services', fn (Builder $query) => $this->matchingServices($query, $filters))
             ->select('providers.*')
             ->selectSub($this->startingPrice($filters), 'starting_price')

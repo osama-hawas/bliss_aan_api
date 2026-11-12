@@ -182,8 +182,16 @@ return [
     'saudi_mobile' => 'The :attribute field must be a valid Saudi mobile number.',
 
     'custom' => [
-        'attribute-name' => [
-            'rule-name' => 'custom-message',
+        'execution_places' => [
+            'required' => 'Choose at least one place where you deliver this service: at the client\'s event location or at your location.',
+            'last' => 'At least one place to deliver this service must stay on. Turn on the other place first.',
+        ],
+        'confirm' => [
+            'accepted_if' => 'Confirm that you deliver this service at the client\'s event location before turning it on.',
+        ],
+        'coverage_city_ids.*' => [
+            'exists' => 'One of the selected cities is not available.',
+            'distinct' => 'The same city was selected more than once.',
         ],
     ],
 
@@ -199,6 +207,11 @@ return [
     */
 
     'attributes' => [
+        'at_provider_location' => 'service at your location',
+        'execution_places' => 'service places',
+        'coverage_city_ids.*' => 'selected city',
+        'at_event_location' => 'service at the event location',
+        'confirm' => 'confirmation of service at the event location',
         'display_name' => 'business name',
         'legal_name' => 'legal name',
         'representative_name' => 'representative name',

@@ -103,8 +103,12 @@ class ApplicationReviewTest extends TestCase
 
         $this->assertNotNull($provider->refresh()->activated_at);
         $this->actingAsApi($provider->user)->getJson('/api/v1/auth/me')->assertJsonPath('data.provider.status', 'active');
-        // Now listed for clients.
+        // Active, but shown to clients only once a service has an execution place (D75).
+        $this->getJson('/api/v1/shared/providers/'.$provider->id)->assertNotFound();
+        $service = $provider->services()->firstOrFail();
+        $this->actingAsApi($provider->user)->patchJson("/api/v1/provider/services/{$service->id}", ['at_provider_location' => true])->assertOk();
         $this->getJson('/api/v1/shared/providers/'.$provider->id)->assertOk();
+        $this->assertSame(ProviderStatus::Active, $provider->refresh()->status);
         foreach (['document_rejected', 'application_needs_completion', 'document_accepted', 'application_activated'] as $action) {
             $this->assertDatabaseHas('audit_logs', ['action' => $action, 'actor_id' => $admin->id]);
         }

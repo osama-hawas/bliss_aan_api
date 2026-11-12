@@ -63,7 +63,8 @@ trait BuildsCatalog
 
     protected function offer(Provider $provider, Service $service, ?string $customPrice = null, array $attributes = []): ProviderService
     {
-        return $provider->services()->create(['service_id' => $service->id, 'custom_price' => $customPrice, ...$attributes]);
+        // An offered service has at least one execution place (D74); discovery fixtures use the event location.
+        return $provider->services()->create(['service_id' => $service->id, 'custom_price' => $customPrice, 'at_event_location' => true, ...$attributes]);
     }
 
     protected function media(string $collection, MediaVisibility $visibility = MediaVisibility::Public): Media

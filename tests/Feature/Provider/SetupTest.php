@@ -81,10 +81,10 @@ class SetupTest extends TestCase
     {
         $other = Service::query()->create(['category_id' => $this->service->category_id, 'name' => ['ar' => 'فيديو', 'en' => 'Video'], 'is_active' => true, 'sort' => 2]);
 
-        $this->as()->postJson(self::URL.'/services', ['service_id' => $other->id])->assertCreated()->assertJsonPath('data.uses_guide_price', true);
+        $this->as()->postJson(self::URL.'/services', ['service_id' => $other->id, 'at_provider_location' => true])->assertCreated()->assertJsonPath('data.uses_guide_price', true);
         $this->as()->getJson(self::URL.'/services')->assertJsonCount(2, 'data');
         $other->update(['is_active' => false]);
-        $this->as()->postJson(self::URL.'/services', ['service_id' => $other->id])->assertUnprocessable();
+        $this->as()->postJson(self::URL.'/services', ['service_id' => $other->id, 'at_provider_location' => true])->assertUnprocessable();
     }
 
     public function test_inclusions_switch_off_only_from_the_catalog(): void

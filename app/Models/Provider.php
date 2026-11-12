@@ -54,6 +54,16 @@ class Provider extends Model
             ->whereHas('user', fn (Builder $user) => $user->where('status', '!=', UserStatus::Suspended));
     }
 
+    /**
+     * Shown to clients (D34 as amended by D75): listed, with at least one offered service, i.e. one with an execution
+     * place (D74). One is enough. An unconfirmed event location still counts: D73 confirmation gates open-request
+     * matching only. Never changes her status.
+     */
+    public function scopeVisibleToClients(Builder $query): void
+    {
+        $query->listed()->whereHas('services', fn (Builder $services) => $services->offered());
+    }
+
     public function avatar(): MorphOne
     {
         return $this->mediaIn('avatar');

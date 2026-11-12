@@ -6,6 +6,8 @@ use Illuminate\Foundation\Http\FormRequest;
 
 /**
  * `custom_price: null` resets to the guide price. The guide price is neither a minimum nor a maximum.
+ * The event location is set only through `PUT provider/services/{id}/event-location`, which records her
+ * confirmation (D73).
  */
 class UpdateServiceRequest extends FormRequest
 {
@@ -14,7 +16,7 @@ class UpdateServiceRequest extends FormRequest
         return [
             'custom_price' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:9999999999.99', 'decimal:0,2'],
             'at_provider_location' => ['sometimes', 'boolean'],
-            'at_event_location' => ['sometimes', 'boolean'],
+            'at_event_location' => ['prohibited'],
             'is_active' => ['sometimes', 'boolean'],
         ];
     }

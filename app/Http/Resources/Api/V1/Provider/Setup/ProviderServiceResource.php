@@ -34,6 +34,9 @@ class ProviderServiceResource extends JsonResource
             'uses_guide_price' => $this->custom_price === null,
             'at_provider_location' => $this->at_provider_location,
             'at_event_location' => $this->at_event_location,
+            'event_location_confirmed_at' => $this->dateTime($this->event_location_confirmed_at),
+            'event_location_needs_review' => $this->eventLocationNeedsReview(),
+            'execution_place_missing' => ! $this->hasExecutionPlace(),
             'is_active' => $this->is_active,
             'inclusions' => $this->service->inclusions->map(fn ($i) => [
                 'id' => $i->id,

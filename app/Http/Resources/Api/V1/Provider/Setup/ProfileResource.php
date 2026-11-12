@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * Her public profile as she edits it: bio, photo, weekly hours and portfolio.
+ * Her public profile as she edits it: bio, photo, weekly hours, portfolio and the cities she covers.
  *
  * @mixin Provider
  */
@@ -33,6 +33,7 @@ class ProfileResource extends JsonResource
                 'opens_at' => substr($h->opens_at, 0, 5),
                 'closes_at' => substr($h->closes_at, 0, 5),
             ])->values(),
+            'coverage' => $this->coverageCities->sortBy('sort')->map(fn ($city) => ['id' => $city->id, 'name' => $city->name])->values(),
             'portfolio' => $this->portfolioItems->map(fn (PortfolioItem $p) => [
                 'id' => $p->id,
                 'url' => $media->url($p->media),
@@ -44,6 +45,6 @@ class ProfileResource extends JsonResource
 
     public static function load(Provider $provider): Provider
     {
-        return $provider->refresh()->load(['avatar', 'workingHours', 'portfolioItems.media']);
+        return $provider->refresh()->load(['avatar', 'workingHours', 'portfolioItems.media', 'coverageCities']);
     }
 }

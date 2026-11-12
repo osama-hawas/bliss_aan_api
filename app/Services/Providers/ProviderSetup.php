@@ -63,31 +63,127 @@ class ProviderSetup
     }
 
     /**
-     * Adds a catalog service on the guide price, or re-enables one she stopped.
+     * Adds a catalog service on the guide price, or re-enables one she stopped. It needs at least one execution
+     * place (D74): the ones she sends, else the ones a re-enabled service already has. The event location counts only
+     * with her confirmation (the request requires `confirm` with it), so it is recorded as confirmed (D73).
+     *
+     * @param  array{at_event_location?: bool, at_provider_location?: bool}  $places
      */
-    public function addService(Provider $provider, int $serviceId): ProviderService
+    public function addService(Provider $provider, int $serviceId, array $places = []): ProviderService
     {
         $service = Service::query()->where('is_active', true)->find($serviceId)
             ?? throw ValidationException::withMessages(['service_id' => __('validation.exists', ['attribute' => __('validation.attributes.service_ids')])]);
 
-        $offered = $provider->services()->firstOrNew(['service_id' => $service->id]);
-        $offered->fill(['is_active' => true, 'at_event_location' => $offered->exists ? $offered->at_event_location : true])->save();
-        $this->activity->record($provider, 'service_offered', actor: $provider->user, visibility: ActivityVisibility::Internal, meta: ['service_id' => $service->id]);
+        return DB::transaction(function () use ($provider, $service, $places) {
+            // A re-enabled service is read under a row lock, so its saved places are the committed ones (D74).
+            $offered = $provider->services()->where('service_id', $service->id)->lockForUpdate()->first()
+                ?? $provider->services()->make(['service_id' => $service->id]);
+            if (! $offered->exists) {
+                $offered->forceFill(['at_event_location' => false, 'at_provider_location' => false]);
+            }
+            if (array_key_exists('at_provider_location', $places)) {
+                $offered->at_provider_location = $places['at_provider_location'];
+            }
+            if (array_key_exists('at_event_location', $places)) {
+                $offered->forceFill([
+                    'at_event_location' => $places['at_event_location'],
+                    'event_location_confirmed_at' => $places['at_event_location'] ? now() : null,
+                ]);
+            }
+            if (! $offered->hasExecutionPlace()) {
+                throw ValidationException::withMessages(['execution_places' => __('validation.custom.execution_places.required')]);
+            }
 
-        return $offered;
+            $offered->is_active = true;
+            $offered->save();
+            $this->activity->record($provider, 'service_offered', actor: $provider->user, visibility: ActivityVisibility::Internal, meta: ['service_id' => $service->id, ...$places]);
+
+            return $offered;
+        });
     }
 
     /**
-     * @param  array{custom_price?: ?string, at_provider_location?: bool, at_event_location?: bool, is_active?: bool}  $data
+     * The event location is not set here: see setEventLocation() (D73).
+     *
+     * @param  array{custom_price?: ?string, at_provider_location?: bool, is_active?: bool}  $data
      */
     public function updateService(ProviderService $offered, array $data): ProviderService
     {
-        $offered->fill($data)->save();
-        if (array_key_exists('custom_price', $data)) {
-            $this->activity->record($offered->provider, $data['custom_price'] === null ? 'price_reset' : 'price_set', actor: $offered->provider->user, visibility: ActivityVisibility::Internal, meta: ['provider_service_id' => $offered->id, 'custom_price' => $data['custom_price']]);
+        // The `boolean` rule also accepts 0/1/"0"/"1"; cast so the checks below see what will be stored.
+        foreach (['at_provider_location', 'is_active'] as $flag) {
+            if (array_key_exists($flag, $data)) {
+                $data[$flag] = (bool) $data[$flag];
+            }
         }
 
-        return $offered;
+        return DB::transaction(function () use ($offered, $data) {
+            // Re-read under a row lock: a concurrent place change must be checked against the committed row (D74).
+            $offered = $this->lockService($offered);
+            $offered->fill($data);
+            // D74: the last place cannot be switched off, and a service without one cannot be offered again.
+            if (! $offered->hasExecutionPlace()) {
+                if ($offered->getOriginal('at_provider_location') && ! $offered->at_provider_location) {
+                    throw ValidationException::withMessages(['at_provider_location' => __('validation.custom.execution_places.last')]);
+                }
+                if ($offered->is_active && $offered->isDirty('is_active')) {
+                    throw ValidationException::withMessages(['is_active' => __('validation.custom.execution_places.required')]);
+                }
+            }
+            $offered->save();
+            if (array_key_exists('custom_price', $data)) {
+                $this->activity->record($offered->provider, $data['custom_price'] === null ? 'price_reset' : 'price_set', actor: $offered->provider->user, visibility: ActivityVisibility::Internal, meta: ['provider_service_id' => $offered->id, 'custom_price' => $data['custom_price']]);
+            }
+
+            return $offered;
+        });
+    }
+
+    /**
+     * Her explicit answer on offering this service at the client's event location (D73). Turning it on records
+     * the confirmation; turning it off removes both, so only a new confirmation makes it count again. It cannot be
+     * turned off while it is the service's only place (D74).
+     */
+    public function setEventLocation(ProviderService $offered, bool $enabled): ProviderService
+    {
+        return DB::transaction(function () use ($offered, $enabled) {
+            // Re-read under a row lock: a concurrent place change must be checked against the committed row (D74).
+            $offered = $this->lockService($offered);
+            if (! $enabled && $offered->at_event_location && ! $offered->at_provider_location) {
+                throw ValidationException::withMessages(['at_event_location' => __('validation.custom.execution_places.last')]);
+            }
+            $offered->forceFill([
+                'at_event_location' => $enabled,
+                'event_location_confirmed_at' => $enabled ? now() : null,
+            ])->save();
+            $this->activity->record($offered->provider, $enabled ? 'event_location_confirmed' : 'event_location_disabled', actor: $offered->provider->user, visibility: ActivityVisibility::Internal, meta: ['provider_service_id' => $offered->id]);
+
+            return $offered;
+        });
+    }
+
+    /**
+     * The same provider-service row, freshly read and locked until the surrounding transaction ends.
+     */
+    private function lockService(ProviderService $offered): ProviderService
+    {
+        return ProviderService::query()->whereKey($offered->getKey())->lockForUpdate()->firstOrFail();
+    }
+
+    /**
+     * Replaces the cities she covers after activation (D69). Same city rules as the application; districts are
+     * not used (D59).
+     *
+     * @param  list<int>  $cityIds
+     */
+    public function setCoverage(Provider $provider, array $cityIds): Provider
+    {
+        DB::transaction(function () use ($provider, $cityIds) {
+            $provider->coverageAreas()->delete();
+            $provider->coverageAreas()->createMany(array_map(fn (int $id) => ['city_id' => $id], array_values(array_unique($cityIds))));
+        });
+        $this->activity->record($provider, 'coverage_updated', actor: $provider->user, visibility: ActivityVisibility::Internal, meta: ['city_ids' => array_values(array_unique($cityIds))]);
+
+        return $provider;
     }
 
     /**

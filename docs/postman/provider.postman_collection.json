@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Bliss aan — provider",
-    "description": "Audience folder `provider/` (provider token from the Auth collection: register with `app=provider`, D37). Slice 3. Her own application only.",
+    "description": "Audience folder `provider/` (provider token from the Auth collection: register with `app=provider`, D37). Slice 3 (+ follow-up 3a: coverage, event-location confirmation). Her own application only.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -266,10 +266,10 @@
               }
             ],
             "url": "{{base_url}}/provider/services",
-            "description": "Adds a catalog service on the guide price. 201. Active providers only (409 INVALID_STATE otherwise).",
+            "description": "Adds a catalog service on the guide price. 201. Active providers only (409 INVALID_STATE otherwise). D74: at least one execution place (`at_event_location` with `confirm: true`, and/or `at_provider_location`); none → 422 `execution_places`.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"service_id\": 1\n}"
+              "raw": "{\n  \"service_id\": 1,\n  \"at_event_location\": true,\n  \"confirm\": true,\n  \"at_provider_location\": false\n}"
             }
           }
         },
@@ -296,10 +296,10 @@
               }
             ],
             "url": "{{base_url}}/provider/services/{{provider_service_id}}",
-            "description": "custom_price null resets to the guide price. Active providers only (409 INVALID_STATE otherwise).",
+            "description": "custom_price null resets to the guide price. Active providers only (409 INVALID_STATE otherwise). `at_event_location` is not accepted here (422): use Set event location (D73).",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"custom_price\": 1800,\n  \"at_provider_location\": true,\n  \"at_event_location\": true,\n  \"is_active\": true\n}"
+              "raw": "{\n  \"custom_price\": 1800,\n  \"at_provider_location\": true,\n  \"is_active\": true\n}"
             }
           }
         },
@@ -330,6 +330,36 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"disabled_inclusion_ids\": []\n}"
+            }
+          }
+        },
+        {
+          "name": "Set event location",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/provider/services/{{provider_service_id}}/event-location",
+            "description": "D73. Turning it on needs `confirm: true` (her explicit confirmation; 422 `confirm` otherwise) and sets `event_location_confirmed_at`; `{\"at_event_location\": false}` turns it off and clears the confirmation. Only confirmed services count for open requests. Her own services only (404), active providers only (409 INVALID_STATE).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"at_event_location\": true,\n  \"confirm\": true\n}"
             }
           }
         },
@@ -476,6 +506,36 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"hours\": [\n    {\n      \"weekday\": 0,\n      \"opens_at\": \"10:00\",\n      \"closes_at\": \"18:00\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Set coverage",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/provider/coverage",
+            "description": "D69. Replaces the cities she covers (1–20 active cities, distinct). Returns the profile with `coverage: [{id, name}]`. Active providers only (409 INVALID_STATE otherwise).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"coverage_city_ids\": [1, 2]\n}"
             }
           }
         },
