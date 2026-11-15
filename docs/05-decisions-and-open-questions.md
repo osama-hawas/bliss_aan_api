@@ -110,6 +110,7 @@ When a question is answered, move it to **Decided** with the date and source.
 | D100 | R2 — the D98 deadlock-only retry applies to the **entire request-creation transaction, for both direct and open requests**: only confirmed MySQL deadlocks (error 1213), up to 3 total attempts; every attempt uses a fresh transaction and repeats the complete locking and validation sequence, including the idempotency-key check; lock-wait timeouts (1205), unrelated SQL errors, validation errors and duplicate-key handling are not retried; no deadlock retry is added to the Slice 4 address-creation path (C2 remains a documented known technical risk, D97); direct- and open-request business rules are unchanged | Project owner (Slice 5a final contract approval) | 2026-11-12 |
 | D101 | Slice 5a contract revision 3 (`docs/slice-5a-contract.md`) is approved with D80–D100. The approval covers the contract only; implementation needs a separate explicit authorization | Project owner (Slice 5a final contract approval) | 2026-11-12 |
 | D102 | Slice 5a implementation is authorized (the separate authorization D101 requires) | Project owner | 2026-11-15 |
+| D103 | Slice 5a is closed as **Completed**: backend (`e2e6b37`, `86cdef6`) and Flutter (`72bdc5f`, commit authorized by the owner) implemented and verified (suite, real-API E2E incl. Ar/En, audit baseline unchanged); the two Medium review findings fixed before the commit; the remaining Low review notes stay open and non-blocking (`04-roadmap.md`, *Slice 5a closure verification*). Both commits are local and not pushed. The physical-device pass stays on the final release checklist (as D79 for Slice 3) | Project owner (Slice 5a closure) | 2026-11-15 |
 
 ## Open — blocking (needed before the related slice)
 
@@ -187,6 +188,7 @@ When a question is answered, move it to **Decided** with the date and source.
 - BRD revision history dates are inconsistent (v1.5 dated before v1.0).
 - BRD Req 03 card mentions establishments only; Rule 08 defines both individual and establishment — Rule 08 is used.
 - Decision rows are numbered by ID, not by position: D36 sits after D46 (it was added late); D47+ follow it.
+- Slice 5a: contract approval (D101), implementation authorization (D102) and closure (D103) are separate records. No open question was closed by the closure: Q30 and Q31 were already answered by D92 and D93; Q5 stays open for 5c and Q24 is unaffected by 5a. The Slice 5a Low review notes are kept in `04-roadmap.md` (*Slice 5a closure verification*), not as questions.
 - `03-api-conventions.md` shows `RN-1024` / `Q-5501` as reference examples. They are format examples only; the
   request reference is `RN-` + 7 random digits (D72). Other prefixes (`Q-`, `BK-`, `SO-`) are decided in their slices.
 - `03-api-conventions.md` upload contexts list is behind the code: `avatar` (D46) is missing and `request_attachment`
