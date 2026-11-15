@@ -1317,6 +1317,116 @@
           ]
         }
       ]
+    },
+    {
+      "name": "Wallet",
+      "description": "Wallet CRUD (D106, docs/wallet-contract.md). Informational only (D106): the balance is derived from ledger entries, is never spendable, and no deposit, withdrawal, transfer, payment or refund endpoint exists. Own wallet only — there are no wallet ids in the URL.",
+      "item": [
+        {
+          "name": "Show my wallet",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": "{{base_url}}/provider/wallet",
+            "description": "200. `data` is null when she has no active wallet (empty state), else the wallet. Example: {\"id\": 12, \"owner_type\": \"provider\", \"label\": \"My wallet\", \"currency\": \"SAR\", \"status\": \"active\", \"status_label\": \"Active\", \"balance\": {\"amount\": \"0.00\", \"currency\": \"SAR\", \"is_spendable\": false, \"note\": \"For information only. This balance cannot be spent, withdrawn or used to pay for bookings.\"}, \"created_at\": \"2026-11-15T09:00:00Z\", \"updated_at\": \"2026-11-15T09:00:00Z\"}"
+          }
+        },
+        {
+          "name": "Create my wallet",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/provider/wallet",
+            "description": "201 with the wallet. Body: `label` optional, ≤ 60 chars. `balance`/`amount`/`currency` are prohibited (422). 409 WALLET_EXISTS when she already has an active wallet.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"label\": \"My wallet\"}"
+            }
+          }
+        },
+        {
+          "name": "Rename my wallet",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/provider/wallet",
+            "description": "200 with the wallet. `label` is the only editable information; null clears it. 404 when she has no active wallet.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"label\": \"Savings\"}"
+            }
+          }
+        },
+        {
+          "name": "Delete my wallet",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": "{{base_url}}/provider/wallet",
+            "description": "200, `data: null`. Closes the wallet (status `closed`, kept as history, never hard-deleted); she may create a new one afterwards. 404 when none; 409 INVALID_STATE when it has ledger entries."
+          }
+        }
+      ]
     }
   ]
 }

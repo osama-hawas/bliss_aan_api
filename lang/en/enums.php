@@ -67,6 +67,7 @@ return [
     'offer_status' => ['active' => 'Active', 'superseded' => 'Replaced by a newer offer', 'withdrawn' => 'Withdrawn', 'expired' => 'Expired', 'closed' => 'Closed', 'selected' => 'Accepted', 'not_selected' => 'Not selected'],
     'booking_status' => ['confirmed' => 'Confirmed', 'in_progress' => 'In progress', 'completed' => 'Completed', 'cancelled' => 'Cancelled'],
     'booking_payment_status' => ['not_required' => 'No payment required'],
+    'wallet_status' => ['active' => 'Active', 'closed' => 'Closed'],
     'execution_place' => ['event_location' => 'At the event location', 'provider_location' => "At the provider's location"],
     'guest_count_mode' => ['hidden' => 'Not asked', 'optional' => 'Optional', 'required' => 'Required'],
 ];

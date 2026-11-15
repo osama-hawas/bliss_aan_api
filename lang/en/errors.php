@@ -22,6 +22,7 @@ return [
     'BLOCK_OVERLAP' => 'This period overlaps a block you already have.',
     'OFFER_EXPIRED' => 'This offer has expired.',
     'ALREADY_BOOKED' => 'This request already has a confirmed booking.',
+    'WALLET_EXISTS' => 'You already have a wallet.',
     'SERVER_ERROR' => 'Something went wrong. Please try again.',
 
     // Messages for specific INVALID_STATE cases.

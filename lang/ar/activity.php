@@ -9,4 +9,6 @@ return [
     'offer_sent' => 'تم استلام عرض',
     'offer_withdrawn' => 'سحبت مقدمة خدمة عرضها',
     'booking_confirmed' => 'تم قبول العرض وتأكيد الحجز',
+    'wallet_created' => 'تم إنشاء المحفظة',
+    'wallet_closed' => 'تم إغلاق المحفظة',
 ];

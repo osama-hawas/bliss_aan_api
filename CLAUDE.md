@@ -163,6 +163,13 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
   `ProviderAvailability::isBusy()` for acceptance and direct requests; `calendar_conflict` and `unavailable_dates` include it.
 - Tests: `tests/Feature/Bookings/AcceptOfferTest.php`, `tests/Feature/Database/BookingLockingTest.php`.
 
+## Wallets (D106, D114–D116)
+
+- Contract: `docs/wallet-contract.md`. `app/Services/Wallets/WalletService`: own wallet only (`GET/POST/PATCH/DELETE
+  {client|provider}/wallet`, no ids), one active wallet per account (`active_owner_id` unique), label only (D115), delete =
+  close even with ledger history, entries kept (D115). Balance = Σ `available` `wallet_ledger_entries` (nothing writes them), `is_spendable: false`. Never used by bookings.
+- Tests: `tests/Feature/Wallet/WalletTest.php`.
+
 ## Commands
 
 - `docker compose up -d mysql` — local MySQL 8 (databases `bliss_aan` and `testing`)

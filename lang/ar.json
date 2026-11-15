@@ -36,5 +36,8 @@
     "Request declined.": "تم الاعتذار عن الطلب.",
     "Offer sent.": "تم إرسال العرض.",
     "Offer withdrawn and request declined.": "تم سحب العرض والاعتذار عن الطلب.",
-    "Booking confirmed.": "تم تأكيد الحجز."
+    "Booking confirmed.": "تم تأكيد الحجز.",
+    "Wallet created.": "تم إنشاء المحفظة.",
+    "Wallet updated.": "تم تحديث المحفظة.",
+    "Wallet deleted.": "تم حذف المحفظة."
 }
