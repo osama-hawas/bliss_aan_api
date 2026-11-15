@@ -134,6 +134,16 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
   `submit()`, `created()`, `attachmentUpload()`, `allowAttachments()`). Bind a fake `ReferenceGenerator` before the
   first request: routes keep their controller instance between test requests.
 
+## Calendar & availability (Slice 5a, backend done)
+
+- Contract: `docs/slice-5a-contract.md`. `app/Services/Availability/`: `AvailabilityBlocks` (calendar, create, soft delete;
+  provider row lock + status re-check, D90/D95/D96), `ProviderAvailability` (exact overlap, `calendar_conflict`, full-day
+  `unavailable_dates`, D92), `DeadlockRetry` (MySQL 1213 only, 3 fresh attempts, D98/D100; wraps block writes and
+  `ServiceRequestCreator::create`). Riyadh dates ↔ UTC: `App\Support\RiyadhCalendar`. Overlap is half-open everywhere.
+- Direct requests lock the target provider after the media lock and answer `409 SLOT_UNAVAILABLE` on an overlap.
+- Tests: `Tests\Concerns\BuildsAvailability` (frozen at 2026-12-01 12:00 Riyadh), `UsesCommittedRows` for two-session tests,
+  `tests/Support/sql_session_worker.php` for real deadlock cycles.
+
 ## Commands
 
 - `docker compose up -d mysql` — local MySQL 8 (databases `bliss_aan` and `testing`)

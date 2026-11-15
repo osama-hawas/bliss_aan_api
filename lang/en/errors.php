@@ -18,6 +18,8 @@ return [
     'OUT_OF_COVERAGE' => 'This provider does not serve the selected city.',
     'NO_MATCHING_PROVIDERS' => 'No provider is available for this request in the selected city right now.',
     'DUPLICATE_REQUEST' => 'This request was already sent with different details.',
+    'SLOT_UNAVAILABLE' => 'This provider is not available at the selected time. Please choose another date or time.',
+    'BLOCK_OVERLAP' => 'This period overlaps a block you already have.',
     'SERVER_ERROR' => 'Something went wrong. Please try again.',
 
     // Messages for specific INVALID_STATE cases.

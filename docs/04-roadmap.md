@@ -18,19 +18,21 @@ Status values: Not Started · In Analysis · Ready · In Progress · Blocked · 
 |---|---|---|---|---|---|---|
 | 0 | Foundation | Fix boilerplate issues (see `CLAUDE.md`), MySQL, unified envelope + error codes, locale + `lang/ar`, users (phone/type/status), RBAC tables + roles seeder, `activity_events`, `audit_logs`, `media` + uploads, `app_settings`, `policy_versions`, cities/categories/event types seeders (demo services/pages/FAQs local only), fake SMS/payment/FCM drivers | Shared Dart package: API client, token storage, envelope/error parsing, theme, RTL/localization — **moved to the Flutter track (D20)** | P0 | — | Completed (backend, 2026-11-02) |
 | 1 | Auth | OTP request/verify, client register, refresh, logout, me, devices, FCM token, notification preferences | Login, OTP, register (both apps), session handling | P0 | 0 | Completed (backend, 2026-11-02) — OTP numbers still `null` (409 until set); provider sign-up moved to Slice 3 (D25) |
-| 2 | Catalog & discovery | Public catalog, client home, providers list/filters/sort, provider profile, service details, favorites | Home, categories, provider list/profile, service details, favorites | P1 | 0, 3 (needs active providers; seed them) | Completed (2026-11-03) — backend + Flutter client screens; provider tables created here with `[DEMO]` providers (onboarding endpoints stay in Slice 3); nearest sort waits on Q11, availability filter on Slice 5, reviews list on Slice 6 |
-| 3 | Provider onboarding & setup | **Provider account sign-up (D25)**; application (individual/establishment), documents, submit; **admin approve/request completion**; provider services + custom/guide price; inclusions; add-ons; coverage; working hours; profile & portfolio | Join wizard, application status, My services, service details, profile | P1 | 1 | In Progress — backend, Flutter and dashboard integration done; the coverage/setup gap is closed by 3a (Completed 2026-11-09). **Not yet Completed — outstanding for Slice 3 overall:** (1) physical-device test; (2) Playwright suite re-run (34); (3) live E2E suite re-run (46); (4) git commit and push (API `de909bf` and frontend `9bbca5a`/`205e741`/`428b403` unpushed; all 3a work uncommitted) — subject to the owner's separate approval; (5) ~~implement D75~~ done 2026-11-09 (not committed): `Provider::visibleToClients()` in provider profile, search, featured and provider favourites; Laravel 221/221 + Pint, Flutter discovery/account 303, all 16 local listed providers still visible. Verified 2026-11-09: Laravel 214/214, Pint, Flutter regular suite 1383 (no new audit-matrix failures), dashboard typecheck + lint |
-| 3a | Provider setup follow-up (Slice 3 gap) | (1) **Active-provider coverage editing** — `PUT provider/coverage` (D69). (2) **Event-location confirmation (D73)** — `at_event_location` default `false`; `event_location_confirmed_at` written only by her explicit confirmation (`PUT provider/services/{id}/event-location` or `POST provider/services` with `confirm: true`), cleared on disable; `PATCH provider/services/{id}` refuses `at_event_location`; existing rows unconfirmed (no backfill) and flagged `event_location_needs_review`. (3) **Execution places (D74)** — every offered service has ≥ 1 place; a service with none is hidden from clients; the last place cannot be switched off; place changes run under a row lock. (4) `ProviderService::openRequestCapable()` is the only open-matching check; direct requests read the stored flags. (5) **Tests** — Laravel `CoverageTest`, `EventLocationTest`, `ExecutionPlacesTest`, `ExecutionPlacesConcurrencyTest`, `OpenRequestCapabilityTest`, `Database/EventLocationMigrationTest`, `Database/ExecutionPlaceLockingTest`; Flutter `provider_setup_followup_test.dart` + `test/live/provider_setup_followup_live_test.dart` | Coverage screen (Account → Coverage cities); places sheet when offering; event-location card with confirm dialogs and a provider-location control on the service screen; review/no-place notices + badges on My services; review prompt on the provider home | P1 | 3 | **Completed (2026-11-09, not committed).** Independent final review: APPROVED, no blockers; all earlier findings resolved (first review H1, M1–M2, L1–L5; D74 review M1, L1–L3); N1 (concurrent place changes) and N2 (confirmation-path wording) resolved. Evidence and open items: see *Slice 3a closure* below |
-| 4 | Service requests | Client addresses (CRUD + default); create direct/open request (open = event location only, provider-specific matching by service + `at_event_location` + city coverage + add-ons, D55/D65; zero matches refused, D63; provider-location requests without client address, D66); `open_request_available` hint; attachments at creation (D52); guest count per service (D54); duration → `ends_at`, midnight allowed (D48/D61); `event_passed` display-only (D62); reference `RN-`+7 random digits (D72); my requests; request details/history; cancel before acceptance, optional reason (D67); provider inbox; decline with reason + explanation, direct → `declined` (D51/D68); admin read-only list/detail with full address/pin/phone, attachments `super_admin` only (D57/D58/D64). **Known gap:** no Req 17 availability check until Slice 5 (D70) | Address screens, 3-step request form (+ execution place, attachments), My requests, request details, provider inbox/request details + decline sheet; dashboard requests list/detail on the real API | P1 | 2, 3 (3a before production open matching) | **Backend completed (2026-11-12, branch `slice-4-service-requests`, not pushed)** — authorized by the project owner 2026-11-12; see *Slice 4 backend* below. Flutter and dashboard integration (§16–§17), Playwright and the §18.6 E2E: not started. Still pending, non-blocking: Q14 (attachment limits, unset → `NOT_CONFIGURED`), Q15, Q17, Q18, Q24. Open requests stay disabled in production until 3a is verified (D73) |
-| 5 | Offers & booking | Detailed + quick offer; client offers list/compare/details; **accept → booking** (lock, snapshot, auto-reject others); booking details both sides; calendar + availability blocks; **availability check for direct requests (BRD Req 17, moved from Slice 4, D70)**; winning-provider address/pin and attachment access (D52, D56) | Compose offer, offers list/details, accept, booking screens, calendar | P1 | 4 | Not Started |
-| 6 | Execution, cancellation, reviews | Start/complete, booking updates + attachments, cancellation requests (client + provider inability) + **admin decide**, reviews + provider reply + report | Booking actions, cancellation flow, review, reviews list | P1 | 5 | Not Started |
-| 7 | Chat | Conversations, messages (text/image/file/voice), offer card, read state, quick replies, Reverb channels, sensitive-content warnings | Messages, chat, quick replies | P1/P2 | 4, 5 | Not Started |
+| 2 | Catalog & discovery | Public catalog, client home, providers list/filters/sort, provider profile, service details, favorites | Home, categories, provider list/profile, service details, favorites | P1 | 0, 3 (needs active providers; seed them) | Completed (2026-11-03) — backend + Flutter client screens; provider tables created here with `[DEMO]` providers (onboarding endpoints stay in Slice 3); nearest sort waits on Q11, availability filter deferred beyond Slice 5a (D87), reviews list on Slice 6 |
+| 3 | Provider onboarding & setup | **Provider account sign-up (D25)**; application (individual/establishment), documents, submit; **admin approve/request completion**; provider services + custom/guide price; inclusions; add-ons; coverage; working hours; profile & portfolio | Join wizard, application status, My services, service details, profile | P1 | 1 | **Completed (functionally, 2026-11-12)** — every verifiable acceptance criterion re-verified on 2026-11-12 (see *Slice 3 closure verification* below; simulator walkthrough passed). **Physical-device verification deferred to the final project-wide testing phase by the project owner (D79)** — listed in the *Final release checklist*; it does not block later slices. Committed locally — API `de909bf` + `2690736` (3a and D75), frontend `205e741` + `2e7b600`; push subject to the owner's approval (API branch `slice-3-provider-onboarding` has no remote branch) |
+| 3a | Provider setup follow-up (Slice 3 gap) | (1) **Active-provider coverage editing** — `PUT provider/coverage` (D69). (2) **Event-location confirmation (D73)** — `at_event_location` default `false`; `event_location_confirmed_at` written only by her explicit confirmation (`PUT provider/services/{id}/event-location` or `POST provider/services` with `confirm: true`), cleared on disable; `PATCH provider/services/{id}` refuses `at_event_location`; existing rows unconfirmed (no backfill) and flagged `event_location_needs_review`. (3) **Execution places (D74)** — every offered service has ≥ 1 place; a service with none is hidden from clients; the last place cannot be switched off; place changes run under a row lock. (4) `ProviderService::openRequestCapable()` is the only open-matching check; direct requests read the stored flags. (5) **Tests** — Laravel `CoverageTest`, `EventLocationTest`, `ExecutionPlacesTest`, `ExecutionPlacesConcurrencyTest`, `OpenRequestCapabilityTest`, `Database/EventLocationMigrationTest`, `Database/ExecutionPlaceLockingTest`; Flutter `provider_setup_followup_test.dart` + `test/live/provider_setup_followup_live_test.dart` | Coverage screen (Account → Coverage cities); places sheet when offering; event-location card with confirm dialogs and a provider-location control on the service screen; review/no-place notices + badges on My services; review prompt on the provider home | P1 | 3 | **Completed (2026-11-09; committed locally in API `2690736` and frontend `2e7b600`, not pushed).** Independent final review: APPROVED, no blockers; all earlier findings resolved (first review H1, M1–M2, L1–L5; D74 review M1, L1–L3); N1 (concurrent place changes) and N2 (confirmation-path wording) resolved. Evidence and open items: see *Slice 3a closure* below |
+| 4 | Service requests | Client addresses (CRUD + default); create direct/open request (open = event location only, provider-specific matching by service + `at_event_location` + city coverage + add-ons, D55/D65; zero matches refused, D63; provider-location requests without client address, D66); `open_request_available` hint; attachments at creation (D52); guest count per service (D54); duration → `ends_at`, midnight allowed (D48/D61); `event_passed` display-only (D62); reference `RN-`+7 random digits (D72); my requests; request details/history; cancel before acceptance, optional reason (D67); provider inbox; decline with reason + explanation, direct → `declined` (D51/D68); admin read-only list/detail with full address/pin/phone, attachments `super_admin` only (D57/D58/D64). **Known gap:** no Req 17 availability check until Slice 5 (D70) | Address screens, 3-step request form (+ execution place, attachments), My requests, request details, provider inbox/request details + decline sheet; dashboard requests list/detail on the real API | P1 | 2, 3 (3a before production open matching) | **Completed (2026-11-12)** — closure verified and committed locally (not pushed). Backend `dd092da`, `bdc68fd` (branch `slice-4-service-requests`); Flutter client `dec5877`; Flutter provider inbox/decline + dashboard requests list/detail `76fe07a` (approved by the project owner 2026-11-12). Push still subject to the owner's approval. Full evidence: *Slice 4 closure verification* below. Still pending, non-blocking: Q14 (attachment limits, unset → `NOT_CONFIGURED`), Q15, Q17, Q18, Q24. Open requests stay disabled in production until 3a is verified (D73) |
+| 5a | Calendar & availability (D80) | `availability_blocks` (provider-wide, UTC, half-open); provider calendar + create/delete blocks (whole days in the app, time ranges in the API, D83; overlaps refused, D85; blocking over requests allowed with a warning, D89); public unavailable dates only — whole Riyadh days covered by blocks (D86, D92, D93); soft-deleted blocks (D94); **BRD Req 17 — direct request refused with `409 SLOT_UNAVAILABLE` when it overlaps a block (D70)**; open matching unchanged + `calendar_conflict` hint (D84); provider row lock serializing block creation, block deletion and direct requests (D90, D95). Not in 5a: working hours as availability (D82), capacity/buffers (D81), search availability filter (D87), dashboard (D88) | Provider Calendar tab on the real API (block/unblock days, conflict warning and badges); client date picker greys unavailable dates + `SLOT_UNAVAILABLE` handling | P1 | 4 | **In Progress — backend done (2026-11-15), see *Slice 5a backend*.** Contract revision 3 approved 2026-11-12 (D101; `docs/slice-5a-contract.md`, decisions D80–D100); implementation authorized by the owner 2026-11-15. Remaining: Flutter (provider Calendar tab, client date picker), live tests, real-API E2E. Known technical risk carried: C2 (D97) |
+| 5b | Offers (D80) | Detailed + quick offer (C2); validity 3/7/14 days (D5), immutable once sent (D6), expiry; client offers list/compare/details; **withdraw a sent offer + decline before acceptance (Q18 → D91)** | Compose offer, offers list/details | P1 | 4, 5a | Not Started |
+| 5c | Accept → booking (D80) | **Accept → booking** (lock, snapshot, auto-reject others, D4); booking details both sides; availability at acceptance incl. overlap with confirmed bookings and capacity/buffers (Q5); payment step per Q1; winning-provider address/pin and attachment access (D52, D56) | Accept, booking screens, bookings in the calendar | P1 | 5a, 5b | Not Started — blocked on Q1, Q5 |
+| 6 | Execution, cancellation, reviews | Start/complete, booking updates + attachments, cancellation requests (client + provider inability) + **admin decide**, reviews + provider reply + report | Booking actions, cancellation flow, review, reviews list | P1 | 5c | Not Started |
+| 7 | Chat | Conversations, messages (text/image/file/voice), offer card, read state, quick replies, Reverb channels, sensitive-content warnings | Messages, chat, quick replies | P1/P2 | 4, 5b | Not Started |
 | 8 | Notifications | Database + FCM notifications for every event above; notification list/read | Notifications screen, push handling, deep links to current state | P1 | 1–7 | Not Started |
 | 9 | Store | Products/variants (seeded), cart, promo codes, checkout, store orders, shipments (carrier interface + internal), **admin order/shipment status**, reorder | Shop, product details, cart, checkout, orders, tracking | P2 | 0, 1, 10 | Not Started |
-| 10 | Payments | Gateway interface + fake, saved methods (tokens), payment intents, webhooks, refunds — booking payment step activated only when the plan is decided | Payment methods, payment flow/result states | P2 (Blocked by payment plan) | 5, 9 | Not Started |
+| 10 | Payments | Gateway interface + fake, saved methods (tokens), payment intents, webhooks, refunds — booking payment step activated only when the plan is decided | Payment methods, payment flow/result states | P2 (Blocked by payment plan) | 5c, 9 | Not Started |
 | 11 | Wallet & payouts | Ledger entries from bookings, wallet summary, payout account (IBAN), payout requests, **admin process payout** | Wallet, payout account, payout requests | P2 (commission undecided) | 6, 10 | Not Started |
 | 12 | Account & support | Profile edit, addresses polish, account deletion request, support tickets, FAQs, pages, reschedule [?] | Account, settings, support, terms/privacy | P2 | 1 | Not Started |
-| 13 | Team & extras | Provider team + booking assignments [?], packages [?], occasion tags | Team screens (not designed) | P3 | 5 | Not Started |
+| 13 | Team & extras | Provider team + booking assignments [?], packages [?], occasion tags | Team screens (not designed) | P3 | 5c | Not Started |
 
 ## Phase 2 — Dashboard backend (admin + store sections)
 
@@ -52,6 +54,17 @@ Status values: Not Started · In Analysis · Ready · In Progress · Blocked · 
   BRD rules 17–18.
 - Production preparation and deployment.
 
+### Final release checklist (project-wide testing phase)
+
+Items deliberately deferred to the final testing phase; each must pass before release.
+
+| Item | From | Note |
+|---|---|---|
+| Physical-device test of the Slice 3 provider flows (join wizard → documents → submit → activation, services/execution places/event-location confirmation, coverage, suspension) on a real iPhone and Android device | Slice 3 (D79) | Simulator walkthrough passed 2026-11-12; does not replace it |
+| Physical-device pass over the Slice 4 mobile screens (addresses, request form incl. map pin and attachments, my requests, cancel; provider inbox, details, decline) | Slice 4 | Covered by widget tests and real-API live tests only (2026-11-12) |
+| Production values for `uploads.request_attachment` and `requests.max_attachments` (Q14) | Slice 4 | Unset → `NOT_CONFIGURED` |
+| Open-request matching enabled in production only after 3a is verified there (D73) | Slice 3a / 4 | |
+
 ## Slice 3a closure (2026-11-09)
 
 Decisions D69, D73, D74 implemented; closure approved by the project owner after the independent final review.
@@ -71,6 +84,32 @@ Separate from 3a and not part of its closure: the iOS deployment target change t
 `Podfile.lock`, `project.pbxproj`), the OTP screen focus after a wrong code, the mock provider home header, the local API
 IPv4/IPv6 launch configuration.
 
+## Slice 3 closure verification (2026-11-12)
+
+Re-run on the current state (API branch `slice-4-service-requests` at `bdc68fd`, frontend `dashboard-and-mobile-completion` at
+`dec5877` plus uncommitted Slice 4 dashboard work), local API + local `bliss_aan` DB, no production data. No Slice 3 defect found; no code changed.
+
+| Evidence | Result |
+|---|---|
+| Laravel `php artisan test` | 291 passed (2252 assertions), incl. `Admin/ApplicationReviewTest`, `Provider/*` (Application, Setup, Coverage, EventLocation, ExecutionPlaces + Concurrency, OpenRequestCapability), `Discovery/*` (ProviderVisibility, Providers, ProviderProfile), `Client/FavoritesTest`, `Database/*`; `pint --test` passed |
+| D75 code audit | `Provider::visibleToClients()` in provider search, featured (home), profile, provider favourites, direct-request creation and open matching; service details and service favourites through `ProviderService::visible()` (listed provider + that service offered, equivalent); media only through short-lived signed URLs. Local data: 22 active providers, 18 visible = `shared/providers` total; the 4 hidden are E2E test providers with no execution place (D75 as intended) |
+| Dashboard | `typecheck` and `lint` passed; Playwright 33 specs (all except `shots.tmp.spec.ts`): 32 passed, incl. `applications-live.spec.ts` 8/8 on the real API (review, request completion, activation, suspension, authorization) |
+| Flutter | regular suite 1302 passed, 0 failed; audit 2160 passed / 292 skipped / 176 failed — all 176 in `matrix_*`, = known baseline; live `provider_onboarding_live_test` + `provider_setup_followup_live_test` 2/2 on the real API (`LIVE_API=1`); `flutter analyze` only the 2 pre-existing issues |
+| Simulator walkthrough (2026-11-12) | **Passed** — iPhone 17 simulator (iOS 26.5), debug build of the current tree, local API `localhost:8000` + local `bliss_aan` DB, dashboard `localhost:5180` against the same API; test provider 0551120911 (provider #33). Scenarios: (1) join wizard → 2 services, Riyadh + Jeddah, portfolio photos, terms → `register` OTP → ID document → submit → status "under review" (`submitted`); (2) dashboard: document accepted, account activated → app shows "account active"; **D75**: active but no execution place → hidden (profile 404, not in search); (3) **D74/D73**: service screen warns "no place, hidden from clients"; event-location switch opens the confirmation dialog — *Cancel* writes nothing, *Confirm* sets `at_event_location` + `event_location_confirmed_at` ("on and confirmed"); one eligible service is enough → provider visible (search 18 → 19), only that service listed, the other service's details 404; the last place cannot be switched off (no request, DB unchanged); My services shows "services without a place (1)"; (4) **D69** while `active`: coverage Riyadh + Jeddah → Riyadh + Dammam saved, status unchanged; city search: Riyadh ✓, Dammam ✓, Jeddah ✗; client profile shows "Riyadh, Dammam"; (5) dashboard suspension: empty reason refused ("write the reason"), with reason → `suspended` → profile + service 404, search 19 → 18, app search shows the empty state; reactivation → visible again; activity log: created, submitted, document_accepted, activated, event_location_confirmed, coverage_updated, suspended, reactivated; (6) Arabic RTL throughout; English LTR (settings, account, home, provider search card "New · From 15,000 SAR") |
+| Physical device | **Not done — deferred to the final release checklist (D79, 2026-11-12).** `flutter devices`: only the iPhone 17 simulator, macOS and Chrome; the paired iPhone (iPhone14,5) is listed by `devicectl` as `unavailable` (not connected / unlocked / Developer Mode); no Android tooling (`adb`) installed. The simulator walkthrough above does not replace it |
+
+Walkthrough observations (not blockers, no code changed): (a) dashboard application detail shows "Full name: not set" for every
+individual provider — the API clears `legal_name` for individuals and the admin resource does not expose the account name;
+showing it needs an API/dashboard contract decision; (b) after switching the app language, screens loaded before the switch keep
+the old language until pull-to-refresh (Slice 2 home/catalog); (c) the provider account header still shows mock stats (known
+"mock provider home header" item). Test data left in the local DB: provider #33 (active, visible in Riyadh/Dammam).
+
+Accepted limitations (not blockers): Playwright `interaction-crawl.spec.ts` › *every control does something* times out (15 min)
+waiting for a row-menu item after Escape on the mock catalog pages — on 2026-11-12 it stalled on `catalog/services`
+(earlier: `catalog/categories`); the Slice 3 provider-applications pages are crawled before it without problems. Mock-only
+Phase 2 catalog management, unrelated to Slice 3. The first run also hit a transient `ERR_CONNECTION_REFUSED` from the
+Vite dev server; the rerun on a fresh server reproduced only the menu stall.
+
 ## Slice 4 backend (2026-11-12)
 
 Implementation authorized by the project owner on 2026-11-12. Backend only; the apps still run on mock data for requests.
@@ -80,7 +119,7 @@ Implementation authorized by the project owner on 2026-11-12. Backend only; the 
 | Laravel `php artisan test` | 288 passed, 2244 assertions (225 before Slice 4 + 63 new in `tests/Feature/ServiceRequests/` and `tests/Feature/Database/IdempotencyConcurrencyTest`), `testing` DB; `pint --test` passed (pre-commit audit, 2026-11-12) |
 | Endpoints | All of contract §6: `client/addresses` (5), `client/service-requests` (5) + `client/open-request-eligibility`, `provider/service-requests` (4) + `provider/decline-reasons`, `admin/service-requests` (3); `guest_count_mode` added to `shared/services` and the provider-service details; upload context `request_attachment` |
 | Idempotency under concurrency | Creates of one client are serialized (client row lock, key re-checked under the lock); unique(client_id, idempotency_key) is the last guard. `Database/IdempotencyConcurrencyTest`: two MySQL sessions (the second create waits, then replays) and parallel PHP processes (same key + same body with an attachment → 1 row, all replays; same key + other bodies → 1 row, `DUPLICATE_REQUEST`) |
-| Not covered | Flutter / dashboard integration; Playwright; §18.6 real-API E2E |
+| Not covered (at the backend stage) | Flutter / dashboard integration; Playwright; §18.6 real-API E2E — all verified since, see *Slice 4 closure verification* |
 
 **Business decisions confirmed at the pre-commit review (approved by the project owner 2026-11-12):**
 
@@ -96,6 +135,92 @@ Implementation authorized by the project owner on 2026-11-12. Backend only; the 
 Other technical choices fixed during implementation [P]: admin list rows add `client{id,name,phone}` and `recipients_count`; attachment objects carry `expires_at` for every
 audience (null with `url` for staff without `requests.attachments.view`); an admin write method on a request path answers
 404/405. Local `DemoSeeder` sets the proposed (not approved) `request_attachment` limits and `requests.max_attachments = 5`.
+
+## Slice 5a backend (2026-11-15)
+
+Implementation authorized by the project owner on 2026-11-15. Backend only; the provider Calendar tab and the client
+date picker still run on mock data.
+
+| Evidence | Result |
+|---|---|
+| Laravel `php artisan test` | 350 passed, 2654 assertions (291 before 5a + 59 new: `tests/Unit/Availability/`, `tests/Feature/Calendar/`, `tests/Feature/Database/{AvailabilityLocking,DeadlockRetry,DeadlockCycles}Test`), `testing` DB; `pint --test` passed |
+| Schema | Migration `2026_11_15_100000_create_availability_blocks_table` (contract §3.1: soft delete, `created_by`, `deleted_by`, `provider_id` restrict, index `(provider_id, deleted_at, starts_at, ends_at)`) |
+| Endpoints | `GET provider/calendar`, `POST provider/availability-blocks`, `DELETE provider/availability-blocks/{id}`, public `GET shared/providers/{id}/availability`; `calendar_conflict` on `ProviderRequestResource` (list computed with one query per page); `SLOT_UNAVAILABLE` / `BLOCK_OVERLAP` in `ErrorCode` with ar/en messages |
+| Req 17 | `ServiceRequestCreator`: direct requests take the provider row lock after the media lock and are refused on any overlap with an active block (exact interval); open requests unchanged |
+| Concurrency | Two-session tests for every §10.1 race (provider lock waits, then the committed state decides). Real cycles reproduced with a separate SQL session (`tests/Support/sql_session_worker.php`): C1 (two clients' direct requests in one index gap; direct vs open holding the provider in share mode; open request as the aborted side) and C2 (address vs request of one client) — each retried after 1213, one row per side. `ProviderSetup::addService`'s gap lock does not block a direct creation that references another of her services (checked with a 1 s lock wait) |
+| Deadlock retry (D98, D100) | `Services\Availability\DeadlockRetry`: only driver code 1213, outermost transaction only, 3 attempts, the complete sequence per attempt (replay check, business rules, transaction); exhausted → `500 SERVER_ERROR` and one `error` log entry (operation, attempts, code, user/provider id, key or period; the exception itself is not reported again). Tests: forced deadlock then success (one row, one event), 3 deadlocks (nothing stored, one log entry), 1205 / other SQL errors / API / validation errors not retried, a replay, a block and a hidden provider committed between attempts are applied by the later attempt, open request retried with its recipients, block create / delete retried |
+| Not covered yet | Flutter integration and widget tests, live (`LIVE_API=1`) tests, the §15 real-API E2E; docs `03-…` updated, Postman collections already carried the 5a requests |
+
+Technical choices fixed during implementation [P]: the calendar range edge and block dates use `App\Support\RiyadhCalendar`;
+`BlockResource.created_at` is the creation instant (UTC); the provider-wide activity events have no ar/en labels
+because no endpoint shows provider history.
+
+## Slice 4 closure verification (2026-11-12)
+
+Run on: API branch `slice-4-service-requests` at `bdc68fd` (clean apart from these docs), frontend
+`dashboard-and-mobile-completion` at `dec5877` plus the uncommitted provider-Flutter and dashboard Slice 4 work; local
+API `localhost:8000`, local `bliss_aan` DB, dashboard `localhost:5180`. No Laravel code changed.
+
+| Evidence | Command | Result |
+|---|---|---|
+| Laravel | `php artisan test`; `vendor/bin/pint --test` | 291 passed (2252 assertions); Pint passed |
+| Flutter full suite | `flutter test` (all of `test/`) | regular 1302 passed / 0 failed; `test/audit/matrix_*` 2160 passed / **176 failed = known baseline** (per file: provider_more 46, discovery 44, account 30, inbox 24, shop 11, requests 9, provider_work 9, auth 3; Slice 4 screens exactly as §18.7: `client_requests` 9 modes, `provider_requests` 3 modes); other audit (crawl/capture) 292 skipped, live 4 skipped. **No new failures** |
+| Flutter live (real API) | `LIVE_API=1 flutter test test/live/client_requests_live_test.dart test/live/provider_requests_live_test.dart` | 2/2 passed |
+| Flutter analyze | `flutter analyze` | only the 2 pre-existing issues (`mock_translate.dart` unused `_arabicTime`, `tap_crawler.dart` unnecessary import) |
+| Dashboard | `npm run typecheck`, `npm run lint`, `npm run build` | all passed (build: existing >500 kB chunk warning only) |
+| Playwright | `npx playwright test` on every spec except `shots.tmp.spec.ts` (7 files, 48 tests) | 47 passed, 1 failed: `interaction-crawl.spec.ts` › *every control does something* — 15 min timeout waiting for a row-menu item on the mocked `catalog/categories` page; rerun alone on an idle machine: same stall. The accepted, unrelated limitation (see *Slice 3 closure verification*). Incl. `service-requests.spec.ts` (mocked) and `service-requests-live.spec.ts` (real API) |
+| `service-requests.spec.ts` after the two fixes below | `npx playwright test e2e/service-requests.spec.ts` | 13/13 passed (12 + the new tablet test) |
+| Real-API lifecycle (§18.6) | scripted run, Direct + Open, Client → Provider → Client → Admin (6 sessions: super_admin, client, provider 1, provider 2, store officer, a temporary `operations_support` staff) | 68/69 checks passed; the 1 failure was a wrong expectation in the script (23:30 + 120 min ends 01:30 Riyadh = 22:30Z, which the API returned). Details below |
+
+**Real-API lifecycle checks (all passed):** `NOT_CONFIGURED` upload (409) with settings unset, and a request still
+creatable without files; settings then set temporarily to the proposed DemoSeeder values and **restored to `NULL`**
+(409 again afterwards). Address create; eligibility hint (service 1 Riyadh true, Madinah false). Direct event-location
+request crossing midnight with an attachment: 201, `RN-#######`, `ends_at` next day (D61), `event_passed` false;
+replay 200 same id; same key + other body 409 `DUPLICATE_REQUEST`. **D78:** 6 parallel creates with one key → one row
+(1×201, 5×200). Direct provider-location (provider 2): no address, provider's city; with an address → 422. **D73:**
+direct event-location request to provider 1's unconfirmed service 9 → 201; open request for service 9 → 422
+`NO_MATCHING_PROVIDERS`. **D75:** direct request to an active provider with no execution place → 422. Open request:
+no match (Madinah) → 422 `NO_MATCHING_PROVIDERS`, `provider_location` → 422, no rows added; valid open request 201.
+Provider inbox: provider 1 sees her direct + open requests, provider 2 only hers (non-matching never see them);
+detail JSON has no address details/label/pin/phone/recipients, city + district only; **D77** `client.first_name` =
+first word only; `seen_at` set once. Attachment: URL + `expires_at` = now + 10 min; file 200; tampered expiry 403;
+**the saved URL answered 200 one second before `expires_at` and 403 eleven seconds after**. Other provider 404.
+Decline: explanation required (422); direct → recipient + request `declined` (D68); second decline 409; declined
+provider gets 404 for a new file URL; open decline → request stays `awaiting_offers`. Client: direct `declined` with
+`request_declined`; open history without `recipient_declined` (**D76**); `Accept-Language` ar/en labels. Cancel open with
+reason → `cancelled`, again 409; cancel without reason OK; cancelled → provider recipient `closed`, no attachments, file
+URL 404; cancelling a declined request 409. Admin: filters (type, status, `q`, execution place, event date range,
+city + `starts_at` sort), non-whitelisted sort 422; detail with full address, pin, client phone, recipient decline
+reason + explanation, internal `recipient_declined` in history; super_admin attachment URL + fresh-URL endpoint;
+write method 405; store officer 403; `operations_support` sees the request with `url`/`expires_at` null and gets 403
+on the attachment endpoint; client token 403; no token 401. Dashboard pages checked in the browser for the same records
+in Arabic (RTL) and English (LTR).
+
+**Defects found and fixed (dashboard, uncommitted Slice 4 work only):**
+
+1. `RequestDetail.tsx` joined address parts and add-ons with the Arabic comma in English too — now `، ` in Arabic,
+   `, ` in English. Regression: assertions in the Arabic details test and the *English, LTR* test of `service-requests.spec.ts`.
+2. `RequestsList.tsx` scrolled sideways on a tablet (820 px: 33 px on the live data; the crawl's *tables fit a tablet*
+   reported `requests: 21px`) and wrapped the reference in Arabic — event date and time now stack, client/service/provider
+   cells are capped (they truncate), the reference does not wrap. Regression: new test *the list fits a tablet (820 px)
+   without side scrolling, with long names, in Arabic and English* (fails on the previous code with 94 px). The crawl now
+   reports no wide tables.
+
+**Test data:** everything this verification created was removed after checking its dependencies — service requests
+16–28 (this run's script, the Flutter live tests and `service-requests-live.spec.ts`; recipients cascaded, 29
+`activity_events`), request media 112–114 and their files, addresses 8–10, the temporary staff user 42 (role, device,
+OTP rows), and the extra sessions (logged out). 15 older requests remain, as before. **Left in place:** provider #34
+(user 43, documents/media 115–116) created by the Slice 3 `applications-live.spec.ts`, as that spec does on every run.
+
+**Observations (not blockers):** (a) the dashboard formats date-times in the browser's time zone, not Riyadh
+(dashboard-wide, not Slice 4); (b) the request detail links the client to `/clients/{id}`, which is still the mocked
+clients module, so it can show a demo client with that id until the clients module is live; (c) D77 on demo data
+gives `[DEMO]` as the first name (account names start with `[DEMO]`); (d) the mobile Slice 4 screens were verified by
+widget tests and the live bloc tests, not by a simulator/device walkthrough in this run.
+
+**Closure:** every §21 criterion is met except criterion 9's "Playwright pass", which has only the accepted,
+unrelated crawl stall. The provider-Flutter and dashboard work was committed locally as `76fe07a` (owner approval, 2026-11-12); push
+still subject to the owner's approval. Open requests stay disabled in production until 3a is verified there (D73).
 
 ## Known open test/audit items (2026-11-09)
 

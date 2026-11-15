@@ -64,7 +64,7 @@ Error:
 | 403 | Wrong user type, not owner, missing permission, suspended | `FORBIDDEN`, `ACCOUNT_SUSPENDED` |
 | 404 | Not found **or not visible to this user** (never leak existence); unknown phone at OTP login | `NOT_FOUND`, `ACCOUNT_NOT_FOUND` |
 | 405 | HTTP method not supported on this URL | `METHOD_NOT_ALLOWED` |
-| 409 | State conflict, or a required setting/policy is not specified yet | `INVALID_STATE`, `NOT_CONFIGURED`, `OFFER_EXPIRED`, `SLOT_UNAVAILABLE`, `ALREADY_BOOKED`, `DUPLICATE_REQUEST` |
+| 409 | State conflict, or a required setting/policy is not specified yet | `INVALID_STATE`, `NOT_CONFIGURED`, `OFFER_EXPIRED`, `SLOT_UNAVAILABLE` (Slice 5a), `BLOCK_OVERLAP` (Slice 5a), `ALREADY_BOOKED`, `DUPLICATE_REQUEST` |
 | 422 | Validation | `VALIDATION_FAILED`, `OTP_INVALID`, `OTP_EXPIRED`, `OUT_OF_COVERAGE`, `NO_MATCHING_PROVIDERS`, `OUT_OF_STOCK` |
 | 429 | Rate limited | `TOO_MANY_ATTEMPTS` |
 | 500 | Server error (no trace when `APP_DEBUG=false`) | `SERVER_ERROR` |

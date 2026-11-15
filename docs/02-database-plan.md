@@ -66,7 +66,7 @@ Labels: **[C]** confirmed · **[R]** recommendation · **[?]** open question.
 | `provider_addon_service` | provider_addon_id, provider_service_id | M (Slice 2) |
 | `provider_coverage_areas` | provider_id, city_id, district_id nullable | M (Slice 2) |
 | `provider_working_hours` | provider_id, weekday (0 = Sunday … 6), opens_at, closes_at; unique(provider_id, weekday) — a missing weekday = closed | M (Slice 3) |
-| `availability_blocks` | provider_id, starts_at, ends_at, reason | M |
+| `availability_blocks` | provider_id (restrict on delete), starts_at, ends_at (UTC, half-open), reason nullable (private), created_by, deleted_by, soft delete `deleted_at` (D94); index (provider_id, deleted_at, starts_at, ends_at). Provider-wide, never per service | M (Slice 5a, implemented 2026-11-15) |
 | `portfolio_items` | provider_id, media_id, caption, hidden_by_admin, hidden_reason, sort | M (Slice 2) |
 | `provider_team_members` [?] | provider_id, user_id nullable, name, title, scope, status | M/D |
 | `booking_assignments` [?] | booking_id, team_member_id, task, status, assigned_by | M/D |

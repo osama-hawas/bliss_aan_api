@@ -182,6 +182,23 @@ return [
     'saudi_mobile' => 'The :attribute field must be a valid Saudi mobile number.',
 
     'custom' => [
+        'block' => [
+            'one_form' => 'Send either a date or a start and end time, not both.',
+            'form_required' => 'Send a date, or a start and end time.',
+            'starts_at_required' => 'Send the start time together with the end time.',
+            'ends_at_required' => 'Send the end time together with the start time.',
+            'date_past' => 'The date must be today or later.',
+            'iso' => 'Use an ISO-8601 time with a time zone, for example 2026-12-06T10:00:00Z.',
+            'whole_minutes' => 'Use whole minutes, without seconds.',
+            'ends_after_start' => 'The end must be after the start.',
+            'ended' => 'This period is already over.',
+            'too_long' => 'A block can be at most 366 days long.',
+        ],
+        'range' => [
+            'to_before_from' => 'The end date must be on or after the start date.',
+            'too_long' => 'The range can hold at most 62 days.',
+            'from_past' => 'The start date must be today or later.',
+        ],
         'service_id' => [
             'unavailable' => 'This service is not available.',
             'not_offered' => 'This provider does not offer this service.',

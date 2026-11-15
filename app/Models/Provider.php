@@ -109,6 +109,14 @@ class Provider extends Model
         return $this->hasMany(PortfolioItem::class)->orderBy('sort')->orderBy('id');
     }
 
+    /**
+     * Active availability blocks (soft-deleted ones are excluded, D94).
+     */
+    public function availabilityBlocks(): HasMany
+    {
+        return $this->hasMany(AvailabilityBlock::class);
+    }
+
     public function workingHours(): HasMany
     {
         return $this->hasMany(ProviderWorkingHour::class)->orderBy('weekday');

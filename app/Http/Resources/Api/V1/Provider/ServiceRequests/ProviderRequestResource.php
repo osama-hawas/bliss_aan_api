@@ -7,6 +7,7 @@ use App\Http\Resources\Concerns\DescribesServiceRequest;
 use App\Http\Resources\Concerns\FormatsApiValues;
 use App\Models\Media;
 use App\Models\ServiceRequestRecipient;
+use App\Services\Availability\ProviderAvailability;
 use App\Services\ServiceRequests\RequestAttachments;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -57,6 +58,7 @@ class ProviderRequestResource extends JsonResource
                 'explanation' => $recipient->decline_explanation,
                 'declined_at' => $this->dateTime($recipient->declined_at),
             ] : null,
+            'calendar_conflict' => app(ProviderAvailability::class)->hasConflict($recipient),
             'received_at' => $this->dateTime($recipient->created_at),
             'seen_at' => $this->dateTime($recipient->seen_at),
         ];

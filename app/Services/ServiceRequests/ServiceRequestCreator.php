@@ -20,6 +20,8 @@ use App\Models\Service;
 use App\Models\ServiceRequest;
 use App\Models\User;
 use App\Services\Audit\ActivityRecorder;
+use App\Services\Availability\DeadlockRetry;
+use App\Services\Availability\ProviderAvailability;
 use App\Services\Media\MediaService;
 use App\Services\Settings\AppSettings;
 use Illuminate\Database\Eloquent\Builder;
@@ -35,8 +37,12 @@ use Illuminate\Validation\ValidationException;
  * business rules are checked here, after the idempotency replay, so a replay always returns the original request.
  *
  * Transaction: lock the client row (her creates run one at a time) → re-check the key under that lock → lock media →
+ * direct: lock the provider row and refuse a window that overlaps an active block (Req 17, D90, 409 SLOT_UNAVAILABLE) →
  * match recipients (open: none → 422, nothing kept) → insert with a fresh reference (retried on collision) → add-on
  * snapshots → recipients → attach media → history.
+ *
+ * A deadlock (MySQL 1213) re-runs the complete sequence — replay check, business rules, transaction — up to 3 times
+ * (D98, D100); every other error is answered as before.
  *
  * Same Idempotency-Key in parallel: the second call waits for the client lock, then finds the committed request and
  * answers as a replay (never a second row, never a 422 on the files the first call took). unique(client_id,
@@ -58,6 +64,8 @@ class ServiceRequestCreator
         private readonly ActivityRecorder $activity,
         private readonly MediaService $media,
         private readonly AppSettings $settings,
+        private readonly ProviderAvailability $availability,
+        private readonly DeadlockRetry $retry,
     ) {}
 
     /**
@@ -67,6 +75,22 @@ class ServiceRequestCreator
     public function create(User $client, string $idempotencyKey, array $data): array
     {
         $fingerprint = $this->fingerprint($data);
+
+        return $this->retry->run(
+            fn () => $this->attempt($client, $idempotencyKey, $fingerprint, $data),
+            'service_request.create',
+            ['user_id' => $client->id, 'provider_id' => isset($data['provider_id']) ? (int) $data['provider_id'] : null, 'idempotency_key' => $idempotencyKey],
+        );
+    }
+
+    /**
+     * One complete attempt (D100).
+     *
+     * @param  array<string, mixed>  $data
+     * @return array{0: ServiceRequest, 1: bool}
+     */
+    private function attempt(User $client, string $idempotencyKey, string $fingerprint, array $data): array
+    {
         if ($existing = $this->replay($client, $idempotencyKey, $fingerprint)) {
             return [$existing, false];
         }
@@ -307,6 +331,14 @@ class ServiceRequestCreator
         }
 
         $media = $this->lockMedia($client, $draft->mediaIds);
+
+        if ($draft->type === ServiceRequestType::Direct) {
+            // D90: serialized with her block creation and deletion; the exact window, partial-day blocks included.
+            Provider::query()->whereKey($draft->provider->id)->lockForUpdate()->first(['id']);
+            if ($this->availability->isBlocked($draft->provider->id, $draft->startsAt, $draft->endsAt)) {
+                throw new ApiException(ErrorCode::SlotUnavailable);
+            }
+        }
 
         $recipientIds = $draft->type === ServiceRequestType::Direct
             ? collect([$draft->provider->id])
