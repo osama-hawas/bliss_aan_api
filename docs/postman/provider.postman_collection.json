@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Bliss aan — provider",
-    "description": "Audience folder `provider/` (provider token from the Auth collection: register with `app=provider`, D37). Slice 3 (+ follow-up 3a: coverage, event-location confirmation). Her own application only.",
+    "description": "Audience folder `provider/` (provider token from the Auth collection: register with `app=provider`, D37). Slice 3 (+ follow-up 3a: coverage, event-location confirmation). Her own application only. Slice 5a (approved contract revision 3): calendar and availability blocks.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -641,7 +641,7 @@
               }
             ],
             "url": "{{base_url}}/provider/service-requests?filter[status]=&filter[type]=&sort=-received_at&per_page=15",
-            "description": "Active providers only (409 otherwise). filter[status] = her recipient status (new, offer_sent, declined, closed). sort: received_at, -received_at, starts_at, -starts_at. Items omit notes and attachments."
+            "description": "Active providers only (409 otherwise). filter[status] = her recipient status (new, offer_sent, declined, closed). sort: received_at, -received_at, starts_at, -starts_at. Items omit notes and attachments. Slice 5a: each request carries calendar_conflict (true when she is new/offer_sent and one of her blocks overlaps the window; a hint only, D84)."
           }
         },
         {
@@ -663,7 +663,7 @@
               }
             ],
             "url": "{{base_url}}/provider/service-requests/1",
-            "description": "Privacy Model A (D56): city, district, client first name only; never address details, pin, label, phone or other recipients. Attachments only while she is new/offer_sent. Sets seen_at once."
+            "description": "Privacy Model A (D56): city, district, client first name only; never address details, pin, label, phone or other recipients. Attachments only while she is new/offer_sent. Sets seen_at once. Slice 5a: each request carries calendar_conflict (true when she is new/offer_sent and one of her blocks overlaps the window; a hint only, D84)."
           }
         },
         {
@@ -717,6 +717,604 @@
             "url": "{{base_url}}/provider/service-requests/1/attachments/1",
             "description": "404 after she declined or the client cancelled."
           }
+        }
+      ]
+    },
+    {
+      "name": "Calendar & availability",
+      "description": "Slice 5a (docs/slice-5a-contract.md, approved revision 3, D101). Calendar and delete: provider status active or suspended; create: active only (D96) — other statuses 409 INVALID_STATE; account suspended → 403 ACCOUNT_SUSPENDED (unchanged). A confirmed deadlock is retried up to 3 times in fresh transactions, then 500 SERVER_ERROR (D98). Blocks are provider-wide, stored in UTC, half-open [starts_at, ends_at); Riyadh day D = [D-1 21:00Z, D 21:00Z). Only active (not soft-deleted) blocks count anywhere (D94). Create and delete are serialized with direct-request creation under a provider row lock (D90, D95). The provider app blocks whole days only (date form, D83).",
+      "item": [
+        {
+          "name": "Calendar",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": "{{base_url}}/provider/calendar?from=2026-12-01&to=2026-12-31",
+            "description": "from/to: Riyadh dates (YYYY-MM-DD), to >= from, at most 62 dates inclusive (to - from <= 61 days; 63 dates → 422 errors.to). from may be in the past. Returns her active blocks overlapping the range and her new/offer_sent requests (request awaiting_offers/offers_received) in the range, each with calendar_conflict. Not paginated. No working hours (D82). While she is suspended (provider status): her blocks, requests always [] (D96, D99; inbox stays closed)."
+          },
+          "response": [
+            {
+              "name": "200 calendar",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept-Language",
+                    "value": "{{lang}}"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{provider_token}}"
+                  }
+                ],
+                "url": "{{base_url}}/provider/calendar?from=2026-12-01&to=2026-12-31",
+                "description": "from/to: Riyadh dates (YYYY-MM-DD), to >= from, at most 62 dates inclusive (to - from <= 61 days; 63 dates → 422 errors.to). from may be in the past. Returns her active blocks overlapping the range and her new/offer_sent requests (request awaiting_offers/offers_received) in the range, each with calendar_conflict. Not paginated. No working hours (D82). While she is suspended (provider status): her blocks, requests always [] (D96, D99; inbox stays closed)."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"from\": \"2026-12-01\",\n    \"to\": \"2026-12-31\",\n    \"blocks\": [\n      {\n        \"id\": 12,\n        \"starts_at\": \"2026-12-04T21:00:00Z\",\n        \"ends_at\": \"2026-12-05T21:00:00Z\",\n        \"from_date\": \"2026-12-05\",\n        \"to_date\": \"2026-12-05\",\n        \"whole_days\": true,\n        \"reason\": \"Family event\",\n        \"created_at\": \"2026-11-12T10:00:00Z\"\n      }\n    ],\n    \"requests\": [\n      {\n        \"id\": 41,\n        \"reference\": \"RN-4829173\",\n        \"type\": \"open\",\n        \"type_label\": \"Open request\",\n        \"request_status\": \"awaiting_offers\",\n        \"request_status_label\": \"Awaiting offers\",\n        \"status\": \"new\",\n        \"status_label\": \"New\",\n        \"service\": {\n          \"id\": 3,\n          \"name\": \"Event photography\"\n        },\n        \"event_date\": \"2026-12-05\",\n        \"start_time\": \"19:00\",\n        \"duration_minutes\": 180,\n        \"starts_at\": \"2026-12-05T16:00:00Z\",\n        \"ends_at\": \"2026-12-05T19:00:00Z\",\n        \"event_passed\": false,\n        \"city\": {\n          \"id\": 1,\n          \"name\": \"Riyadh\"\n        },\n        \"calendar_conflict\": true\n      }\n    ]\n  },\n  \"message\": null,\n  \"meta\": {}\n}"
+            },
+            {
+              "name": "422 more than 62 dates",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept-Language",
+                    "value": "{{lang}}"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{provider_token}}"
+                  }
+                ],
+                "url": "{{base_url}}/provider/calendar?from=2026-12-01&to=2026-12-31",
+                "description": "from/to: Riyadh dates (YYYY-MM-DD), to >= from, at most 62 dates inclusive (to - from <= 61 days; 63 dates → 422 errors.to). from may be in the past. Returns her active blocks overlapping the range and her new/offer_sent requests (request awaiting_offers/offers_received) in the range, each with calendar_conflict. Not paginated. No working hours (D82). While she is suspended (provider status): her blocks, requests always [] (D96, D99; inbox stays closed)."
+              },
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"message\": \"The given data is invalid.\",\n  \"code\": \"VALIDATION_FAILED\",\n  \"errors\": {\n    \"to\": [\n      \"The range may cover at most 62 days.\"\n    ]\n  }\n}"
+            },
+            {
+              "name": "409 provider not active",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept-Language",
+                    "value": "{{lang}}"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{provider_token}}"
+                  }
+                ],
+                "url": "{{base_url}}/provider/calendar?from=2026-12-01&to=2026-12-31",
+                "description": "from/to: Riyadh dates (YYYY-MM-DD), to >= from, at most 62 dates inclusive (to - from <= 61 days; 63 dates → 422 errors.to). from may be in the past. Returns her active blocks overlapping the range and her new/offer_sent requests (request awaiting_offers/offers_received) in the range, each with calendar_conflict. Not paginated. No working hours (D82). While she is suspended (provider status): her blocks, requests always [] (D96, D99; inbox stays closed)."
+              },
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"message\": \"This action is not available in the current state.\",\n  \"code\": \"INVALID_STATE\",\n  \"errors\": {}\n}"
+            }
+          ]
+        },
+        {
+          "name": "Block a day",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/provider/availability-blocks",
+            "description": "Exactly one of: date (YYYY-MM-DD, today or later in Riyadh; Riyadh midnight to midnight) or starts_at + ends_at. reason optional (private, <= 255, empty → null). Allowed when requests fall on that day (D89): they are listed in conflicting_requests and not changed. Overlap with one of her ACTIVE blocks → 409 BLOCK_OVERLAP (D85); soft-deleted blocks never conflict, so a day can be re-blocked after unblocking (D94). No Idempotency-Key: a repeat of a successful call answers 409 BLOCK_OVERLAP (no second row) — reload the calendar. Not allowed while suspended (provider status) → 409 INVALID_STATE (D96).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2026-12-05\",\n  \"reason\": \"Family event\"\n}"
+            }
+          },
+          "response": [
+            {
+              "name": "201 created, with conflicting requests",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept-Language",
+                    "value": "{{lang}}"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{provider_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/provider/availability-blocks",
+                "description": "Exactly one of: date (YYYY-MM-DD, today or later in Riyadh; Riyadh midnight to midnight) or starts_at + ends_at. reason optional (private, <= 255, empty → null). Allowed when requests fall on that day (D89): they are listed in conflicting_requests and not changed. Overlap with one of her ACTIVE blocks → 409 BLOCK_OVERLAP (D85); soft-deleted blocks never conflict, so a day can be re-blocked after unblocking (D94). No Idempotency-Key: a repeat of a successful call answers 409 BLOCK_OVERLAP (no second row) — reload the calendar. Not allowed while suspended (provider status) → 409 INVALID_STATE (D96).",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"date\": \"2026-12-05\",\n  \"reason\": \"Family event\"\n}"
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": 12,\n    \"starts_at\": \"2026-12-04T21:00:00Z\",\n    \"ends_at\": \"2026-12-05T21:00:00Z\",\n    \"from_date\": \"2026-12-05\",\n    \"to_date\": \"2026-12-05\",\n    \"whole_days\": true,\n    \"reason\": \"Family event\",\n    \"created_at\": \"2026-11-12T10:00:00Z\",\n    \"conflicting_requests\": [\n      {\n        \"id\": 41,\n        \"reference\": \"RN-4829173\",\n        \"type\": \"open\",\n        \"type_label\": \"Open request\",\n        \"request_status\": \"awaiting_offers\",\n        \"request_status_label\": \"Awaiting offers\",\n        \"status\": \"new\",\n        \"status_label\": \"New\",\n        \"service\": {\n          \"id\": 3,\n          \"name\": \"Event photography\"\n        },\n        \"event_date\": \"2026-12-05\",\n        \"start_time\": \"19:00\",\n        \"duration_minutes\": 180,\n        \"starts_at\": \"2026-12-05T16:00:00Z\",\n        \"ends_at\": \"2026-12-05T19:00:00Z\",\n        \"event_passed\": false,\n        \"city\": {\n          \"id\": 1,\n          \"name\": \"Riyadh\"\n        },\n        \"calendar_conflict\": true\n      }\n    ]\n  },\n  \"message\": null,\n  \"meta\": {}\n}"
+            },
+            {
+              "name": "201 re-blocked after the old block was deleted",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept-Language",
+                    "value": "{{lang}}"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{provider_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/provider/availability-blocks",
+                "description": "Exactly one of: date (YYYY-MM-DD, today or later in Riyadh; Riyadh midnight to midnight) or starts_at + ends_at. reason optional (private, <= 255, empty → null). Allowed when requests fall on that day (D89): they are listed in conflicting_requests and not changed. Overlap with one of her ACTIVE blocks → 409 BLOCK_OVERLAP (D85); soft-deleted blocks never conflict, so a day can be re-blocked after unblocking (D94). No Idempotency-Key: a repeat of a successful call answers 409 BLOCK_OVERLAP (no second row) — reload the calendar. Not allowed while suspended (provider status) → 409 INVALID_STATE (D96).",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"date\": \"2026-12-05\",\n  \"reason\": \"Family event\"\n}"
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": 15,\n    \"starts_at\": \"2026-12-04T21:00:00Z\",\n    \"ends_at\": \"2026-12-05T21:00:00Z\",\n    \"from_date\": \"2026-12-05\",\n    \"to_date\": \"2026-12-05\",\n    \"whole_days\": true,\n    \"reason\": null,\n    \"created_at\": \"2026-11-12T11:00:00Z\",\n    \"conflicting_requests\": []\n  },\n  \"message\": null,\n  \"meta\": {}\n}"
+            },
+            {
+              "name": "409 overlaps an active block (also a retry of a successful call)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept-Language",
+                    "value": "{{lang}}"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{provider_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/provider/availability-blocks",
+                "description": "Exactly one of: date (YYYY-MM-DD, today or later in Riyadh; Riyadh midnight to midnight) or starts_at + ends_at. reason optional (private, <= 255, empty → null). Allowed when requests fall on that day (D89): they are listed in conflicting_requests and not changed. Overlap with one of her ACTIVE blocks → 409 BLOCK_OVERLAP (D85); soft-deleted blocks never conflict, so a day can be re-blocked after unblocking (D94). No Idempotency-Key: a repeat of a successful call answers 409 BLOCK_OVERLAP (no second row) — reload the calendar. Not allowed while suspended (provider status) → 409 INVALID_STATE (D96).",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"date\": \"2026-12-05\",\n  \"reason\": \"Family event\"\n}"
+                }
+              },
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"message\": \"This period overlaps a block you already have.\",\n  \"code\": \"BLOCK_OVERLAP\",\n  \"errors\": {}\n}"
+            },
+            {
+              "name": "422 date in the past",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept-Language",
+                    "value": "{{lang}}"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{provider_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/provider/availability-blocks",
+                "description": "Exactly one of: date (YYYY-MM-DD, today or later in Riyadh; Riyadh midnight to midnight) or starts_at + ends_at. reason optional (private, <= 255, empty → null). Allowed when requests fall on that day (D89): they are listed in conflicting_requests and not changed. Overlap with one of her ACTIVE blocks → 409 BLOCK_OVERLAP (D85); soft-deleted blocks never conflict, so a day can be re-blocked after unblocking (D94). No Idempotency-Key: a repeat of a successful call answers 409 BLOCK_OVERLAP (no second row) — reload the calendar. Not allowed while suspended (provider status) → 409 INVALID_STATE (D96).",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"date\": \"2026-12-05\",\n  \"reason\": \"Family event\"\n}"
+                }
+              },
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"message\": \"The given data is invalid.\",\n  \"code\": \"VALIDATION_FAILED\",\n  \"errors\": {\n    \"date\": [\n      \"The date must be today or later.\"\n    ]\n  }\n}"
+            },
+            {
+              "name": "409 provider not active (also while suspended)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept-Language",
+                    "value": "{{lang}}"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{provider_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/provider/availability-blocks",
+                "description": "Exactly one of: date (YYYY-MM-DD, today or later in Riyadh; Riyadh midnight to midnight) or starts_at + ends_at. reason optional (private, <= 255, empty → null). Allowed when requests fall on that day (D89): they are listed in conflicting_requests and not changed. Overlap with one of her ACTIVE blocks → 409 BLOCK_OVERLAP (D85); soft-deleted blocks never conflict, so a day can be re-blocked after unblocking (D94). No Idempotency-Key: a repeat of a successful call answers 409 BLOCK_OVERLAP (no second row) — reload the calendar. Not allowed while suspended (provider status) → 409 INVALID_STATE (D96).",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"date\": \"2026-12-05\",\n  \"reason\": \"Family event\"\n}"
+                }
+              },
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"message\": \"This action is not available in the current state.\",\n  \"code\": \"INVALID_STATE\",\n  \"errors\": {}\n}"
+            }
+          ]
+        },
+        {
+          "name": "Block a time range (API only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/provider/availability-blocks",
+            "description": "starts_at/ends_at ISO-8601 (converted to UTC), whole minutes, ends_at > starts_at, ends_at > now (starts_at may be past), length <= 366 days (exactly 366 days OK, +1 minute → 422). Example = 13:00–17:00 Riyadh on 2026-12-06. A partial-day block does NOT put the date in the public unavailable_dates, but a direct request overlapping it gets 409 SLOT_UNAVAILABLE (D92). Two touching blocks (e.g. 00:00–12:00 and 12:00–24:00 Riyadh) are allowed and together make the date unavailable. Not used by the provider app (D83).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"starts_at\": \"2026-12-06T10:00:00Z\",\n  \"ends_at\": \"2026-12-06T14:00:00Z\"\n}"
+            }
+          },
+          "response": [
+            {
+              "name": "201 created",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept-Language",
+                    "value": "{{lang}}"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{provider_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/provider/availability-blocks",
+                "description": "starts_at/ends_at ISO-8601 (converted to UTC), whole minutes, ends_at > starts_at, ends_at > now (starts_at may be past), length <= 366 days (exactly 366 days OK, +1 minute → 422). Example = 13:00–17:00 Riyadh on 2026-12-06. A partial-day block does NOT put the date in the public unavailable_dates, but a direct request overlapping it gets 409 SLOT_UNAVAILABLE (D92). Two touching blocks (e.g. 00:00–12:00 and 12:00–24:00 Riyadh) are allowed and together make the date unavailable. Not used by the provider app (D83).",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"starts_at\": \"2026-12-06T10:00:00Z\",\n  \"ends_at\": \"2026-12-06T14:00:00Z\"\n}"
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": 13,\n    \"starts_at\": \"2026-12-06T10:00:00Z\",\n    \"ends_at\": \"2026-12-06T14:00:00Z\",\n    \"from_date\": \"2026-12-06\",\n    \"to_date\": \"2026-12-06\",\n    \"whole_days\": false,\n    \"reason\": null,\n    \"created_at\": \"2026-11-12T10:05:00Z\",\n    \"conflicting_requests\": []\n  },\n  \"message\": null,\n  \"meta\": {}\n}"
+            },
+            {
+              "name": "422 both forms sent",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept-Language",
+                    "value": "{{lang}}"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{provider_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/provider/availability-blocks",
+                "description": "starts_at/ends_at ISO-8601 (converted to UTC), whole minutes, ends_at > starts_at, ends_at > now (starts_at may be past), length <= 366 days (exactly 366 days OK, +1 minute → 422). Example = 13:00–17:00 Riyadh on 2026-12-06. A partial-day block does NOT put the date in the public unavailable_dates, but a direct request overlapping it gets 409 SLOT_UNAVAILABLE (D92). Two touching blocks (e.g. 00:00–12:00 and 12:00–24:00 Riyadh) are allowed and together make the date unavailable. Not used by the provider app (D83).",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"starts_at\": \"2026-12-06T10:00:00Z\",\n  \"ends_at\": \"2026-12-06T14:00:00Z\"\n}"
+                }
+              },
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"message\": \"The given data is invalid.\",\n  \"code\": \"VALIDATION_FAILED\",\n  \"errors\": {\n    \"date\": [\n      \"Send either a date or a start and end time, not both.\"\n    ]\n  }\n}"
+            },
+            {
+              "name": "422 longer than 366 days",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept-Language",
+                    "value": "{{lang}}"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{provider_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/provider/availability-blocks",
+                "description": "starts_at/ends_at ISO-8601 (converted to UTC), whole minutes, ends_at > starts_at, ends_at > now (starts_at may be past), length <= 366 days (exactly 366 days OK, +1 minute → 422). Example = 13:00–17:00 Riyadh on 2026-12-06. A partial-day block does NOT put the date in the public unavailable_dates, but a direct request overlapping it gets 409 SLOT_UNAVAILABLE (D92). Two touching blocks (e.g. 00:00–12:00 and 12:00–24:00 Riyadh) are allowed and together make the date unavailable. Not used by the provider app (D83).",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"starts_at\": \"2026-12-06T10:00:00Z\",\n  \"ends_at\": \"2026-12-06T14:00:00Z\"\n}"
+                }
+              },
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"message\": \"The given data is invalid.\",\n  \"code\": \"VALIDATION_FAILED\",\n  \"errors\": {\n    \"ends_at\": [\n      \"A block may last at most 366 days.\"\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete block",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": "{{base_url}}/provider/availability-blocks/12",
+            "description": "Soft delete (D94): the row is kept with deleted_at/deleted_by and an availability_unblocked history event; it no longer affects availability, calendar_conflict, the direct-request check or overlap validation. Her own active blocks only: another provider's, unknown or already deleted → 404 (a repeat of a successful delete answers 404 — reload the calendar). Runs under the provider row lock (D95). Requests are never changed. Also allowed while she is suspended at provider-status level (D96); other non-active statuses → 409 INVALID_STATE."
+          },
+          "response": [
+            {
+              "name": "200 deleted",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept-Language",
+                    "value": "{{lang}}"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{provider_token}}"
+                  }
+                ],
+                "url": "{{base_url}}/provider/availability-blocks/12",
+                "description": "Soft delete (D94): the row is kept with deleted_at/deleted_by and an availability_unblocked history event; it no longer affects availability, calendar_conflict, the direct-request check or overlap validation. Her own active blocks only: another provider's, unknown or already deleted → 404 (a repeat of a successful delete answers 404 — reload the calendar). Runs under the provider row lock (D95). Requests are never changed. Also allowed while she is suspended at provider-status level (D96); other non-active statuses → 409 INVALID_STATE."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"data\": null,\n  \"message\": null,\n  \"meta\": {}\n}"
+            },
+            {
+              "name": "404 not hers or already deleted",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept-Language",
+                    "value": "{{lang}}"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{provider_token}}"
+                  }
+                ],
+                "url": "{{base_url}}/provider/availability-blocks/12",
+                "description": "Soft delete (D94): the row is kept with deleted_at/deleted_by and an availability_unblocked history event; it no longer affects availability, calendar_conflict, the direct-request check or overlap validation. Her own active blocks only: another provider's, unknown or already deleted → 404 (a repeat of a successful delete answers 404 — reload the calendar). Runs under the provider row lock (D95). Requests are never changed. Also allowed while she is suspended at provider-status level (D96); other non-active statuses → 409 INVALID_STATE."
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"message\": \"The requested item was not found.\",\n  \"code\": \"NOT_FOUND\",\n  \"errors\": {}\n}"
+            }
+          ]
         }
       ]
     }

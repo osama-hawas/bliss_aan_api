@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Bliss aan — client",
-    "description": "Audience folder `client/` (client token from the Auth collection).",
+    "description": "Audience folder `client/` (client token from the Auth collection). Slice 5a (approved contract revision 3): direct-request availability check.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -281,12 +281,58 @@
               }
             ],
             "url": "{{base_url}}/client/service-requests",
-            "description": "Header Idempotency-Key (uuid) required. 201 created; same key + same body → 200 same request; same key + other body → 409 DUPLICATE_REQUEST. type direct|open (open: event_location only, no provider_id). event_location: exactly one of address_id / address (with pin); provider_location: no address (city = provider's). guests_count per service guest_count_mode. Errors: 422 OUT_OF_COVERAGE (direct), 422 NO_MATCHING_PROVIDERS (open, nothing created), 409 NOT_CONFIGURED (media_ids without requests.max_attachments).",
+            "description": "Header Idempotency-Key (uuid) required. 201 created; same key + same body → 200 same request; same key + other body → 409 DUPLICATE_REQUEST. type direct|open (open: event_location only, no provider_id). event_location: exactly one of address_id / address (with pin); provider_location: no address (city = provider's). guests_count per service guest_count_mode. Errors: 422 OUT_OF_COVERAGE (direct), 422 NO_MATCHING_PROVIDERS (open, nothing created), 409 NOT_CONFIGURED (media_ids without requests.max_attachments). Slice 5a (approved contract revision 3): a direct request whose exact window overlaps one of the provider's active blocks → 409 SLOT_UNAVAILABLE, nothing created — also on a date that is not in the public unavailable_dates (partial-day block, D92). A replay of an already created request still returns 200; the same key after a 409 is a new attempt. Open requests are not checked (D84). A confirmed database deadlock is retried up to 3 times in fresh transactions (key re-checked each time); then 500 SERVER_ERROR, nothing created (D98); applies to direct and open requests alike, each attempt repeating the complete checks (D100).",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"type\": \"direct\",\n  \"provider_id\": 1,\n  \"service_id\": 1,\n  \"event_type_id\": 1,\n  \"execution_place\": \"event_location\",\n  \"event_date\": \"2026-12-05\",\n  \"start_time\": \"19:00\",\n  \"duration_minutes\": 180,\n  \"address_id\": null,\n  \"address\": {\n    \"city_id\": 1,\n    \"district\": \"Al Malqa\",\n    \"details\": \"Villa 12\",\n    \"lat\": 24.7136,\n    \"lng\": 46.6753,\n    \"label\": \"Home\"\n  },\n  \"guests_count\": 80,\n  \"addon_ids\": [],\n  \"notes\": \"\",\n  \"media_ids\": []\n}"
             }
-          }
+          },
+          "response": [
+            {
+              "name": "409 SLOT_UNAVAILABLE (direct, blocked time)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept-Language",
+                    "value": "{{lang}}"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}"
+                  },
+                  {
+                    "key": "Idempotency-Key",
+                    "value": "{{$guid}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/client/service-requests",
+                "description": "Header Idempotency-Key (uuid) required. 201 created; same key + same body → 200 same request; same key + other body → 409 DUPLICATE_REQUEST. type direct|open (open: event_location only, no provider_id). event_location: exactly one of address_id / address (with pin); provider_location: no address (city = provider's). guests_count per service guest_count_mode. Errors: 422 OUT_OF_COVERAGE (direct), 422 NO_MATCHING_PROVIDERS (open, nothing created), 409 NOT_CONFIGURED (media_ids without requests.max_attachments). Slice 5a (approved contract revision 3): a direct request whose exact window overlaps one of the provider's active blocks → 409 SLOT_UNAVAILABLE, nothing created — also on a date that is not in the public unavailable_dates (partial-day block, D92). A replay of an already created request still returns 200; the same key after a 409 is a new attempt. Open requests are not checked (D84). A confirmed database deadlock is retried up to 3 times in fresh transactions (key re-checked each time); then 500 SERVER_ERROR, nothing created (D98); applies to direct and open requests alike, each attempt repeating the complete checks (D100).",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"type\": \"direct\",\n  \"provider_id\": 1,\n  \"service_id\": 1,\n  \"event_type_id\": 1,\n  \"execution_place\": \"event_location\",\n  \"event_date\": \"2026-12-05\",\n  \"start_time\": \"19:00\",\n  \"duration_minutes\": 180,\n  \"address_id\": null,\n  \"address\": {\n    \"city_id\": 1,\n    \"district\": \"Al Malqa\",\n    \"details\": \"Villa 12\",\n    \"lat\": 24.7136,\n    \"lng\": 46.6753,\n    \"label\": \"Home\"\n  },\n  \"guests_count\": 80,\n  \"addon_ids\": [],\n  \"notes\": \"\",\n  \"media_ids\": []\n}"
+                }
+              },
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"message\": \"This provider is not available at the selected time. Please choose another date or time.\",\n  \"code\": \"SLOT_UNAVAILABLE\",\n  \"errors\": {}\n}"
+            }
+          ]
         },
         {
           "name": "List my requests",

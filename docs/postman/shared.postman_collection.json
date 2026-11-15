@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Bliss aan — shared",
-    "description": "Audience folder `shared/`. Get tokens from the Auth collection (Login / Register save `client_token` and `provider_token`).",
+    "description": "Audience folder `shared/`. Get tokens from the Auth collection (Login / Register save `client_token` and `provider_token`). Slice 5a (approved contract revision 3): provider availability.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -373,6 +373,138 @@
             "url": "{{base_url}}/shared/event-types",
             "description": "Public. Active event types by sort: [{id, name}]. Source of `event_type_id` for client/service-requests (Slice 4)."
           }
+        },
+        {
+          "name": "Provider availability",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              }
+            ],
+            "url": "{{base_url}}/shared/providers/1/availability?from=2026-12-01&to=2026-12-31",
+            "description": "Slice 5a (approved contract revision 3). Public, no token needed (D93; auth.optional like the rest of discovery — a sent token must be valid). Provider not visible (D75) → 404. Returns unavailable Riyadh dates only — never reasons, times or ids (D86). A date is listed only when active blocks cover the whole Riyadh day, alone or together (D92): a whole-day block → listed; 13:00–17:00 only → not listed; 00:00–12:00 + 12:00–24:00 → listed; a one-minute gap → not listed; soft-deleted blocks ignored. from >= today (Riyadh), to >= from, at most 62 dates inclusive. A date-picker hint only: the direct-request create checks the exact interval (409 SLOT_UNAVAILABLE)."
+          },
+          "response": [
+            {
+              "name": "200 unavailable dates (full days only)",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept-Language",
+                    "value": "{{lang}}"
+                  }
+                ],
+                "url": "{{base_url}}/shared/providers/1/availability?from=2026-12-01&to=2026-12-31",
+                "description": "Slice 5a (approved contract revision 3). Public, no token needed (D93; auth.optional like the rest of discovery — a sent token must be valid). Provider not visible (D75) → 404. Returns unavailable Riyadh dates only — never reasons, times or ids (D86). A date is listed only when active blocks cover the whole Riyadh day, alone or together (D92): a whole-day block → listed; 13:00–17:00 only → not listed; 00:00–12:00 + 12:00–24:00 → listed; a one-minute gap → not listed; soft-deleted blocks ignored. from >= today (Riyadh), to >= from, at most 62 dates inclusive. A date-picker hint only: the direct-request create checks the exact interval (409 SLOT_UNAVAILABLE)."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"provider_id\": 1,\n    \"from\": \"2026-12-01\",\n    \"to\": \"2026-12-31\",\n    \"unavailable_dates\": [\n      \"2026-12-05\",\n      \"2026-12-07\"\n    ]\n  },\n  \"message\": null,\n  \"meta\": {}\n}"
+            },
+            {
+              "name": "200 none unavailable (only partial-day blocks)",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept-Language",
+                    "value": "{{lang}}"
+                  }
+                ],
+                "url": "{{base_url}}/shared/providers/1/availability?from=2026-12-01&to=2026-12-31",
+                "description": "Slice 5a (approved contract revision 3). Public, no token needed (D93; auth.optional like the rest of discovery — a sent token must be valid). Provider not visible (D75) → 404. Returns unavailable Riyadh dates only — never reasons, times or ids (D86). A date is listed only when active blocks cover the whole Riyadh day, alone or together (D92): a whole-day block → listed; 13:00–17:00 only → not listed; 00:00–12:00 + 12:00–24:00 → listed; a one-minute gap → not listed; soft-deleted blocks ignored. from >= today (Riyadh), to >= from, at most 62 dates inclusive. A date-picker hint only: the direct-request create checks the exact interval (409 SLOT_UNAVAILABLE)."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"provider_id\": 1,\n    \"from\": \"2026-12-01\",\n    \"to\": \"2026-12-31\",\n    \"unavailable_dates\": []\n  },\n  \"message\": null,\n  \"meta\": {}\n}"
+            },
+            {
+              "name": "404 provider not visible",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept-Language",
+                    "value": "{{lang}}"
+                  }
+                ],
+                "url": "{{base_url}}/shared/providers/1/availability?from=2026-12-01&to=2026-12-31",
+                "description": "Slice 5a (approved contract revision 3). Public, no token needed (D93; auth.optional like the rest of discovery — a sent token must be valid). Provider not visible (D75) → 404. Returns unavailable Riyadh dates only — never reasons, times or ids (D86). A date is listed only when active blocks cover the whole Riyadh day, alone or together (D92): a whole-day block → listed; 13:00–17:00 only → not listed; 00:00–12:00 + 12:00–24:00 → listed; a one-minute gap → not listed; soft-deleted blocks ignored. from >= today (Riyadh), to >= from, at most 62 dates inclusive. A date-picker hint only: the direct-request create checks the exact interval (409 SLOT_UNAVAILABLE)."
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"message\": \"The requested item was not found.\",\n  \"code\": \"NOT_FOUND\",\n  \"errors\": {}\n}"
+            },
+            {
+              "name": "422 from before today",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept-Language",
+                    "value": "{{lang}}"
+                  }
+                ],
+                "url": "{{base_url}}/shared/providers/1/availability?from=2026-12-01&to=2026-12-31",
+                "description": "Slice 5a (approved contract revision 3). Public, no token needed (D93; auth.optional like the rest of discovery — a sent token must be valid). Provider not visible (D75) → 404. Returns unavailable Riyadh dates only — never reasons, times or ids (D86). A date is listed only when active blocks cover the whole Riyadh day, alone or together (D92): a whole-day block → listed; 13:00–17:00 only → not listed; 00:00–12:00 + 12:00–24:00 → listed; a one-minute gap → not listed; soft-deleted blocks ignored. from >= today (Riyadh), to >= from, at most 62 dates inclusive. A date-picker hint only: the direct-request create checks the exact interval (409 SLOT_UNAVAILABLE)."
+              },
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"message\": \"The given data is invalid.\",\n  \"code\": \"VALIDATION_FAILED\",\n  \"errors\": {\n    \"from\": [\n      \"The start date must be today or later.\"\n    ]\n  }\n}"
+            }
+          ]
         }
       ]
     }
