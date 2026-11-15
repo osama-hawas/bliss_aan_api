@@ -20,6 +20,8 @@ return [
     'DUPLICATE_REQUEST' => 'This request was already sent with different details.',
     'SLOT_UNAVAILABLE' => 'This provider is not available at the selected time. Please choose another date or time.',
     'BLOCK_OVERLAP' => 'This period overlaps a block you already have.',
+    'OFFER_EXPIRED' => 'This offer has expired.',
+    'ALREADY_BOOKED' => 'This request already has a confirmed booking.',
     'SERVER_ERROR' => 'Something went wrong. Please try again.',
 
     // Messages for specific INVALID_STATE cases.

@@ -35,5 +35,6 @@
     "Request cancelled.": "تم إلغاء الطلب.",
     "Request declined.": "تم الاعتذار عن الطلب.",
     "Offer sent.": "تم إرسال العرض.",
-    "Offer withdrawn and request declined.": "تم سحب العرض والاعتذار عن الطلب."
+    "Offer withdrawn and request declined.": "تم سحب العرض والاعتذار عن الطلب.",
+    "Booking confirmed.": "تم تأكيد الحجز."
 }

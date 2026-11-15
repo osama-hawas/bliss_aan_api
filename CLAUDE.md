@@ -144,7 +144,7 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
 - Tests: `Tests\Concerns\BuildsAvailability` (frozen at 2026-12-01 12:00 Riyadh), `UsesCommittedRows` for two-session tests,
   `tests/Support/sql_session_worker.php` for real deadlock cycles.
 
-## Offers (Slice 5b, backend in progress)
+## Offers (Slice 5b, done)
 
 - Contract: `docs/slice-5b-contract.md`. `app/Services/Offers/OfferSender` (replay → lock request → recipient → key
   re-check → supersede her live offer (D6) → insert offer + items in integer cents → `offer_sent` / `offers_received`;
@@ -152,6 +152,16 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
   cancel closes active/expired offers. `Offer::effectiveStatus()` shows a past-validity `active` as `expired`;
   `offers:expire` (every 5 min) stores it. Clients never see `superseded`/`withdrawn` (`OfferStatus::clientVisible()`).
 - Tests: `tests/Feature/Offers/OffersTest.php`, `tests/Feature/Database/OfferLockingTest.php`.
+
+## Bookings (Slice 5c, backend in progress)
+
+- Contract: `docs/slice-5c-contract.md` (D106–D113). `app/Services/Bookings/OfferAcceptor` (`POST client/offers/{id}/accept`):
+  replay → locks client → request → offers → provider → recipients (D112) → re-check (ALREADY_BOOKED, INVALID_STATE,
+  started D111, OFFER_EXPIRED, SLOT_UNAVAILABLE) → booking (unique request/offer) → offer selected, others not_selected,
+  other recipients closed, request confirmed. No payment (D113), no wallet (D106).
+- Busy time = blocks + `confirmed`/`in_progress` bookings widened by `bookings.buffer_minutes` (default 0, D108):
+  `ProviderAvailability::isBusy()` for acceptance and direct requests; `calendar_conflict` and `unavailable_dates` include it.
+- Tests: `tests/Feature/Bookings/AcceptOfferTest.php`, `tests/Feature/Database/BookingLockingTest.php`.
 
 ## Commands
 

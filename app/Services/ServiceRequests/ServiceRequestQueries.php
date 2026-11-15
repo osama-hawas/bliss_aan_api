@@ -25,7 +25,7 @@ class ServiceRequestQueries
 
     public const OFFER_SORTS = ['total', '-total', 'sent_at', '-sent_at', 'valid_until', '-valid_until'];
 
-    public const CLIENT_LIST = ['service.category', 'targetProvider.avatar', 'eventType', 'city', 'addons'];
+    public const CLIENT_LIST = ['service.category', 'targetProvider.avatar', 'eventType', 'city', 'addons', 'booking'];
 
     public const CLIENT_DETAIL = [...self::CLIENT_LIST, 'attachments', 'history'];
 
@@ -96,7 +96,7 @@ class ServiceRequestQueries
      */
     private function ownOffers(Provider $provider, bool $items): array
     {
-        $own = ['serviceRequest.offers' => fn ($q) => $q->where('provider_id', $provider->id)];
+        $own = ['serviceRequest.offers' => fn ($q) => $q->where('provider_id', $provider->id), 'serviceRequest.booking'];
 
         return $items ? [...$own, 'serviceRequest.offers.items'] : $own;
     }
@@ -164,7 +164,7 @@ class ServiceRequestQueries
     public function adminRequest(int $id): ServiceRequest
     {
         return ServiceRequest::query()
-            ->with([...self::CLIENT_DETAIL, 'client', 'recipients.provider', 'recipients.declineReason', 'offers.items', 'offers.provider'])
+            ->with([...self::CLIENT_DETAIL, 'client', 'recipients.provider', 'recipients.declineReason', 'offers.items', 'offers.provider', 'booking.provider', 'booking.service'])
             ->findOrFail($id);
     }
 }

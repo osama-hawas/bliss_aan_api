@@ -35,6 +35,14 @@ class ServiceRequestPolicy
     }
 
     /**
+     * Slice 5c: only the client who owns the request accepts an offer on it (states re-checked by OfferAcceptor).
+     */
+    public function accept(User $user, ServiceRequest $request): bool
+    {
+        return $this->viewAsClient($user, $request);
+    }
+
+    /**
      * Slice 5b: a recipient of the request. The states are re-checked under lock by OfferSender.
      */
     public function sendOffer(User $user, ServiceRequest $request): bool

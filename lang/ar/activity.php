@@ -8,4 +8,5 @@ return [
     'recipient_declined' => 'اعتذرت مقدمة خدمة',
     'offer_sent' => 'تم استلام عرض',
     'offer_withdrawn' => 'سحبت مقدمة خدمة عرضها',
+    'booking_confirmed' => 'تم قبول العرض وتأكيد الحجز',
 ];

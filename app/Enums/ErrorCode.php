@@ -26,6 +26,8 @@ enum ErrorCode: string
     case DuplicateRequest = 'DUPLICATE_REQUEST';
     case SlotUnavailable = 'SLOT_UNAVAILABLE';
     case BlockOverlap = 'BLOCK_OVERLAP';
+    case OfferExpired = 'OFFER_EXPIRED';
+    case AlreadyBooked = 'ALREADY_BOOKED';
     case ServerError = 'SERVER_ERROR';
 
     public function status(): int
@@ -36,7 +38,7 @@ enum ErrorCode: string
             self::Forbidden, self::AccountSuspended => 403,
             self::NotFound, self::AccountNotFound => 404,
             self::MethodNotAllowed => 405,
-            self::InvalidState, self::NotConfigured, self::DuplicateRequest, self::SlotUnavailable, self::BlockOverlap => 409,
+            self::InvalidState, self::NotConfigured, self::DuplicateRequest, self::SlotUnavailable, self::BlockOverlap, self::OfferExpired, self::AlreadyBooked => 409,
             self::TooManyAttempts => 429,
             self::ServerError => 500,
         };

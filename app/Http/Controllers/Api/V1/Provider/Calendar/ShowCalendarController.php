@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Provider\Calendar;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Provider\Calendar\ShowCalendarRequest;
+use App\Http\Resources\Api\V1\Provider\Bookings\ProviderBookingResource;
 use App\Http\Resources\Api\V1\Provider\Calendar\BlockResource;
 use App\Http\Resources\Api\V1\Provider\Calendar\CalendarRequestResource;
 use App\Services\Availability\AvailabilityBlocks;
@@ -30,6 +31,7 @@ class ShowCalendarController extends Controller
             'to' => $to,
             'blocks' => BlockResource::collection($calendar['blocks'])->resolve($request),
             'requests' => CalendarRequestResource::collection($calendar['requests'])->resolve($request),
+            'bookings' => ProviderBookingResource::collection($calendar['bookings'])->resolve($request), // Slice 5c
         ]);
     }
 }

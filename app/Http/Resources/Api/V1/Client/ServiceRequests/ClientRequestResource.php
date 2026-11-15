@@ -59,6 +59,19 @@ class ClientRequestResource extends JsonResource
         }
         // Slice 5b: live offers (active and inside their validity) the client can compare.
         $data['offers_count'] = (int) ($r->live_offers_count ?? $r->offers()->live()->count());
+        // Slice 5c: the confirmed booking, if any.
+        $booking = $r->relationLoaded('booking') ? $r->booking : $r->booking()->first();
+        $data['booking'] = $booking ? [
+            'id' => $booking->id,
+            'reference' => $booking->reference,
+            'status' => $booking->status->value,
+            'status_label' => $booking->status->label(),
+            'offer_id' => $booking->offer_id,
+            'provider_id' => $booking->provider_id,
+            'total' => $this->money($booking->total),
+            'starts_at' => $this->dateTime($booking->starts_at),
+            'confirmed_at' => $this->dateTime($booking->confirmed_at),
+        ] : null;
         $data['cancelled_at'] = $this->dateTime($r->cancelled_at);
         $data['cancel_reason'] = $r->cancel_reason;
         if ($this->detailed) {

@@ -65,6 +65,8 @@ return [
     ],
     'recipient_status' => ['new' => 'جديد', 'offer_sent' => 'تم إرسال عرض', 'declined' => 'مرفوض', 'closed' => 'مغلق'],
     'offer_status' => ['active' => 'ساري', 'superseded' => 'استُبدل بعرض أحدث', 'withdrawn' => 'مسحوب', 'expired' => 'منتهي الصلاحية', 'closed' => 'مغلق', 'selected' => 'مقبول', 'not_selected' => 'غير مختار'],
+    'booking_status' => ['confirmed' => 'مؤكد', 'in_progress' => 'قيد التنفيذ', 'completed' => 'مكتمل', 'cancelled' => 'ملغي'],
+    'booking_payment_status' => ['not_required' => 'لا يتطلب دفعًا'],
     'execution_place' => ['event_location' => 'في موقع المناسبة', 'provider_location' => 'في موقع مقدمة الخدمة'],
     'guest_count_mode' => ['hidden' => 'غير مطلوب', 'optional' => 'اختياري', 'required' => 'إلزامي'],
 ];

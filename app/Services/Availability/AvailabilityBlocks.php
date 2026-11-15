@@ -3,12 +3,14 @@
 namespace App\Services\Availability;
 
 use App\Enums\ActivityVisibility;
+use App\Enums\BookingStatus;
 use App\Enums\ErrorCode;
 use App\Enums\ProviderStatus;
 use App\Enums\RecipientStatus;
 use App\Enums\ServiceRequestStatus;
 use App\Exceptions\ApiException;
 use App\Models\AvailabilityBlock;
+use App\Models\Booking;
 use App\Models\Provider;
 use App\Models\ServiceRequestRecipient;
 use App\Models\User;
@@ -53,7 +55,7 @@ class AvailabilityBlocks
     /**
      * Active blocks and open requests overlapping the Riyadh dates [from, to] (§5.3). Suspended: blocks only (D99).
      *
-     * @return array{blocks: Collection<int, AvailabilityBlock>, requests: Collection<int, ServiceRequestRecipient>}
+     * @return array{blocks: Collection<int, AvailabilityBlock>, requests: Collection<int, ServiceRequestRecipient>, bookings: Collection<int, Booking>}
      */
     public function calendar(Provider $provider, string $from, string $to): array
     {
@@ -70,7 +72,15 @@ class AvailabilityBlocks
             ? $this->openRequests($provider, $start, $end)
             : new Collection;
 
-        return ['blocks' => $blocks, 'requests' => $requests];
+        // Slice 5c: her bookings in the range (all statuses she can look back on, never cancelled).
+        $bookings = Booking::query()->where('provider_id', $provider->id)
+            ->where('status', '!=', BookingStatus::Cancelled)
+            ->where('starts_at', '<', $end)->where('ends_at', '>', $start)
+            ->with(['service', 'offer.items', 'serviceRequest.eventType', 'serviceRequest.city', 'client'])
+            ->orderBy('starts_at')->orderBy('id')
+            ->get();
+
+        return ['blocks' => $blocks, 'requests' => $requests, 'bookings' => $bookings];
     }
 
     /**

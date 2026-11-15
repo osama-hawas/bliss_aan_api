@@ -8,4 +8,5 @@ return [
     'recipient_declined' => 'A provider declined',
     'offer_sent' => 'Offer received',
     'offer_withdrawn' => 'A provider withdrew her offer',
+    'booking_confirmed' => 'Offer accepted, booking confirmed',
 ];

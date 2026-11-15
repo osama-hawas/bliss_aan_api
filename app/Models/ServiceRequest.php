@@ -10,6 +10,7 @@ use App\Models\Concerns\HasMedia;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 /**
@@ -100,6 +101,11 @@ class ServiceRequest extends Model
     public function recipients(): HasMany
     {
         return $this->hasMany(ServiceRequestRecipient::class)->orderBy('id');
+    }
+
+    public function booking(): HasOne
+    {
+        return $this->hasOne(Booking::class);
     }
 
     public function offers(): HasMany

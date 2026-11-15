@@ -37,7 +37,8 @@ use Illuminate\Validation\ValidationException;
  * business rules are checked here, after the idempotency replay, so a replay always returns the original request.
  *
  * Transaction: lock the client row (her creates run one at a time) → re-check the key under that lock → lock media →
- * direct: lock the provider row and refuse a window that overlaps an active block (Req 17, D90, 409 SLOT_UNAVAILABLE) →
+ * direct: lock the provider row and refuse a window that overlaps an active block or a buffered booking (Req 17, D90, D110,
+ * 409 SLOT_UNAVAILABLE) →
  * match recipients (open: none → 422, nothing kept) → insert with a fresh reference (retried on collision) → add-on
  * snapshots → recipients → attach media → history.
  *
@@ -335,7 +336,7 @@ class ServiceRequestCreator
         if ($draft->type === ServiceRequestType::Direct) {
             // D90: serialized with her block creation and deletion; the exact window, partial-day blocks included.
             Provider::query()->whereKey($draft->provider->id)->lockForUpdate()->first(['id']);
-            if ($this->availability->isBlocked($draft->provider->id, $draft->startsAt, $draft->endsAt)) {
+            if ($this->availability->isBusy($draft->provider->id, $draft->startsAt, $draft->endsAt)) { // blocks + bookings (D110)
                 throw new ApiException(ErrorCode::SlotUnavailable);
             }
         }

@@ -1,0 +1,71 @@
+<?php
+
+namespace App\Models;
+
+use App\Enums\BookingPaymentStatus;
+use App\Enums\BookingStatus;
+use App\Enums\ExecutionPlace;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+/**
+ * A request settled on one accepted offer (Slice 5c). Times, address, title and total are snapshots (D107).
+ */
+class Booking extends Model
+{
+    protected $fillable = [
+        'reference', 'service_request_id', 'offer_id', 'client_id', 'provider_id', 'service_id', 'execution_place',
+        'starts_at', 'ends_at', 'address', 'title', 'total', 'status', 'payment_status', 'policy_version_id',
+        'confirmed_at', 'started_at', 'completed_at', 'idempotency_key', 'idempotency_fingerprint',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'status' => BookingStatus::class,
+            'payment_status' => BookingPaymentStatus::class,
+            'execution_place' => ExecutionPlace::class,
+            'address' => 'array',
+            'total' => 'decimal:2',
+            'starts_at' => 'datetime',
+            'ends_at' => 'datetime',
+            'confirmed_at' => 'datetime',
+            'started_at' => 'datetime',
+            'completed_at' => 'datetime',
+        ];
+    }
+
+    /**
+     * Bookings that make the provider busy (D110).
+     */
+    public function scopeBusy(Builder $query): Builder
+    {
+        return $query->whereIn('status', BookingStatus::busy());
+    }
+
+    public function serviceRequest(): BelongsTo
+    {
+        return $this->belongsTo(ServiceRequest::class);
+    }
+
+    public function offer(): BelongsTo
+    {
+        return $this->belongsTo(Offer::class);
+    }
+
+    public function client(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'client_id');
+    }
+
+    public function provider(): BelongsTo
+    {
+        return $this->belongsTo(Provider::class);
+    }
+
+    public function service(): BelongsTo
+    {
+        return $this->belongsTo(Service::class);
+    }
+}

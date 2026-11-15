@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Api\V1\Admin\ServiceRequests;
 
 use App\Http\Resources\Api\V1\Client\ServiceRequests\ClientRequestResource;
+use App\Http\Resources\Concerns\DescribesBooking;
 use App\Http\Resources\Concerns\DescribesOffer;
 use App\Models\Media;
 use App\Models\Offer;
@@ -21,7 +22,7 @@ use Illuminate\Http\Request;
  */
 class AdminRequestResource extends ClientRequestResource
 {
-    use DescribesOffer;
+    use DescribesBooking, DescribesOffer;
 
     private bool $full = false;
 
@@ -65,6 +66,16 @@ class AdminRequestResource extends ClientRequestResource
             ...$this->offerCore($o),
             'provider' => ['id' => $o->provider_id, 'display_name' => $o->provider?->display_name],
         ])->values()->all();
+
+        // Slice 5c: the booking snapshot (full, read-only).
+        $data['booking'] = $r->booking ? [
+            ...$this->bookingCore($r->booking->setRelation('serviceRequest', $r), false),
+            'offer_id' => $r->booking->offer_id,
+            'address' => $r->booking->address,
+            'provider' => ['id' => $r->booking->provider_id, 'display_name' => $r->booking->provider?->display_name],
+            'client' => ['id' => $r->client_id, 'name' => $r->client?->name],
+            'policy_version_id' => $r->booking->policy_version_id,
+        ] : null;
 
         return $data;
     }

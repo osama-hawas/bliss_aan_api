@@ -53,6 +53,17 @@ class ProviderRequestResource extends JsonResource
             'service' => ['id' => $r->service_id, 'name' => $r->service?->name],
             ...array_slice($core, 4, null, true),
             'district' => $r->execution_place === ExecutionPlace::EventLocation ? ($r->address['district'] ?? null) : null,
+            // D56: the winning provider sees the exact address and pin once booked (event location only).
+            // The key exists only for her once booked: before booking the response never carries an address (D56).
+            ...($this->won() ? ['address' => $r->execution_place === ExecutionPlace::EventLocation ? $r->address : null] : []),
+            'booking' => $this->won() ? [
+                'id' => $r->booking->id,
+                'reference' => $r->booking->reference,
+                'status' => $r->booking->status->value,
+                'status_label' => $r->booking->status->label(),
+                'total' => $this->money($r->booking->total),
+                'confirmed_at' => $this->dateTime($r->booking->confirmed_at),
+            ] : null,
             'client' => ['first_name' => $this->firstName($r->client?->name)],
             'guests_count' => $r->guests_count,
             'addons' => $addons,
@@ -68,6 +79,18 @@ class ProviderRequestResource extends JsonResource
             'received_at' => $this->dateTime($recipient->created_at),
             'seen_at' => $this->dateTime($recipient->seen_at),
         ];
+    }
+
+    /**
+     * Slice 5c: this request was booked with her.
+     */
+    private function won(): bool
+    {
+        $r = $this->resource->serviceRequest;
+        $booking = $r->relationLoaded('booking') ? $r->booking : $r->booking()->first();
+        $r->setRelation('booking', $booking);
+
+        return $booking !== null && $booking->provider_id === $this->resource->provider_id;
     }
 
     /**
