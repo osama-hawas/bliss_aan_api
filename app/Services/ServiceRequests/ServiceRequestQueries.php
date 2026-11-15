@@ -2,6 +2,8 @@
 
 namespace App\Services\ServiceRequests;
 
+use App\Enums\OfferStatus;
+use App\Models\Offer;
 use App\Models\Provider;
 use App\Models\ServiceRequest;
 use App\Models\ServiceRequestRecipient;
@@ -21,6 +23,8 @@ class ServiceRequestQueries
 
     public const ADMIN_SORTS = self::CLIENT_SORTS;
 
+    public const OFFER_SORTS = ['total', '-total', 'sent_at', '-sent_at', 'valid_until', '-valid_until'];
+
     public const CLIENT_LIST = ['service.category', 'targetProvider.avatar', 'eventType', 'city', 'addons'];
 
     public const CLIENT_DETAIL = [...self::CLIENT_LIST, 'attachments', 'history'];
@@ -35,6 +39,7 @@ class ServiceRequestQueries
         return ServiceRequest::query()
             ->where('client_id', $client->id)
             ->with(self::CLIENT_LIST)
+            ->withCount(['offers as live_offers_count' => fn (Builder $q) => $q->live()])
             ->when($filters['status'], fn (Builder $q, array $s) => $q->whereIn('status', $s))
             ->when($filters['type'], fn (Builder $q, string $t) => $q->where('type', $t))
             ->orderBy(ltrim($sort, '-'), str_starts_with($sort, '-') ? 'desc' : 'asc')
@@ -44,7 +49,9 @@ class ServiceRequestQueries
 
     public function clientRequest(User $client, int $id): ServiceRequest
     {
-        return ServiceRequest::query()->where('client_id', $client->id)->with(self::CLIENT_DETAIL)->findOrFail($id);
+        return ServiceRequest::query()->where('client_id', $client->id)->with(self::CLIENT_DETAIL)
+            ->withCount(['offers as live_offers_count' => fn (Builder $q) => $q->live()])
+            ->findOrFail($id);
     }
 
     /**
@@ -64,7 +71,7 @@ class ServiceRequestQueries
             ->select('service_request_recipients.*')
             ->join('service_requests', 'service_requests.id', '=', 'service_request_recipients.service_request_id')
             ->where('service_request_recipients.provider_id', $provider->id)
-            ->with(['serviceRequest.service', 'serviceRequest.eventType', 'serviceRequest.city', 'serviceRequest.client', 'serviceRequest.addons', 'declineReason'])
+            ->with(['serviceRequest.service', 'serviceRequest.eventType', 'serviceRequest.city', 'serviceRequest.client', 'serviceRequest.addons', 'declineReason', ...$this->ownOffers($provider, false)])
             ->when($filters['status'], fn (Builder $q, array $s) => $q->whereIn('service_request_recipients.status', $s))
             ->when($filters['type'], fn (Builder $q, string $t) => $q->where('service_requests.type', $t))
             ->orderBy($column, str_starts_with($sort, '-') ? 'desc' : 'asc')
@@ -80,8 +87,43 @@ class ServiceRequestQueries
         return ServiceRequestRecipient::query()
             ->where('provider_id', $provider->id)
             ->where('service_request_id', $requestId)
-            ->with(['serviceRequest.service', 'serviceRequest.eventType', 'serviceRequest.city', 'serviceRequest.client', 'serviceRequest.addons', 'serviceRequest.attachments', 'declineReason'])
+            ->with(['serviceRequest.service', 'serviceRequest.eventType', 'serviceRequest.city', 'serviceRequest.client', 'serviceRequest.addons', 'serviceRequest.attachments', 'declineReason', ...$this->ownOffers($provider, true)])
             ->firstOrFail();
+    }
+
+    /**
+     * Her own offers only (competitors never see each other, §3.6).
+     */
+    private function ownOffers(Provider $provider, bool $items): array
+    {
+        $own = ['serviceRequest.offers' => fn ($q) => $q->where('provider_id', $provider->id)];
+
+        return $items ? [...$own, 'serviceRequest.offers.items'] : $own;
+    }
+
+    /**
+     * Offers the client may see on her own request (§3.6), with the provider card. Default newest first.
+     */
+    public function clientOffers(ServiceRequest $request, ?string $sort)
+    {
+        $sort ??= '-sent_at';
+
+        return Offer::query()
+            ->where('service_request_id', $request->id)
+            ->whereIn('status', OfferStatus::clientVisible())
+            ->with(['items', 'provider.avatar'])
+            ->orderBy(ltrim($sort, '-'), str_starts_with($sort, '-') ? 'desc' : 'asc')
+            ->orderByDesc('id')
+            ->get();
+    }
+
+    public function clientOffer(User $client, int $id): Offer
+    {
+        return Offer::query()
+            ->whereIn('status', OfferStatus::clientVisible())
+            ->whereHas('serviceRequest', fn (Builder $q) => $q->where('client_id', $client->id))
+            ->with(['items', 'provider.avatar'])
+            ->findOrFail($id);
     }
 
     /**
@@ -122,7 +164,7 @@ class ServiceRequestQueries
     public function adminRequest(int $id): ServiceRequest
     {
         return ServiceRequest::query()
-            ->with([...self::CLIENT_DETAIL, 'client', 'recipients.provider', 'recipients.declineReason'])
+            ->with([...self::CLIENT_DETAIL, 'client', 'recipients.provider', 'recipients.declineReason', 'offers.items', 'offers.provider'])
             ->findOrFail($id);
     }
 }

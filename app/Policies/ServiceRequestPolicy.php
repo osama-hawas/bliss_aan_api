@@ -35,6 +35,14 @@ class ServiceRequestPolicy
     }
 
     /**
+     * Slice 5b: a recipient of the request. The states are re-checked under lock by OfferSender.
+     */
+    public function sendOffer(User $user, ServiceRequest $request): bool
+    {
+        return $this->viewAsProvider($user, $request);
+    }
+
+    /**
      * Client owner · recipient still `new`/`offer_sent` · (Slice 5) winning provider · staff with both
      * `bookings.view` and `requests.attachments.view` (D58, D64).
      */

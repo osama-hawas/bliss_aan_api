@@ -144,6 +144,15 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
 - Tests: `Tests\Concerns\BuildsAvailability` (frozen at 2026-12-01 12:00 Riyadh), `UsesCommittedRows` for two-session tests,
   `tests/Support/sql_session_worker.php` for real deadlock cycles.
 
+## Offers (Slice 5b, backend in progress)
+
+- Contract: `docs/slice-5b-contract.md`. `app/Services/Offers/OfferSender` (replay → lock request → recipient → key
+  re-check → supersede her live offer (D6) → insert offer + items in integer cents → `offer_sent` / `offers_received`;
+  DeadlockRetry). Withdraw = the Slice 4 decline while `offer_sent` (D91, `ServiceRequestLifecycle::decline`); client
+  cancel closes active/expired offers. `Offer::effectiveStatus()` shows a past-validity `active` as `expired`;
+  `offers:expire` (every 5 min) stores it. Clients never see `superseded`/`withdrawn` (`OfferStatus::clientVisible()`).
+- Tests: `tests/Feature/Offers/OffersTest.php`, `tests/Feature/Database/OfferLockingTest.php`.
+
 ## Commands
 
 - `docker compose up -d mysql` — local MySQL 8 (databases `bliss_aan` and `testing`)

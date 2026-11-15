@@ -166,6 +166,7 @@ return [
     'url' => 'The :attribute field must be a valid URL.',
     'ulid' => 'The :attribute field must be a valid ULID.',
     'uuid' => 'The :attribute field must be a valid UUID.',
+    'offer_total' => 'The offer total must be more than 0 and at most 999,999.99.',
 
     /*
     |--------------------------------------------------------------------------

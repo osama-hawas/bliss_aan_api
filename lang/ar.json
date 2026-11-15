@@ -33,5 +33,7 @@
     "Default address updated.": "تم تحديث العنوان الافتراضي.",
     "Request sent.": "تم إرسال الطلب.",
     "Request cancelled.": "تم إلغاء الطلب.",
-    "Request declined.": "تم الاعتذار عن الطلب."
+    "Request declined.": "تم الاعتذار عن الطلب.",
+    "Offer sent.": "تم إرسال العرض.",
+    "Offer withdrawn and request declined.": "تم سحب العرض والاعتذار عن الطلب."
 }

@@ -4,11 +4,13 @@ namespace App\Services\ServiceRequests;
 
 use App\Enums\ActivityVisibility;
 use App\Enums\ErrorCode;
+use App\Enums\OfferStatus;
 use App\Enums\RecipientStatus;
 use App\Enums\ServiceRequestStatus;
 use App\Enums\ServiceRequestType;
 use App\Exceptions\ApiException;
 use App\Models\DeclineReason;
+use App\Models\Offer;
 use App\Models\Provider;
 use App\Models\ServiceRequest;
 use App\Models\ServiceRequestRecipient;
@@ -27,7 +29,8 @@ class ServiceRequestLifecycle
     public function __construct(private readonly ActivityRecorder $activity) {}
 
     /**
-     * Before an offer is accepted only. Every recipient still taking part is closed. Reason optional (D67).
+     * Before an offer is accepted only. Every recipient still taking part is closed, and every offer still `active`
+     * (live or past its validity) is closed (Slice 5b). Reason optional (D67).
      */
     public function cancel(User $client, ServiceRequest $request, ?string $reason): ServiceRequest
     {
@@ -42,6 +45,9 @@ class ServiceRequestLifecycle
             $request->update(['status' => ServiceRequestStatus::Cancelled, 'cancelled_at' => now(), 'cancel_reason' => $reason]);
             $recipients->filter(fn (ServiceRequestRecipient $r) => $r->status->isActive())
                 ->each(fn (ServiceRequestRecipient $r) => $r->update(['status' => RecipientStatus::Closed, 'closed_at' => now()]));
+            Offer::query()->where('service_request_id', $request->id)->whereIn('status', [OfferStatus::Active, OfferStatus::Expired])
+                ->orderBy('id')->lockForUpdate()->get()
+                ->each(fn (Offer $o) => $o->update(['status' => OfferStatus::Closed, 'closed_at' => now()]));
             $this->activity->record($request, 'request_cancelled', $from, ServiceRequestStatus::Cancelled, $client, ActivityVisibility::All);
 
             return $request;
@@ -49,9 +55,10 @@ class ServiceRequestLifecycle
     }
 
     /**
-     * Her decline, with a predefined reason and a written explanation (D51). Only while she is `new` (offer_sent →
-     * declined is Q18, not allowed). A direct request becomes `declined` (D68); an open one is unchanged, even when
-     * every recipient declined (Q17).
+     * Her decline, with a predefined reason and a written explanation (D51), while she is `new` — or, after an offer,
+     * while she is `offer_sent` and no offer is accepted: her active offer is withdrawn and she declines (D91,
+     * slice-5b-contract.md §3.4). A direct request becomes `declined` (D68); an open one is unchanged, even when every
+     * recipient declined or no live offer is left (Q17). Open-request entries stay internal (D76).
      */
     public function decline(Provider $provider, ServiceRequest $request, DeclineReason $reason, string $explanation): ServiceRequestRecipient
     {
@@ -62,8 +69,19 @@ class ServiceRequestLifecycle
                 ->where('provider_id', $provider->id)
                 ->lockForUpdate()
                 ->firstOrFail();
-            if ($recipient->status !== RecipientStatus::New || ! $request->status->isOpenForResponses()) {
+            if (! $recipient->status->isActive() || ! $request->status->isOpenForResponses()) {
                 throw new ApiException(ErrorCode::InvalidState);
+            }
+
+            $from = $recipient->status;
+            $visibility = $request->type === ServiceRequestType::Direct ? ActivityVisibility::All : ActivityVisibility::Internal;
+            if ($from === RecipientStatus::OfferSent) {
+                Offer::query()->where('service_request_id', $request->id)->where('provider_id', $provider->id)
+                    ->where('status', OfferStatus::Active)->lockForUpdate()->get()
+                    ->each(function (Offer $o) use ($request, $provider, $visibility) {
+                        $o->update(['status' => OfferStatus::Withdrawn, 'withdrawn_at' => now()]);
+                        $this->activity->record($request, 'offer_withdrawn', OfferStatus::Active, OfferStatus::Withdrawn, $provider->user, $visibility, ['offer_id' => $o->id, 'provider_id' => $provider->id]);
+                    });
             }
 
             $recipient->update([
@@ -72,7 +90,7 @@ class ServiceRequestLifecycle
                 'decline_explanation' => $explanation,
                 'declined_at' => now(),
             ]);
-            $this->activity->record($request, 'recipient_declined', RecipientStatus::New, RecipientStatus::Declined, $provider->user, ActivityVisibility::Internal, ['provider_id' => $provider->id, 'reason' => $reason->code]);
+            $this->activity->record($request, 'recipient_declined', $from, RecipientStatus::Declined, $provider->user, ActivityVisibility::Internal, ['provider_id' => $provider->id, 'reason' => $reason->code]);
 
             if ($request->type === ServiceRequestType::Direct) {
                 $from = $request->status;

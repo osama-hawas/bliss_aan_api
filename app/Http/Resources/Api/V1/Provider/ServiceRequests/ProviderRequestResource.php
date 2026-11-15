@@ -3,9 +3,11 @@
 namespace App\Http\Resources\Api\V1\Provider\ServiceRequests;
 
 use App\Enums\ExecutionPlace;
+use App\Http\Resources\Concerns\DescribesOffer;
 use App\Http\Resources\Concerns\DescribesServiceRequest;
 use App\Http\Resources\Concerns\FormatsApiValues;
 use App\Models\Media;
+use App\Models\Offer;
 use App\Models\ServiceRequestRecipient;
 use App\Services\Availability\ProviderAvailability;
 use App\Services\ServiceRequests\RequestAttachments;
@@ -16,12 +18,14 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * A request as one recipient sees it before booking — Privacy Model A (D56): city, district and the client's first
  * name only. Never the address details, label, pin, the client's phone or last name, or other recipients.
  * Attachments only while she is `new`/`offer_sent` (D58). List items leave out notes and attachments.
+ * Slice 5b: her own offers only (never a competitor's): `current_offer` (her newest, any status) on every item, the
+ * full `offers` list on the details.
  *
  * @mixin ServiceRequestRecipient
  */
 class ProviderRequestResource extends JsonResource
 {
-    use DescribesServiceRequest, FormatsApiValues;
+    use DescribesOffer, DescribesServiceRequest, FormatsApiValues;
 
     private bool $detailed = false;
 
@@ -58,10 +62,22 @@ class ProviderRequestResource extends JsonResource
                 'explanation' => $recipient->decline_explanation,
                 'declined_at' => $this->dateTime($recipient->declined_at),
             ] : null,
+            'current_offer' => ($current = $this->offers()->first()) ? $this->offerCore($current, $this->detailed) : null,
+            ...($this->detailed ? ['offers' => $this->offers()->map(fn (Offer $o) => $this->offerCore($o))->values()->all()] : []),
             'calendar_conflict' => app(ProviderAvailability::class)->hasConflict($recipient),
             'received_at' => $this->dateTime($recipient->created_at),
             'seen_at' => $this->dateTime($recipient->seen_at),
         ];
+    }
+
+    /**
+     * Her offers on this request, newest first. Filtered by provider again, whatever was eager loaded.
+     */
+    private function offers()
+    {
+        $recipient = $this->resource;
+
+        return $recipient->serviceRequest->offers->where('provider_id', $recipient->provider_id)->values();
     }
 
     private function attachments(Request $request): array

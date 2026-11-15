@@ -161,6 +161,7 @@ return [
     'url' => ':attribute يجب أن يكون رابطًا صحيحًا.',
     'ulid' => ':attribute يجب أن يكون ULID صحيحًا.',
     'uuid' => ':attribute يجب أن يكون UUID صحيحًا.',
+    'offer_total' => 'يجب أن يكون إجمالي العرض أكبر من صفر ولا يتجاوز 999,999.99.',
 
     // Project rules
     'saudi_mobile' => ':attribute يجب أن يكون رقم جوال سعودي صحيحًا.',

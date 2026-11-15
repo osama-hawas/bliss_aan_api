@@ -111,6 +111,8 @@ When a question is answered, move it to **Decided** with the date and source.
 | D101 | Slice 5a contract revision 3 (`docs/slice-5a-contract.md`) is approved with D80–D100. The approval covers the contract only; implementation needs a separate explicit authorization | Project owner (Slice 5a final contract approval) | 2026-11-12 |
 | D102 | Slice 5a implementation is authorized (the separate authorization D101 requires) | Project owner | 2026-11-15 |
 | D103 | Slice 5a is closed as **Completed**: backend (`e2e6b37`, `86cdef6`) and Flutter (`72bdc5f`, commit authorized by the owner) implemented and verified (suite, real-API E2E incl. Ar/En, audit baseline unchanged); the two Medium review findings fixed before the commit; the remaining Low review notes stay open and non-blocking (`04-roadmap.md`, *Slice 5a closure verification*). Both commits are local and not pushed. The physical-device pass stays on the final release checklist (as D79 for Slice 3) | Project owner (Slice 5a closure) | 2026-11-15 |
+| D104 | C2 for Slice 5b: no one-tap quick offer. The provider always reviews a pre-filled composer before sending (BRD Req 30/43); `offers.is_quick` stays `false` (`slice-5b-contract.md` §6) | Project owner (Slice 5b) | 2026-11-15 |
+| D105 | Q32: an open request keeps its status (`offers_received`) when no live offer is left because offers were withdrawn or expired (same rule as Q17); a direct request whose provider withdraws her offer becomes `declined` (as D68) | Project owner (Slice 5b) | 2026-11-15 |
 
 ## Open — blocking (needed before the related slice)
 
@@ -149,6 +151,7 @@ When a question is answered, move it to **Decided** with the date and source.
 | Q28 | `provider_services.at_event_location` defaults to `true` (column default, `ProviderOnboarding::syncServices`, `ProviderSetup` add-service), `at_provider_location` to `false`. The join wizard never asks, and the provider app has no toggle yet (only `PATCH provider/services/{id}` can change it). So `true` is not a verified capability. Should providers confirm their execution places (e.g. in the setup screens) before open-request matching goes live, and should the default change? Default unchanged until decided | D73 |
 | Q29 | Newly activated providers: services picked on the application have no execution place (D74 rules 9–10: nothing switched on for her), so she is not visible to clients until she picks a place for each. Keep this (she is prompted in the app), add a place step to the join wizard, or something else? (review finding I1) | D75 |
 | Q18 | May a provider decline after sending an offer (`offer_sent → declined`)? Not allowed in Slice 4 | D91 (for 5b) |
+| Q32 | Request status when an open request has no live offer left (all withdrawn/expired) | D105 |
 | Q30 | Client availability (`slice-5a-contract.md` §7): is a date listed as unavailable when a block covers only part of it (API time-range blocks, D83)? (a) yes, when any part is blocked; (b) only when the whole date is blocked | D92 |
 | Q31 | May guests (no token) read a provider's unavailable dates (`shared/providers/{id}/availability`, like the rest of discovery), or is a client token required? | D93 |
 | REF | Request reference format (sequential id, counter or random) | D72 |
@@ -158,7 +161,7 @@ When a question is answered, move it to **Decided** with the date and source.
 | # | Topic | BRD | Design | Blocks slice |
 |---|---|---|---|---|
 | C1 | Completing a service (Req 21) | Completion code/proof; client not forced to confirm early | Provider taps "Confirm completion" alone | 6 |
-| C2 | Quick offer (Req 30, 43) | Never sent without a deliberate review | One-tap send at starting price + setting | 5 |
+| C2 | Quick offer (Req 30, 43) | Never sent without a deliberate review | One-tap send at starting price + setting | 5 — 5b: D104 (no one-tap send) |
 | C3 | Add-ons (Req 33) | From the admin catalog only | Provider creates own add-ons (name, price, image) + suggestions | 3 |
 | C4 | Service inclusions (Req 10, 55) | Admin-owned | Provider can add own items | 3 |
 | C5 | Rescheduling (Req 26) | Structured propose/accept/reject | No screens; terms say changes via chat | 6/12 |

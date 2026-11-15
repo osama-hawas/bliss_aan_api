@@ -64,6 +64,7 @@ return [
         'declined' => 'Declined',
     ],
     'recipient_status' => ['new' => 'New', 'offer_sent' => 'Offer sent', 'declined' => 'Declined', 'closed' => 'Closed'],
+    'offer_status' => ['active' => 'Active', 'superseded' => 'Replaced by a newer offer', 'withdrawn' => 'Withdrawn', 'expired' => 'Expired', 'closed' => 'Closed', 'selected' => 'Accepted', 'not_selected' => 'Not selected'],
     'execution_place' => ['event_location' => 'At the event location', 'provider_location' => "At the provider's location"],
     'guest_count_mode' => ['hidden' => 'Not asked', 'optional' => 'Optional', 'required' => 'Required'],
 ];

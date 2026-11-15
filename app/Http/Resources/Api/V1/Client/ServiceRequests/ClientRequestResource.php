@@ -57,6 +57,8 @@ class ClientRequestResource extends JsonResource
             $data['notes'] = $r->notes;
             $data['attachments'] = $this->attachments($request, $r);
         }
+        // Slice 5b: live offers (active and inside their validity) the client can compare.
+        $data['offers_count'] = (int) ($r->live_offers_count ?? $r->offers()->live()->count());
         $data['cancelled_at'] = $this->dateTime($r->cancelled_at);
         $data['cancel_reason'] = $r->cancel_reason;
         if ($this->detailed) {

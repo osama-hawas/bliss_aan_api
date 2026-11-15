@@ -6,4 +6,6 @@ return [
     'request_cancelled' => 'Request cancelled',
     'request_declined' => 'Request declined by the provider',
     'recipient_declined' => 'A provider declined',
+    'offer_sent' => 'Offer received',
+    'offer_withdrawn' => 'A provider withdrew her offer',
 ];

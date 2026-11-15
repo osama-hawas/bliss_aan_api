@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Provider\Offers\StoreOfferController;
 use App\Http\Controllers\Api\V1\Provider\ServiceRequests\DeclineServiceRequestController;
 use App\Http\Controllers\Api\V1\Provider\ServiceRequests\ListDeclineReasonsController;
 use App\Http\Controllers\Api\V1\Provider\ServiceRequests\ListInboxController;
@@ -13,3 +14,4 @@ Route::get('/service-requests', ListInboxController::class);
 Route::get('/service-requests/{serviceRequest}', ShowInboxRequestController::class)->whereNumber('serviceRequest');
 Route::post('/service-requests/{serviceRequest}/decline', DeclineServiceRequestController::class)->whereNumber('serviceRequest');
 Route::get('/service-requests/{serviceRequest}/attachments/{media}', ShowAttachmentController::class)->whereNumber(['serviceRequest', 'media']);
+Route::post('/service-requests/{serviceRequest}/offers', StoreOfferController::class)->whereNumber('serviceRequest'); // Slice 5b

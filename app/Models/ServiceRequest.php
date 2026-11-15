@@ -102,6 +102,11 @@ class ServiceRequest extends Model
         return $this->hasMany(ServiceRequestRecipient::class)->orderBy('id');
     }
 
+    public function offers(): HasMany
+    {
+        return $this->hasMany(Offer::class)->orderByDesc('sent_at')->orderByDesc('id');
+    }
+
     public function attachments(): MorphMany
     {
         return $this->media()->where('collection', UploadContext::RequestAttachment->value)->orderBy('id');

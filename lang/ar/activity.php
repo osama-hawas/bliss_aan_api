@@ -6,4 +6,6 @@ return [
     'request_cancelled' => 'تم إلغاء الطلب',
     'request_declined' => 'اعتذرت مقدمة الخدمة عن الطلب',
     'recipient_declined' => 'اعتذرت مقدمة خدمة',
+    'offer_sent' => 'تم استلام عرض',
+    'offer_withdrawn' => 'سحبت مقدمة خدمة عرضها',
 ];
