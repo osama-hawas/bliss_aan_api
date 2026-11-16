@@ -22,6 +22,7 @@ class AppSettingSeeder extends Seeder
             'offers.validity_days' => [3, 7, 14], // D5
             'requests.max_attachments' => null, // D53, Q14: not approved
             'bookings.buffer_minutes' => 0, // D108
+            'bookings.start_early_minutes' => 60, // D126
         ];
 
         foreach (UploadContext::cases() as $context) {

@@ -126,13 +126,20 @@ When a question is answered, move it to **Decided** with the date and source.
 | D116 | Q34 deferred to Slice 11: whether ledgers are shared per wallet (`wallet_ledger_entries`) or kept separate (`provider_ledger_entries`) is decided in Slice 11. The existing `provider_ledger_entries` plan is preserved unchanged; `wallet_ledger_entries` stays an unwritten extension point until then | Project owner (wallet closure) | 2026-11-15 |
 | D117 | Chat rules confirmed (Q36–Q38): (1) **opening** — a provider on a request she received, while she takes part or once it is booked with her; a client with her direct-request provider, a provider who sent her a client-visible offer, or her booked provider; other open-request recipients are never revealed (D56); (2) **status** — `active` while the request is open and her recipient row is `new`/`offer_sent`, or while the request is booked with her; otherwise `read_only` (history visible, no sending), computed, never stored; (3) both participants keep the history and its files in `read_only` conversations (`slice-7-contract.md` §2, §3, §9) | Project owner (Slice 7) | 2026-11-15 |
 | D124 | Q39 approved — in-app chat voice notes: the app records with `record` and plays with `just_audio` (versions compatible with the project SDK); microphone permission is requested only when she starts recording, and denial/permanent denial/restriction is handled gracefully; she can record, stop, preview (play/pause), cancel (discard) and send; a recording is sent as a `voice` message through the existing `chat_voice` upload and attachment rules (signed URLs, participants only, D117 active/read-only status, `uploads.chat_voice` limits); picking an audio file from the device stays supported; recording is never needed to open a conversation or send text. Numbered D124: Slice 7's D117 and Q39 are authoritative, and Slice 6 (separate worktree) was renumbered to D125–D131 / Q46–Q52 on 2026-11-16 | Project owner (Slice 7, Q39) | 2026-11-16 |
+| D125 | Q46 / C1 — completion: the booked provider confirms completion herself from the app; no client code, no four-digit code, no client confirmation. `completed_at` and `completed_by` are recorded; completing an already completed booking is idempotent (`200`, no second transition); any other non-`in_progress` booking is refused (`slice-6-contract.md` §3) | Project owner (Slice 6) | 2026-11-15 |
+| D126 | Q47 — start: the booked provider may start from `starts_at` − `bookings.start_early_minutes` (admin setting, default 60); no maximum delay after the scheduled time; validated against the booking's own scheduled time; a repeated start is refused (`409 INVALID_STATE`), too early → `409 START_TOO_EARLY` | Project owner (Slice 6) | 2026-11-15 |
+| D127 | Q48 — booking cancellation requests (client, or provider inability) are allowed only while the booking is `confirmed`, before the service starts; after start the workflow is unavailable and issues go through support. Reason code and explanation are both required | Project owner (Slice 6) | 2026-11-15 |
+| D128 | Q49 — an approved provider inability cancels the booking and the request; nothing is reopened and no replacement booking is created; the client may send a new request; the reason, explanation and decision are kept | Project owner (Slice 6) | 2026-11-15 |
+| D129 | Q50 — reviews: 1–5 stars, optional comment, tags from the approved list; published immediately; no edit, no delete, no deadline, no images; one review per completed booking; one public provider reply per review; the provider may report a review; published reviews are listed on the provider profile | Project owner (Slice 6) | 2026-11-15 |
+| D130 | Q51 — booking progress updates with notes/photos (Req 34) are **deferred** (no approved design); not built in Slice 6 and not marked done | Project owner (Slice 6) | 2026-11-15 |
+| D131 | Q52 — cancellation decisions: dedicated admin endpoints (`cancellations.decide`, checked on every decision) and an approve/reject panel in the dashboard's booking section showing the reason and explanation; the decider, time and outcome are recorded | Project owner (Slice 6) | 2026-11-15 |
 
 ## Open — blocking (needed before the related slice)
 
 | # | Question | Blocks slice |
 |---|---|---|
 | Q2 | Commission: rate, base (add-ons, discounts, VAT?), the event that creates it, when it is deducted | 11 |
-| Q3 | Cancellation & refund policy per party and stage; refund method and timing | 6, 10 |
+| Q3 | Cancellation & refund policy per party and stage; refund method and timing (Slice 6 moves no money, D113: the policy is shown as "not determined") | 10 |
 | Q4 | Payout rules: when earnings become available, timing, method | 11 |
 | Q6 | Required provider documents per account type (CR, freelance document, ID, authorization) and file limits | 3 |
 | Q8 | Which SMS provider, payment gateway, shipping carrier, maps provider? (Slice 1 ships with the fake SMS driver) | 1 (go-live), 9, 10 |
@@ -170,6 +177,13 @@ When a question is answered, move it to **Decided** with the date and source.
 | Q37 | Chat: when is a conversation active / read-only? | D117 |
 | Q38 | Chat: history and files in read-only conversations? | D117 |
 | Q39 | Chat voice notes: recorder/player plugins and microphone permission? | D124 (`record` + `just_audio`, permission on first record) |
+| Q46 | C1 — completing a service: code, client confirmation, or provider alone? | D125 |
+| Q47 | When may the provider start a booking? | D126 |
+| Q48 | When may a booking cancellation be requested? | D127 |
+| Q49 | Provider inability accepted: cancel or reopen the request? | D128 |
+| Q50 | Review rules (window, edit/delete, publication, photos) | D129 |
+| Q51 | Booking progress updates with photos (Req 34) | D130 (deferred) |
+| Q52 | Cancellation decisions: admin API and dashboard panel | D131 |
 | Q1 | Service payment plan: full payment or deposit? Amount/timing? Is payment required to confirm a booking? Payment deadline? | D106 (scope for 5c: wallet CRUD only, no payments) |
 | Q5 | Booking time model: buffers/travel time, simultaneous capacity per provider | D107–D113 |
 | Q30 | Client availability (`slice-5a-contract.md` §7): is a date listed as unavailable when a block covers only part of it (API time-range blocks, D83)? (a) yes, when any part is blocked; (b) only when the whole date is blocked | D92 |
@@ -180,7 +194,7 @@ When a question is answered, move it to **Decided** with the date and source.
 
 | # | Topic | BRD | Design | Blocks slice |
 |---|---|---|---|---|
-| C1 | Completing a service (Req 21) | Completion code/proof; client not forced to confirm early | Provider taps "Confirm completion" alone | 6 |
+| C1 | Completing a service (Req 21) | Completion code/proof; client not forced to confirm early | Provider taps "Confirm completion" alone | 6 — D125 (provider confirms alone) |
 | C2 | Quick offer (Req 30, 43) | Never sent without a deliberate review | One-tap send at starting price + setting | 5 — 5b: D104 (no one-tap send) |
 | C3 | Add-ons (Req 33) | From the admin catalog only | Provider creates own add-ons (name, price, image) + suggestions | 3 |
 | C4 | Service inclusions (Req 10, 55) | Admin-owned | Provider can add own items | 3 |
@@ -212,6 +226,16 @@ When a question is answered, move it to **Decided** with the date and source.
 - BRD Req 03 card mentions establishments only; Rule 08 defines both individual and establishment — Rule 08 is used.
 - Decision rows are numbered by ID, not by position: D36 sits after D46 (it was added late); D47+ follow it.
 - Slice 5a: contract approval (D101), implementation authorization (D102) and closure (D103) are separate records. No open question was closed by the closure: Q30 and Q31 were already answered by D92 and D93; Q5 stays open for 5c and Q24 is unaffected by 5a. The Slice 5a Low review notes are kept in `04-roadmap.md` (*Slice 5a closure verification*), not as questions.
+- Slice 6 / Slice 7 coordination (2026-11-15): Slice 6 was built in a separate worktree while the Slice 7 chat work was
+  uncommitted in the main checkout. Slice 6 adds no chat state: per `slice-7-contract.md` §3 (computed status) a booking
+  that is `completed` or `cancelled` makes its conversation `read_only`, and a pending cancellation keeps it `active`.
+  Slice 7 §3 still mentions "`closed` after completion arrives with Slice 6"; whether a separate `closed` state is
+  wanted belongs to Slice 7 (with Q37), not to a Slice 6 decision (`slice-6-contract.md` §9).
+- Slice 6 ids renumbered (2026-11-16, owner instruction): Slice 6 first recorded its decisions as D117–D123 and its
+  questions as Q39–Q45, which collided with the Slice 7 records D117 (chat rules) and Q39 (voice recording),
+  declared authoritative. Slice 6 now uses **D125–D131** and **Q46–Q52** (old → new: D117→D125, D118→D126, D119→D127,
+  D120→D128, D121→D129, D122→D130, D123→D131; Q39→Q46, Q40→Q47, Q41→Q48, Q42→Q49, Q43→Q50, Q44→Q51, Q45→Q52).
+  Wording, answers, status and links are unchanged. Slice 7 also holds D124; D118–D123 are left unused.
 - `03-api-conventions.md` shows `RN-1024` / `Q-5501` as reference examples. They are format examples only; the
   request reference is `RN-` + 7 random digits (D72). Other prefixes (`Q-`, `BK-`, `SO-`) are decided in their slices.
 - `03-api-conventions.md` upload contexts list is behind the code: `avatar` (D46) is missing and `request_attachment`

@@ -331,6 +331,86 @@
           }
         }
       ]
+    },
+    {
+      "name": "Cancellation requests (bookings.view / cancellations.decide)",
+      "description": "Slice 6, D131. Request detail (Service requests) also carries booking.cancellation_requests and booking.review.",
+      "item": [
+        {
+          "name": "List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/cancellation-requests?filter[status]=under_review",
+            "description": "filter[status], filter[requester_role], sort=created_at|-created_at, page, per_page."
+          }
+        },
+        {
+          "name": "Show",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/cancellation-requests/{{cancellation_id}}",
+            "description": "With the booking summary and internal_note."
+          }
+        },
+        {
+          "name": "Decide",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/cancellation-requests/{{cancellation_id}}/decide",
+            "description": "Needs cancellations.decide. accept → booking + request cancelled (D128); reject → unchanged. Not under_review → 409 INVALID_STATE.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"accept\",\n  \"decision_reason\": \"Checked with both parties.\",\n  \"internal_note\": \"Called the provider.\"\n}"
+            }
+          }
+        }
+      ]
     }
   ]
 }

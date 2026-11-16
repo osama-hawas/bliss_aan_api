@@ -9,6 +9,13 @@ return [
     'offer_sent' => 'Offer received',
     'offer_withdrawn' => 'A provider withdrew her offer',
     'booking_confirmed' => 'Offer accepted, booking confirmed',
+    'booking_started' => 'Service started',
+    'booking_completed' => 'Service completed',
+    'cancellation_requested' => 'Cancellation requested',
+    'cancellation_withdrawn' => 'Cancellation request withdrawn',
+    'cancellation_rejected' => 'Cancellation not approved',
+    'booking_cancelled' => 'Booking cancelled',
+    'review_published' => 'Review published',
     'wallet_created' => 'Wallet created',
     'wallet_closed' => 'Wallet closed',
 ];

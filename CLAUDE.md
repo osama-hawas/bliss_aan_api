@@ -153,7 +153,7 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
   `offers:expire` (every 5 min) stores it. Clients never see `superseded`/`withdrawn` (`OfferStatus::clientVisible()`).
 - Tests: `tests/Feature/Offers/OffersTest.php`, `tests/Feature/Database/OfferLockingTest.php`.
 
-## Bookings (Slice 5c, backend in progress)
+## Bookings (Slice 5c, done)
 
 - Contract: `docs/slice-5c-contract.md` (D106–D113). `app/Services/Bookings/OfferAcceptor` (`POST client/offers/{id}/accept`):
   replay → locks client → request → offers → provider → recipients (D112) → re-check (ALREADY_BOOKED, INVALID_STATE,
@@ -162,6 +162,24 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
 - Busy time = blocks + `confirmed`/`in_progress` bookings widened by `bookings.buffer_minutes` (default 0, D108):
   `ProviderAvailability::isBusy()` for acceptance and direct requests; `calendar_conflict` and `unavailable_dates` include it.
 - Tests: `tests/Feature/Bookings/AcceptOfferTest.php`, `tests/Feature/Database/BookingLockingTest.php`.
+
+## Execution, cancellation, reviews (Slice 6)
+
+- Contract: `docs/slice-6-contract.md` (D125–D131). Lock order everywhere: request → booking → its cancellation requests
+  (`Services\Bookings\BookingLocks`), inside `DeadlockRetry`.
+- `Services\Bookings\BookingExecution`: `start` (booked provider, `confirmed`, no pending cancellation, from `starts_at −
+  bookings.start_early_minutes` (default 60), no upper limit; repeat → 409) and `complete` (`in_progress` → `completed`,
+  idempotent when already completed, no code, D125). Booking + request move together; `started_by` / `completed_by` kept.
+- `Services\Cancellations\BookingCancellations`: `request` (client or provider inability, `confirmed` only, reason code of
+  her side + required text, one `under_review` per booking — `open_booking_id` unique), `withdraw` (requester only),
+  `decide` (admin `cancellations.decide`; accept → booking + request `cancelled`, nothing reopened; audit log). No money.
+- `Services\Reviews\ReviewService`: one review per completed booking (`reviews.booking_id` unique), published at once,
+  never edited; provider rating cache recomputed under her row lock; one reply; reports in `content_reports`.
+  `ReviewQueries`: provider list + summary, public list (D75 visibility, first name only).
+- Resources: `DescribesBookingExecution` (shared fields + `actions`), `DescribesAdminCancellation` (adds internal note).
+- Tests: `Tests\Concerns\BuildsBookings`; `tests/Feature/Bookings/{BookingExecution,BookingCancellation,Review}Test.php`,
+  `tests/Feature/Database/CancellationLockingTest.php`. A worktree may run tests on its own `testing_<suffix>` database
+  (`DB_DATABASE=testing_s6 php artisan test`); the committed-rows guards accept that name.
 
 ## Wallets (D106, D114–D116)
 

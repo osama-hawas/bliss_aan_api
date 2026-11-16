@@ -733,6 +733,138 @@
           }
         }
       ]
+    },
+    {
+      "name": "Bookings — cancellation & review (Slice 6)",
+      "description": "docs/slice-6-contract.md §4–§6 (D127–D129). Booking responses include started_at, completed_at, cancelled_at, cancellation_requests, review, cancellation_policy (null) and actions.",
+      "item": [
+        {
+          "name": "Show booking",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/client/bookings/{{booking_id}}",
+            "description": "Her booking with Slice 6 fields and server-computed actions."
+          }
+        },
+        {
+          "name": "Cancellation reasons",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/client/cancellation-reasons",
+            "description": "[{code, label}]: event_date_changed · requirements_changed · other."
+          }
+        },
+        {
+          "name": "Request cancellation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/client/bookings/{{booking_id}}/cancellation-requests",
+            "description": "Only while confirmed (D127). Both fields required (reason_text 1–1000). 201 with the booking; 409 CANCELLATION_PENDING / INVALID_STATE.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason_code\": \"event_date_changed\",\n  \"reason_text\": \"We moved the wedding to next month.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Withdraw cancellation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/client/cancellation-requests/{{cancellation_id}}/withdraw",
+            "description": "Her own request, only while under_review (else 409 INVALID_STATE; another's → 404)."
+          }
+        },
+        {
+          "name": "Submit review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/client/bookings/{{booking_id}}/review",
+            "description": "Completed booking only; rating 1–5, optional comment ≤ 1000, tags (distinct, ≤ 5, codes from shared/review-tags). 201; 409 ALREADY_REVIEWED / INVALID_STATE.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Wonderful photos\",\n  \"tags\": [\n    \"punctuality\",\n    \"service_quality\"\n  ]\n}"
+            }
+          }
+        }
+      ]
     }
   ]
 }

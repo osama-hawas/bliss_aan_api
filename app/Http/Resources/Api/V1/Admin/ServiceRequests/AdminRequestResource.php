@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Api\V1\Admin\ServiceRequests;
 
 use App\Http\Resources\Api\V1\Client\ServiceRequests\ClientRequestResource;
+use App\Http\Resources\Concerns\DescribesAdminCancellation;
 use App\Http\Resources\Concerns\DescribesBooking;
 use App\Http\Resources\Concerns\DescribesOffer;
 use App\Models\Media;
@@ -22,7 +23,7 @@ use Illuminate\Http\Request;
  */
 class AdminRequestResource extends ClientRequestResource
 {
-    use DescribesBooking, DescribesOffer;
+    use DescribesAdminCancellation, DescribesBooking, DescribesOffer;
 
     private bool $full = false;
 
@@ -75,6 +76,14 @@ class AdminRequestResource extends ClientRequestResource
             'provider' => ['id' => $r->booking->provider_id, 'display_name' => $r->booking->provider?->display_name],
             'client' => ['id' => $r->client_id, 'name' => $r->client?->name],
             'policy_version_id' => $r->booking->policy_version_id,
+            // Slice 6: execution, every cancellation request with the decision trail, and the review (read-only).
+            'started_at' => $this->dateTime($r->booking->started_at),
+            'started_by' => $r->booking->startedBy ? ['id' => $r->booking->started_by, 'name' => $r->booking->startedBy->name] : null,
+            'completed_at' => $this->dateTime($r->booking->completed_at),
+            'completed_by' => $r->booking->completedBy ? ['id' => $r->booking->completed_by, 'name' => $r->booking->completedBy->name] : null,
+            'cancelled_at' => $this->dateTime($r->booking->cancelled_at),
+            'cancellation_requests' => $r->booking->cancellationRequests->map(fn ($c) => $this->adminCancellation($c))->values()->all(),
+            'review' => $r->booking->review ? $this->reviewItem($r->booking->review) : null,
         ] : null;
 
         return $data;

@@ -40,5 +40,13 @@
     "Wallet created.": "تم إنشاء المحفظة.",
     "Wallet updated.": "تم تحديث المحفظة.",
     "Wallet deleted.": "تم حذف المحفظة.",
-    "Message sent.": "تم إرسال الرسالة."
+    "Message sent.": "تم إرسال الرسالة.",
+    "Service started.": "بدأ تنفيذ الخدمة.",
+    "Service completed.": "اكتملت الخدمة.",
+    "Cancellation request sent for review.": "أُرسل طلب الإلغاء للمراجعة.",
+    "Cancellation request withdrawn.": "سُحب طلب الإلغاء.",
+    "Thank you for your review.": "شكرًا لتقييمك.",
+    "Reply published.": "نُشر الرد.",
+    "Report sent.": "أُرسل البلاغ.",
+    "Decision saved.": "تم حفظ القرار."
 }

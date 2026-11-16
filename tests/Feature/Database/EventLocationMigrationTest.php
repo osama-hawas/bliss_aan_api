@@ -25,7 +25,7 @@ class EventLocationMigrationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->assertSame('testing', DB::connection()->getDatabaseName());
+        $this->assertMatchesRegularExpression('/^testing(_[a-z0-9]+)?$/', DB::connection()->getDatabaseName());
         $this->artisan('migrate:fresh');
         $this->migration = require database_path('migrations/2026_11_09_100000_add_event_location_confirmation_to_provider_services.php');
     }
