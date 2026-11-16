@@ -4,6 +4,7 @@ namespace App\Http\Resources\Api\V1\Provider\Bookings;
 
 use App\Enums\ExecutionPlace;
 use App\Http\Resources\Concerns\DescribesBooking;
+use App\Http\Resources\Concerns\DescribesBookingExecution;
 use App\Http\Resources\Concerns\DescribesOffer;
 use App\Http\Resources\Concerns\FormatsApiValues;
 use App\Models\Booking;
@@ -18,17 +19,17 @@ use Illuminate\Http\Resources\Json\JsonResource;
  */
 class ProviderBookingResource extends JsonResource
 {
-    use DescribesBooking, DescribesOffer, FormatsApiValues;
+    use DescribesBooking, DescribesBookingExecution, DescribesOffer, FormatsApiValues;
 
     public function toArray(Request $request): array
     {
         $b = $this->resource;
-        $name = trim((string) $b->client?->name);
 
         return [
             ...$this->bookingCore($b),
+            ...$this->bookingExecution($b, $request->user(), true),
             'address' => $b->execution_place === ExecutionPlace::EventLocation ? $b->address : null,
-            'client' => ['first_name' => $name === '' ? null : preg_split('/\s+/u', $name)[0]],
+            'client' => ['first_name' => $this->firstName($b->client)],
         ];
     }
 }

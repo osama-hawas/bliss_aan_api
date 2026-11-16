@@ -4,10 +4,13 @@ namespace App\Models;
 
 use App\Enums\BookingPaymentStatus;
 use App\Enums\BookingStatus;
+use App\Enums\CancellationStatus;
 use App\Enums\ExecutionPlace;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * A request settled on one accepted offer (Slice 5c). Times, address, title and total are snapshots (D107).
@@ -17,7 +20,8 @@ class Booking extends Model
     protected $fillable = [
         'reference', 'service_request_id', 'offer_id', 'client_id', 'provider_id', 'service_id', 'execution_place',
         'starts_at', 'ends_at', 'address', 'title', 'total', 'status', 'payment_status', 'policy_version_id',
-        'confirmed_at', 'started_at', 'completed_at', 'idempotency_key', 'idempotency_fingerprint',
+        'confirmed_at', 'started_at', 'started_by', 'completed_at', 'completed_by', 'cancelled_at', 'idempotency_key',
+        'idempotency_fingerprint',
     ];
 
     protected function casts(): array
@@ -33,6 +37,7 @@ class Booking extends Model
             'confirmed_at' => 'datetime',
             'started_at' => 'datetime',
             'completed_at' => 'datetime',
+            'cancelled_at' => 'datetime',
         ];
     }
 
@@ -67,5 +72,33 @@ class Booking extends Model
     public function service(): BelongsTo
     {
         return $this->belongsTo(Service::class);
+    }
+
+    /**
+     * Slice 6: every cancellation request of this booking, newest first.
+     */
+    public function cancellationRequests(): HasMany
+    {
+        return $this->hasMany(CancellationRequest::class)->orderByDesc('id');
+    }
+
+    public function review(): HasOne
+    {
+        return $this->hasOne(Review::class);
+    }
+
+    public function startedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'started_by');
+    }
+
+    public function completedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'completed_by');
+    }
+
+    public function pendingCancellation(): ?CancellationRequest
+    {
+        return $this->cancellationRequests->firstWhere('status', CancellationStatus::UnderReview);
     }
 }

@@ -1427,6 +1427,256 @@
           }
         }
       ]
+    },
+    {
+      "name": "Bookings — execution, inability & reviews (Slice 6)",
+      "description": "docs/slice-6-contract.md §3–§5 (D125–D129).",
+      "item": [
+        {
+          "name": "Show booking",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": "{{base_url}}/provider/bookings/{{booking_id}}",
+            "description": "Includes start_available_at and actions (can_start, can_complete, …)."
+          }
+        },
+        {
+          "name": "Start service",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": "{{base_url}}/provider/bookings/{{booking_id}}/start",
+            "description": "From starts_at − bookings.start_early_minutes (default 60), no upper limit (D126). 409 START_TOO_EARLY / CANCELLATION_PENDING / INVALID_STATE (repeat)."
+          }
+        },
+        {
+          "name": "Confirm completion",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": "{{base_url}}/provider/bookings/{{booking_id}}/complete",
+            "description": "She confirms herself, no code (D125). Idempotent: completed → 200 unchanged; not in_progress → 409 INVALID_STATE."
+          }
+        },
+        {
+          "name": "Inability reasons",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": "{{base_url}}/provider/cancellation-reasons",
+            "description": "[{code, label}]: unable_to_deliver · emergency · other."
+          }
+        },
+        {
+          "name": "Report inability",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/provider/bookings/{{booking_id}}/cancellation-requests",
+            "description": "Only while confirmed (D127); admin decides (D128).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason_code\": \"emergency\",\n  \"reason_text\": \"Family emergency on that date.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Withdraw inability report",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": "{{base_url}}/provider/cancellation-requests/{{cancellation_id}}/withdraw",
+            "description": "Her own request, only while under_review."
+          }
+        },
+        {
+          "name": "My reviews",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": "{{base_url}}/provider/reviews",
+            "description": "Newest first; meta.summary {average, count, breakdown 5→1}."
+          }
+        },
+        {
+          "name": "Reply to review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/provider/reviews/{{review_id}}/reply",
+            "description": "One public reply (1–500); a second → 409 INVALID_STATE.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reply\": \"Thank you, it was a pleasure!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Report review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/provider/reviews/{{review_id}}/report",
+            "description": "Once per review (409 ALREADY_REPORTED); stored for Slice 17.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason_code\": \"false_info\",\n  \"details\": \"This never happened.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Report reasons",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": "{{base_url}}/provider/review-report-reasons",
+            "description": "abusive · spam · false_info · privacy · other."
+          }
+        }
+      ]
     }
   ]
 }

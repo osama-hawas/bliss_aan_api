@@ -29,7 +29,7 @@ class IdempotencyConcurrencyTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->assertSame('testing', DB::connection()->getDatabaseName());
+        $this->assertMatchesRegularExpression('/^testing(_[a-z0-9]+)?$/', DB::connection()->getDatabaseName());
         $this->artisan('migrate:fresh');
         config(['database.connections.other_session' => config('database.connections.'.config('database.default'))]);
         DB::purge('other_session');
@@ -149,7 +149,7 @@ class IdempotencyConcurrencyTest extends TestCase
     }
 
     /**
-     * The workers boot the app like this test run: same `testing` database and settings, uncached config.
+     * The workers boot the app like this test run: same test database (`testing` or a worktree's `testing_<suffix>`) and settings, uncached config.
      *
      * @return array<string, string>
      */
@@ -161,7 +161,7 @@ class IdempotencyConcurrencyTest extends TestCase
             $env[(string) $var['name']] = (string) $var['value'];
         }
         $connection = config('database.connections.'.config('database.default'));
-        foreach (['host' => 'DB_HOST', 'port' => 'DB_PORT', 'username' => 'DB_USERNAME', 'password' => 'DB_PASSWORD'] as $key => $name) {
+        foreach (['database' => 'DB_DATABASE', 'host' => 'DB_HOST', 'port' => 'DB_PORT', 'username' => 'DB_USERNAME', 'password' => 'DB_PASSWORD'] as $key => $name) {
             $env[$name] = (string) ($connection[$key] ?? '');
         }
 

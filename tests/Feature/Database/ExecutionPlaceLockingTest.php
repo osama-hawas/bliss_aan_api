@@ -27,7 +27,7 @@ class ExecutionPlaceLockingTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->assertSame('testing', DB::connection()->getDatabaseName());
+        $this->assertMatchesRegularExpression('/^testing(_[a-z0-9]+)?$/', DB::connection()->getDatabaseName());
         $this->artisan('migrate:fresh');
         config(['database.connections.other_session' => config('database.connections.'.config('database.default'))]);
         DB::purge('other_session');

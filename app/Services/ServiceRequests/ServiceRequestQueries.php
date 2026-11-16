@@ -164,7 +164,7 @@ class ServiceRequestQueries
     public function adminRequest(int $id): ServiceRequest
     {
         return ServiceRequest::query()
-            ->with([...self::CLIENT_DETAIL, 'client', 'recipients.provider', 'recipients.declineReason', 'offers.items', 'offers.provider', 'booking.provider', 'booking.service'])
+            ->with([...self::CLIENT_DETAIL, 'client', 'recipients.provider', 'recipients.declineReason', 'offers.items', 'offers.provider', 'booking.provider', 'booking.service', 'booking.cancellationRequests.decider', 'booking.cancellationRequests.requester', 'booking.review', 'booking.startedBy', 'booking.completedBy'])
             ->findOrFail($id);
     }
 }

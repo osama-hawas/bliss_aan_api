@@ -507,6 +507,47 @@
           ]
         }
       ]
+    },
+    {
+      "name": "Reviews (public, Slice 6)",
+      "item": [
+        {
+          "name": "Provider reviews",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              }
+            ],
+            "url": "{{base_url}}/shared/providers/{{provider_id}}/reviews",
+            "description": "Published reviews of a visible provider (D75), newest first; client first name only (D77)."
+          }
+        },
+        {
+          "name": "Review tags",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              }
+            ],
+            "url": "{{base_url}}/shared/review-tags",
+            "description": "punctuality · service_quality · friendly · matches_quote · clean_organized."
+          }
+        }
+      ]
     }
   ]
 }

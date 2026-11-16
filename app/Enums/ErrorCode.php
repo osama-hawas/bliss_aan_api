@@ -29,6 +29,10 @@ enum ErrorCode: string
     case OfferExpired = 'OFFER_EXPIRED';
     case AlreadyBooked = 'ALREADY_BOOKED';
     case WalletExists = 'WALLET_EXISTS';
+    case CancellationPending = 'CANCELLATION_PENDING';
+    case StartTooEarly = 'START_TOO_EARLY';
+    case AlreadyReviewed = 'ALREADY_REVIEWED';
+    case AlreadyReported = 'ALREADY_REPORTED';
     case ServerError = 'SERVER_ERROR';
 
     public function status(): int
@@ -39,7 +43,7 @@ enum ErrorCode: string
             self::Forbidden, self::AccountSuspended => 403,
             self::NotFound, self::AccountNotFound => 404,
             self::MethodNotAllowed => 405,
-            self::InvalidState, self::NotConfigured, self::DuplicateRequest, self::SlotUnavailable, self::BlockOverlap, self::OfferExpired, self::AlreadyBooked, self::WalletExists => 409,
+            self::InvalidState, self::NotConfigured, self::DuplicateRequest, self::SlotUnavailable, self::BlockOverlap, self::OfferExpired, self::AlreadyBooked, self::WalletExists, self::CancellationPending, self::StartTooEarly, self::AlreadyReviewed, self::AlreadyReported => 409,
             self::TooManyAttempts => 429,
             self::ServerError => 500,
         };

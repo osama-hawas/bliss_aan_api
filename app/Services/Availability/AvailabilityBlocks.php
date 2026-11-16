@@ -76,7 +76,7 @@ class AvailabilityBlocks
         $bookings = Booking::query()->where('provider_id', $provider->id)
             ->where('status', '!=', BookingStatus::Cancelled)
             ->where('starts_at', '<', $end)->where('ends_at', '>', $start)
-            ->with(['service', 'offer.items', 'serviceRequest.eventType', 'serviceRequest.city', 'client'])
+            ->with(['service', 'offer.items', 'serviceRequest.eventType', 'serviceRequest.city', 'client', 'cancellationRequests', 'review'])
             ->orderBy('starts_at')->orderBy('id')
             ->get();
 
