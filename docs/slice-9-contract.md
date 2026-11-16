@@ -2,8 +2,8 @@
 
 > **Status: partial — independent sub-features only (2026-11-16).** Slice 9 is **not** complete. Checkout, orders,
 > payments, shipping fees, delivery method, promo codes, order notifications, reorder, returns, product reviews and
-> order/shipment status transitions are **not built** and wait on the open decisions in §9. Roadmap row 9 is left
-> unchanged until the Slice 8 merge (owner instruction: no edits to the shared roadmap / decision register meanwhile).
+> order/shipment status transitions are **not built** and wait on the open decisions in §9. Merged after Slice 8 on
+> 2026-11-16; register ids: S9-D1…D7 = D143–D149, Q-S9-1…10 = Q64–Q73. Roadmap row 9 = partial.
 
 Built on branch `slice-9-store` in the worktrees `wt-slice9/bliss_aan_api` (base `master` @ `3c0218f`) and
 `wt-slice9/blies-aan` (base `main` @ `bedf8d0`), while Slice 8 continues uncommitted in the main checkouts. Own databases

@@ -144,6 +144,13 @@ When a question is answered, move it to **Decided** with the date and source.
 | D140 | Q60 — no staff/dashboard notifications in Slice 8 (Slice 17); the dashboard is unchanged. Rationale: admin recipients and permissions belong to operations | Project owner (Slice 8, recommendations approved as baseline) | 2026-11-16 |
 | D141 | Q61 — push text may contain only the other party's name (client **first name** per D56; provider display name), the request/booking reference and the service name; never prices, addresses, phone numbers, file URLs, review text or chat text. The push `data` carries only `notification_id`, `event`, `target_type`, `target_id`. Rationale: lock-screen privacy | Project owner (Slice 8, recommendations approved as baseline) | 2026-11-16 |
 | D142 | Q62 — chat messages (E16) are **push only** ("New message from X", no text), collapsed per conversation; no list row (the chat keeps its own unread state). Rationale: avoids flooding the list and duplicating chat unread state | Project owner (Slice 8, recommendations approved as baseline) | 2026-11-16 |
+| D143 | S9-D1 — Slice 9 independent part builds only what the approved requirements cover: products + variants (seeded), read-only catalogue API, server-side cart CRUD, an isolated carrier interface with a fake. No admin product management (Slice 18) | Project owner (Slice 9, independent part) | 2026-11-16 |
+| D144 | S9-D2 — the app's cart is the server cart (`client/cart`): shop grid, product page and cart screen use it | Project owner (Slice 9, independent part) | 2026-11-16 |
+| D145 | S9-D3 — guests may browse products (catalogue endpoints public, `auth.optional`); cart operations need a client session, a guest who adds is sent to sign in first | Project owner (Slice 9, independent part) | 2026-11-16 |
+| D146 | S9-D4 — one active variant → added directly (grid or product page); several → she chooses one on the product page, the grid's + opens the product page | Project owner (Slice 9, independent part) | 2026-11-16 |
+| D147 | S9-D5 — promo code and checkout screens stay mocked; the cart's "Continue order" keeps opening the prototype checkout | Project owner (Slice 9, independent part) | 2026-11-16 |
+| D148 | S9-D6 — stock: a quantity is checked against the variant's current stock when set; nothing is reserved or deducted. Lines that later exceed stock or become unavailable are kept and flagged, never changed (Q64/Q65) | Project owner (Slice 9, independent part) | 2026-11-16 |
+| D149 | S9-D7 — carrier binding and the app fake API hookup waited for the Slice 8 merge; done in the Slice 9 merge (`SHIPPING_DRIVER`, fake only) | Project owner (Slice 9, independent part) | 2026-11-16 |
 
 ## Open — blocking (needed before the related slice)
 
@@ -161,6 +168,16 @@ When a question is answered, move it to **Decided** with the date and source.
 | Q17 | Open request whose recipients all decline: does the request change status (e.g. `declined`) or stay `awaiting_offers`? No transition until answered | 4 |
 | Q24 | A provider suspended while a recipient of open requests: close her `new` recipient rows or leave them? | 4/15 |
 | Q63 | Slice 8: may a client be notified when a provider withdraws her offer on an **open** request (E5)? D76/D91 keep open-request withdrawals internal and clients never see `withdrawn` (`OfferStatus::clientVisible()`), so the approved E5 is implemented for **direct** requests only until this is answered | 8 |
+| Q64 | Slice 9: a cart line whose variant, product or category is switched off — remove it, keep it flagged, block checkout? Now: kept, `available: false`, excluded from `subtotal` | 9 |
+| Q65 | Slice 9: stock drops below a line's quantity — lower it automatically, keep it flagged, refuse at checkout? Now: kept, `exceeds_stock: true` | 9 |
+| Q66 | Slice 9: may clients see exact stock ("only 2 left")? Now: only `in_stock`; `OUT_OF_STOCK` carries no number | 9 |
+| Q67 | Slice 9: when is stock reserved / deducted (add to cart, checkout, payment, order confirmation) and released? Now: never | 9 |
+| Q68 | Slice 9: maximum quantity per line / per order? Now: only current stock | 9 |
+| Q69 | Slice 9: guest cart kept on the device and merged at sign-in? Now: no (D145) | 9 |
+| Q70 | Slice 9: product order in the list (admin sort, newest, popularity) and whether out-of-stock products are listed. Now: by id, out-of-stock listed and flagged | 9 |
+| Q71 | Slice 9: one image per product or a gallery? Per-variant images? Now: one `image` | 9 |
+| Q72 | Slice 9: card price when variants differ — base price or "from" lowest variant price? Now: `base_price` | 9 |
+| Q73 | Slice 9: cart expiry / abandoned carts; telling her when a price changed. Now: no expiry, live prices only | 9 |
 
 ## Resolved questions (kept for traceability)
 
@@ -263,3 +280,4 @@ When a question is answered, move it to **Decided** with the date and source.
 - `03-api-conventions.md` upload contexts list is behind the code: `avatar` (D46) is missing and `request_attachment`
   (D52) will be added with Slice 4; `OUT_OF_COVERAGE` and `DUPLICATE_REQUEST` are listed there but not yet in
   `ErrorCode` (added in Slice 4).
+- Slice 9 ids (2026-11-16): the contract's local ids map to the register as S9-D1…D7 → D143–D149 and Q-S9-1…10 → Q64–Q73. Checkout, orders, payments and shipping stay blocked by Q1, Q8, C6, S3, S4, S7, S10.

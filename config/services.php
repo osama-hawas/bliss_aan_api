@@ -53,6 +53,10 @@ return [
         'driver' => env('PAYMENT_DRIVER', 'fake'),
     ],
 
+    'shipping' => [
+        'driver' => env('SHIPPING_DRIVER', 'fake'), // carrier seam, Slice 9 (slice-9-contract.md)
+    ],
+
     'push' => [
         'driver' => env('PUSH_DRIVER', 'fake'), // fake | fcm (D139)
         'fcm' => [

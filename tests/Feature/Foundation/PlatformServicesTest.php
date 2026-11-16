@@ -10,6 +10,8 @@ use App\Integrations\Payments\PaymentGateway;
 use App\Integrations\Push\PushMessage;
 use App\Integrations\Push\PushNotifier;
 use App\Integrations\Push\PushResult;
+use App\Integrations\Shipping\Carrier;
+use App\Integrations\Shipping\FakeCarrier;
 use App\Integrations\Sms\FakeSmsGateway;
 use App\Integrations\Sms\SmsGateway;
 use App\Models\PolicyVersion;
@@ -91,6 +93,9 @@ class PlatformServicesTest extends TestCase
         // Slice 8: one token per call, with a delivery result (D139).
         $this->assertSame(PushResult::Sent, app(PushNotifier::class)->send(new PushMessage('t1', 'Hi', 'Body', [], 'c')));
         $this->assertCount(1, app(PushNotifier::class)->sent);
+
+        // Slice 9: carrier seam, fake driver only.
+        $this->assertInstanceOf(FakeCarrier::class, app(Carrier::class));
     }
 
     public function test_jwt_carries_user_type_claim(): void

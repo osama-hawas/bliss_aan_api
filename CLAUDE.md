@@ -210,6 +210,14 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
 - Tests: `Tests\Concerns\BuildsNotifications` (`device()`, `pushes()`, `pushesTo()`, `events()`, `row()`);
   `tests/Feature/Notifications/*`. MySQL JSON reorders object keys: compare `data.target` with `assertEquals`.
 
+## Store (Slice 9, independent part only)
+
+- Contract: `docs/slice-9-contract.md` (D143–D149, open Q64–Q73). Public catalogue in `routes/api/v1/shared/store.php`
+  (`auth.optional`), client cart in `routes/api/v1/client/cart.php`; logic in `app/Services/Store/`. Stock is checked when a
+  quantity is set, never reserved or deducted; unavailable / over-stock lines are kept and flagged.
+- Carrier seam: `App\Integrations\Shipping\Carrier` (`SHIPPING_DRIVER`, `fake` only). Checkout, orders, payments and
+  shipments are not built.
+
 ## Commands
 
 - `docker compose up -d mysql` — local MySQL 8 (databases `bliss_aan` and `testing`)

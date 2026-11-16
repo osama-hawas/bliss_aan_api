@@ -7,6 +7,8 @@ use App\Integrations\Payments\PaymentGateway;
 use App\Integrations\Push\FakePushNotifier;
 use App\Integrations\Push\FcmPushNotifier;
 use App\Integrations\Push\PushNotifier;
+use App\Integrations\Shipping\Carrier;
+use App\Integrations\Shipping\FakeCarrier;
 use App\Integrations\Sms\FakeSmsGateway;
 use App\Integrations\Sms\SmsGateway;
 use App\Services\Settings\AppSettings;
@@ -28,6 +30,7 @@ class AppServiceProvider extends ServiceProvider
         SmsGateway::class => ['services.sms.driver', ['fake' => FakeSmsGateway::class]],
         PaymentGateway::class => ['services.payments.driver', ['fake' => FakePaymentGateway::class]],
         PushNotifier::class => ['services.push.driver', ['fake' => FakePushNotifier::class, 'fcm' => FcmPushNotifier::class]],
+        Carrier::class => ['services.shipping.driver', ['fake' => FakeCarrier::class]],
     ];
 
     /**
