@@ -68,6 +68,8 @@ return [
     'booking_status' => ['confirmed' => 'مؤكد', 'in_progress' => 'قيد التنفيذ', 'completed' => 'مكتمل', 'cancelled' => 'ملغي'],
     'booking_payment_status' => ['not_required' => 'لا يتطلب دفعًا'],
     'wallet_status' => ['active' => 'نشطة', 'closed' => 'مغلقة'],
+    'conversation_status' => ['active' => 'نشطة', 'read_only' => 'للقراءة فقط'],
+    'message_type' => ['text' => 'نص', 'image' => 'صورة', 'file' => 'ملف', 'voice' => 'رسالة صوتية', 'offer_card' => 'عرض', 'system' => 'النظام'],
     'execution_place' => ['event_location' => 'في موقع المناسبة', 'provider_location' => 'في موقع مقدمة الخدمة'],
     'guest_count_mode' => ['hidden' => 'غير مطلوب', 'optional' => 'اختياري', 'required' => 'إلزامي'],
 ];

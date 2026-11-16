@@ -124,6 +124,8 @@ When a question is answered, move it to **Decided** with the date and source.
 | D114 | Wallets exist for **both clients and service providers** — each account has its own wallet; it is not a provider-only feature. Scope and rules stay those of D106 (CRUD only, informational balance, no money movement, no part in bookings). D7 (provider IBAN payout account and transfer requests) remains the Slice 11 target and is not built by the wallet CRUD. Contract `docs/wallet-contract.md` | Project owner (wallet CRUD instruction) | 2026-11-15 |
 | D115 | Wallet CRUD details (Q33, Q35, deletion): (1) the only editable wallet information is its name (`label`); (2) clients and providers create their own wallet explicitly — no automatic creation at registration; (3) deleting a wallet **closes** it, with or without ledger history: a closed wallet is inactive, can never be the active wallet again, and keeps its ledger entries and history records intact; financial history is never permanently deleted; (4) one active wallet per account stays enforced; after closing, the owner may create a new wallet | Project owner (wallet closure) | 2026-11-15 |
 | D116 | Q34 deferred to Slice 11: whether ledgers are shared per wallet (`wallet_ledger_entries`) or kept separate (`provider_ledger_entries`) is decided in Slice 11. The existing `provider_ledger_entries` plan is preserved unchanged; `wallet_ledger_entries` stays an unwritten extension point until then | Project owner (wallet closure) | 2026-11-15 |
+| D117 | Chat rules confirmed (Q36–Q38): (1) **opening** — a provider on a request she received, while she takes part or once it is booked with her; a client with her direct-request provider, a provider who sent her a client-visible offer, or her booked provider; other open-request recipients are never revealed (D56); (2) **status** — `active` while the request is open and her recipient row is `new`/`offer_sent`, or while the request is booked with her; otherwise `read_only` (history visible, no sending), computed, never stored; (3) both participants keep the history and its files in `read_only` conversations (`slice-7-contract.md` §2, §3, §9) | Project owner (Slice 7) | 2026-11-15 |
+| D124 | Q39 approved — in-app chat voice notes: the app records with `record` and plays with `just_audio` (versions compatible with the project SDK); microphone permission is requested only when she starts recording, and denial/permanent denial/restriction is handled gracefully; she can record, stop, preview (play/pause), cancel (discard) and send; a recording is sent as a `voice` message through the existing `chat_voice` upload and attachment rules (signed URLs, participants only, D117 active/read-only status, `uploads.chat_voice` limits); picking an audio file from the device stays supported; recording is never needed to open a conversation or send text. Numbered D124: Slice 7's D117 and Q39 are authoritative, and Slice 6 (separate worktree) was renumbered to D125–D131 / Q46–Q52 on 2026-11-16 | Project owner (Slice 7, Q39) | 2026-11-16 |
 
 ## Open — blocking (needed before the related slice)
 
@@ -164,6 +166,10 @@ When a question is answered, move it to **Decided** with the date and source.
 | Q33 | Wallet: which information is editable? | D115 (label only) |
 | Q34 | Wallet ledger: shared per wallet or a separate provider ledger? | D116 (deferred to Slice 11) |
 | Q35 | Wallet: created explicitly or automatically at registration? | D115 (explicitly) |
+| Q36 | Chat: who may open a conversation? | D117 |
+| Q37 | Chat: when is a conversation active / read-only? | D117 |
+| Q38 | Chat: history and files in read-only conversations? | D117 |
+| Q39 | Chat voice notes: recorder/player plugins and microphone permission? | D124 (`record` + `just_audio`, permission on first record) |
 | Q1 | Service payment plan: full payment or deposit? Amount/timing? Is payment required to confirm a booking? Payment deadline? | D106 (scope for 5c: wallet CRUD only, no payments) |
 | Q5 | Booking time model: buffers/travel time, simultaneous capacity per provider | D107–D113 |
 | Q30 | Client availability (`slice-5a-contract.md` §7): is a date listed as unavailable when a block covers only part of it (API time-range blocks, D83)? (a) yes, when any part is blocked; (b) only when the whole date is blocked | D92 |
@@ -191,7 +197,7 @@ When a question is answered, move it to **Decided** with the date and source.
 | S2 | Packages (Req 16): admin bundles with a price, or a grouping only? |
 | S3 | Promo codes: store only, or also services/shipping? |
 | S4 | Product reviews and store returns: in scope? |
-| S5 | Message moderation (Req 41): what is blocked (phone numbers, links?), automatic or manual? |
+| S5 | Message moderation (Req 41): what is blocked (phone numbers, links?), automatic or manual? **Blocks the sensitive-content warning of Slice 7** (deferred; `messages.flagged` exists, never set) |
 | S6 | Notification channels: push only, or also SMS/email? Which events? |
 | S7 | VAT / ZATCA e-invoicing requirements for receipts? |
 | S8 | Is the color theme picker in settings a real user feature or a stakeholder preview? |

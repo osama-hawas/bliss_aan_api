@@ -183,6 +183,8 @@ return [
     'saudi_mobile' => 'The :attribute field must be a valid Saudi mobile number.',
 
     'custom' => [
+        'media_id' => ['unavailable' => 'Choose a file you uploaded for this kind of message that is not used yet.'],
+        'offer_id' => ['unavailable' => 'Choose one of your own offers on this request that the client can see.'],
         'block' => [
             'one_form' => 'Send either a date or a start and end time, not both.',
             'form_required' => 'Send a date, or a start and end time.',

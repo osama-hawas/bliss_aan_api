@@ -170,6 +170,15 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
   close even with ledger history, entries kept (D115). Balance = Σ `available` `wallet_ledger_entries` (nothing writes them), `is_spendable: false`. Never used by bookings.
 - Tests: `tests/Feature/Wallet/WalletTest.php`.
 
+## Chat (Slice 7, in progress)
+
+- Contract: `docs/slice-7-contract.md`. `app/Services/Chat/`: `ChatAccess` (participant-scoped lookups, get-or-create
+  opening rules, computed `active`/`read_only` status), `ChatMessenger` (send under the conversation row lock, dedupe by
+  `(sender_id, client_uuid)` + fingerprint, media of the matching `chat_*` context, provider-only live offer cards,
+  forward-only read markers), `ChatQueries` (lists with unread sub-query, cursor `before` pages). Same actions for both
+  audiences via `Http/Controllers/Concerns/RespondsWithChat`. No realtime, no moderation (S5).
+- Tests: `tests/Feature/Chat/ChatTest.php`, `tests/Feature/Database/ChatLockingTest.php`.
+
 ## Commands
 
 - `docker compose up -d mysql` — local MySQL 8 (databases `bliss_aan` and `testing`)

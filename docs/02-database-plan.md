@@ -108,9 +108,9 @@ Labels: **[C]** confirmed · **[R]** recommendation · **[?]** open question.
 | Table | Key columns | Stage |
 |---|---|---|
 | `media` | attachable_type/attachable_id (nullable until attached), collection, disk, path, original_name, mime, size, duration, **visibility (private/public)**, uploaded_by. Request attachments: context/collection `request_attachment`, private, attached to `service_requests` at creation (D52) | F |
-| `conversations` | client_id, provider_id, service_request_id nullable, status (active/read_only/closed), last_message_at | M |
-| `messages` | conversation_id, sender_id, type (text/image/file/voice/offer_card/system), body, offer_id nullable, **client_uuid unique** (dedupe), flagged | M |
-| `conversation_reads` | conversation_id, user_id, last_read_message_id | M |
+| `conversations` | service_request_id (**required in Slice 7**), client_id, provider_id, last_message_id, last_message_at; **unique(service_request_id, provider_id)**. Status (active/read_only; closed with Slice 6) is **computed** from the request lifecycle, not stored (`slice-7-contract.md` §3). Migration `2026_11_19_100000_create_chat_tables` | M (7) |
+| `messages` | conversation_id, sender_id, type (text/image/file/voice/offer_card/system), body, media_id nullable (the attachment, contexts `chat_*`), offer_id nullable (live card, never a copy), client_uuid + fingerprint, **unique(sender_id, client_uuid)** (dedupe), flagged (stays false until S5) | M (7) |
+| `conversation_reads` | conversation_id, user_id, last_read_message_id (moves forward only), unique(conversation_id, user_id) | M (7) |
 | `quick_replies` | user_id, text, sort | M |
 | `content_reports` | reportable_type/id (review/message/user), reporter_id, reason, status, handled_by | M |
 | `support_tickets` | reference, user_id, topic, related_type/related_id (booking/request/store_order), status, assigned_to | M (handling D) |

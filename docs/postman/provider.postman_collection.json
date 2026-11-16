@@ -1427,6 +1427,220 @@
           }
         }
       ]
+    },
+    {
+      "name": "Chat",
+      "description": "Slice 7 (docs/slice-7-contract.md). Participants only; every other account gets 404. Status `active`/`read_only` is computed from the request lifecycle (§3). No realtime; poll or refresh.",
+      "item": [
+        {
+          "name": "Open conversation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": "{{base_url}}/provider/service-requests/{{service_request_id}}/conversation",
+            "description": "Get-or-create on a request she received (her recipient row), 200. 404 when she is not a recipient; 409 INVALID_STATE when none exists yet and she no longer takes part."
+          }
+        },
+        {
+          "name": "List conversations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": "{{base_url}}/provider/conversations?filter[status]=&per_page=15",
+            "description": "Newest activity first. `filter[status]` active | read_only (archive). Example item: {\"id\": 7, \"status\": \"active\", \"status_label\": \"Active\", \"can_send\": true, \"service_request\": {\"id\": 12, \"reference\": \"RN-1234567\", \"status\": \"offers_received\", \"status_label\": \"Offers received\", \"service\": {\"id\": 3, \"name\": \"Photography\"}, \"event_type\": {\"id\": 1, \"name\": \"Wedding\"}, \"event_date\": \"2026-12-05\", \"booking_id\": null}, \"provider\": {\"id\": 4, \"display_name\": \"Noura Lens\", \"avatar_url\": null, \"is_verified\": true}, \"last_message\": {\"id\": 31, \"type\": \"text\", \"body\": \"Is the date available?\", \"is_mine\": true, \"created_at\": \"2026-11-15T09:00:00Z\"}, \"last_message_at\": \"2026-11-15T09:00:00Z\", \"unread_count\": 0, \"created_at\": \"2026-11-15T08:59:00Z\"}"
+          }
+        },
+        {
+          "name": "Show conversation",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": "{{base_url}}/provider/conversations/{{conversation_id}}",
+            "description": "One conversation (same shape as the list item); 404 for anyone but the two participants."
+          }
+        },
+        {
+          "name": "List messages",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": "{{base_url}}/provider/conversations/{{conversation_id}}/messages?before=&per_page=30",
+            "description": "Newest first; `before` = older-than message id; `per_page` ≤ 50; `meta.has_more`, `meta.next_before`. Never marks anything read. Example: {\"id\": 31, \"type\": \"text\", \"body\": \"Is the date available?\", \"client_uuid\": \"6f1c…\", \"is_mine\": true, \"sender_side\": \"client\", \"attachment\": null, \"offer\": null, \"read\": false, \"created_at\": \"2026-11-15T09:00:00Z\"}"
+          }
+        },
+        {
+          "name": "Send text",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/provider/conversations/{{conversation_id}}/messages",
+            "description": "201 new / 200 same `client_uuid` + same payload; another payload with that uuid → 409 DUPLICATE_REQUEST. 409 INVALID_STATE when read-only.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"client_uuid\": \"{{$guid}}\", \"type\": \"text\", \"body\": \"Is the date available?\"}"
+            }
+          }
+        },
+        {
+          "name": "Send image / file / voice",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/provider/conversations/{{conversation_id}}/messages",
+            "description": "Upload first with `POST shared/uploads` (context chat_image | chat_file | chat_voice; limits = `uploads.chat_*`, unset → 409 NOT_CONFIGURED). `media_id` must be her own unused upload of the matching context (422 otherwise). `body` = optional caption.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"client_uuid\": \"{{$guid}}\", \"type\": \"image\", \"media_id\": 55, \"body\": \"Our venue\"}"
+            }
+          }
+        },
+        {
+          "name": "Share offer card",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/provider/conversations/{{conversation_id}}/messages",
+            "description": "Provider only: one of her offers on this request that the client can see. The card is rendered from the live offer (never copied).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"client_uuid\": \"{{$guid}}\", \"type\": \"offer_card\", \"offer_id\": 9}"
+            }
+          }
+        },
+        {
+          "name": "Mark read",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/provider/conversations/{{conversation_id}}/read",
+            "description": "Moves her read marker forward only; repeating is harmless; the message must belong to this conversation (422). Answers `{last_read_message_id, unread_count}`.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"message_id\": 31}"
+            }
+          }
+        }
+      ]
     }
   ]
 }
