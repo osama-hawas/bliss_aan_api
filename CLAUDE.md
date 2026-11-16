@@ -188,7 +188,7 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
   close even with ledger history, entries kept (D115). Balance = Σ `available` `wallet_ledger_entries` (nothing writes them), `is_spendable: false`. Never used by bookings.
 - Tests: `tests/Feature/Wallet/WalletTest.php`.
 
-## Chat (Slice 7, in progress)
+## Chat (Slice 7, done)
 
 - Contract: `docs/slice-7-contract.md`. `app/Services/Chat/`: `ChatAccess` (participant-scoped lookups, get-or-create
   opening rules, computed `active`/`read_only` status), `ChatMessenger` (send under the conversation row lock, dedupe by

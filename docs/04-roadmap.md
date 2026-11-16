@@ -26,8 +26,8 @@ Status values: Not Started · In Analysis · Ready · In Progress · Blocked · 
 | 5b | Offers (D80) | Detailed + quick offer (C2); validity 3/7/14 days (D5), immutable once sent (D6), expiry; client offers list/compare/details; **withdraw a sent offer + decline before acceptance (Q18 → D91)** | Compose offer, offers list/details | P1 | 4, 5a | **In Progress (2026-11-15)** — contract `docs/slice-5b-contract.md` rev 1; backend, Flutter and dashboard implemented (uncommitted); owner confirmed D104 (C2) and D105 (Q32). Laravel 366 passed; Flutter suite only the 176 audit baseline failures; dashboard Playwright 41 passed; `LIVE_API=1 test/live/offers_live_test.dart` passed against the local API 2026-11-15 (ar/en labels checked; test data removed, sessions revoked). Open: compose does not prefill her own prices |
 | 5c | Accept → booking (D80) | **Accept → booking** (lock, snapshot, auto-reject others, D4); booking details both sides; availability at acceptance per D107–D112 (buffer setting default 0, capacity 1, overlaps → `SLOT_UNAVAILABLE`, refused once started, locking/idempotency/deadlock retry/unique guards); acceptance confirms immediately, no payment step (D113); **wallet CRUD only (D106)**, separate from the acceptance lifecycle; winning-provider address/pin and attachment access (D52, D56) | Accept, booking screens, bookings in the calendar | P1 | 5a, 5b | **Completed (2026-11-15)** — contract `docs/slice-5c-contract.md` rev 1; backend, Flutter and dashboard implemented and pushed (API `d43ea73`, app `7357887`). Laravel 383 passed; Flutter suite only the 176 audit baseline failures; dashboard Playwright 19 + 25 passed; `LIVE_API=1 test/live/booking_live_test.dart` passed against the local API 2026-11-15 (test data removed, sessions revoked). Wallet CRUD tracked as row 5c-W; no client/provider bookings list screen (bookings reached from request detail and calendar) |
 | 5c-W | Wallet CRUD (D106, D114–D116) | Client and provider wallets: create, view (informational balance derived from ledger entries, never spendable), rename, delete (= close, with or without ledger history, entries kept, D115); explicit creation only; own wallet only; no money operations. Contract `docs/wallet-contract.md` | Wallet entry in both apps' account menus; wallet screen | P1 | 5c | **Completed (2026-11-15)** — backend and Flutter implemented and pushed (API `1a99cc7`, app `5791aa2`). Laravel 392 passed (`WalletTest` 9); Flutter wallet tests 27 passed, full suite only the 176 audit baseline failures; `LIVE_API=1 test/live/wallet_live_test.dart` passed for client and provider 2026-11-15 (test wallets removed, sessions revoked). No dashboard scope. Q33–Q35 decided (D115, D116); ledger architecture deferred to Slice 11 |
-| 6 | Execution, cancellation, reviews | Start/complete, booking updates + attachments, cancellation requests (client + provider inability) + **admin decide**, reviews + provider reply + report | Booking actions, cancellation flow, review, reviews list | P1 | 5c | **Completed (2026-11-15, not committed)** — contract `docs/slice-6-contract.md` rev 3 (Q46–Q52 → D125–D131; ids renumbered 2026-11-16); backend, Flutter and dashboard on branch `slice-6-execution-reviews` (worktrees `wt-slice6/`), verified (see *Slice 6 closure verification*). **Deferred, not done:** Req 34 progress updates with photos (D130); review photos; review moderation (Slice 17) |
-| 7 | Chat | Conversations, messages (text/image/file/voice), offer card, read state, quick replies, Reverb channels, sensitive-content warnings | Messages, chat, quick replies | P1/P2 | 4, 5b | **Implemented, awaiting owner review (2026-11-15)** — contract `docs/slice-7-contract.md` rev 3; backend + Flutter (client and provider) implemented, uncommitted. Laravel 404 passed (`ChatTest` 11, `ChatLockingTest` 1); Flutter chat tests 27 passed, full suite only the 176 audit baseline failures; `LIVE_API=1 test/live/chat_live_test.dart` passed against the local API plus a manual API check (real WAV voice note, third client 404) — test data removed, sessions revoked.  no dashboard scope (admin chat review = Slice 17, Req 42). Deferred: sensitive-content warning (S5), realtime/Reverb, push (Slice 8). Q36–Q38 confirmed (D117); Q39 approved as D124: in-app voice recording/playback (`record` 6.2.1, `just_audio` 0.10.6) implemented 2026-11-16, uncommitted — Flutter voice tests 29 passed, full suite baseline-only, `voice_live_test` passed against the local API (contract revision 3 §12); open: S5 |
+| 6 | Execution, cancellation, reviews | Start/complete, booking updates + attachments, cancellation requests (client + provider inability) + **admin decide**, reviews + provider reply + report | Booking actions, cancellation flow, review, reviews list | P1 | 5c | **Completed (2026-11-15; committed 2026-11-16)** — contract `docs/slice-6-contract.md` rev 3 (Q46–Q52 → D125–D131; ids renumbered 2026-11-16); backend, Flutter and dashboard built on branch `slice-6-execution-reviews` (worktrees `wt-slice6/`), verified (see *Slice 6 closure verification*), reviewed and committed locally (API `ba60343`, app `342634a`), then merged locally into `master` / `main` (API `3c0218f`, app `bedf8d0`; see *Slice 6 + 7 merge*). Not pushed. **Deferred, not done:** Req 34 progress updates with photos (D130); review photos; review moderation (Slice 17) |
+| 7 | Chat | Conversations, messages (text/image/file/voice), offer card, read state, quick replies, Reverb channels, sensitive-content warnings | Messages, chat, quick replies | P1/P2 | 4, 5b | **Completed (2026-11-16)** — contract `docs/slice-7-contract.md` rev 3; backend + Flutter (client and provider) implemented, reviewed and committed locally on `master` / `main` (API `f079086`, app `26e0556`), merged with Slice 6 (see *Slice 6 + 7 merge*). Not pushed. Laravel 404 passed (`ChatTest` 11, `ChatLockingTest` 1); Flutter chat tests 27 passed, full suite only the 176 audit baseline failures; `LIVE_API=1 test/live/chat_live_test.dart` passed against the local API plus a manual API check (real WAV voice note, third client 404) — test data removed, sessions revoked.  no dashboard scope (admin chat review = Slice 17, Req 42). Deferred: sensitive-content warning (S5), realtime/Reverb, push (Slice 8). Q36–Q38 confirmed (D117); Q39 approved as D124: in-app voice recording/playback (`record` 6.2.1, `just_audio` 0.10.6) implemented 2026-11-16 — Flutter voice tests 29 passed, full suite baseline-only, `voice_live_test` passed against the local API (contract revision 3 §12); open: S5 |
 | 8 | Notifications | Database + FCM notifications for every event above; notification list/read | Notifications screen, push handling, deep links to current state | P1 | 1–7 | Not Started |
 | 9 | Store | Products/variants (seeded), cart, promo codes, checkout, store orders, shipments (carrier interface + internal), **admin order/shipment status**, reorder | Shop, product details, cart, checkout, orders, tracking | P2 | 0, 1, 10 | Not Started |
 | 10 | Payments | Gateway interface + fake, saved methods (tokens), payment intents, webhooks, refunds — booking payment step activated only when the plan is decided | Payment methods, payment flow/result states | P2 (Blocked by payment plan) | 5c, 9 | Not Started |
@@ -162,7 +162,9 @@ because no endpoint shows provider history.
 
 Contract `docs/slice-6-contract.md` rev 3, decisions D125–D131 (renumbered 2026-11-16 from the first Slice 6 ids). Built in the worktrees `wt-slice6/bliss_aan_api` and
 `wt-slice6/blies-aan` (branch `slice-6-execution-reviews` in both), with their own databases (`bliss_aan_s6`,
-`testing_s6`), so the uncommitted Slice 7 work in the main checkouts was not touched. Nothing is committed.
+`testing_s6`), so the uncommitted Slice 7 work in the main checkouts was not touched. Nothing was committed at the time
+of this verification; Slice 6 was committed on 2026-11-16 (API `ba60343`, app `342634a`) and merged into `master` / `main`
+(see *Slice 6 + 7 merge*).
 
 | Check | Result |
 |---|---|
@@ -177,6 +179,29 @@ Contract `docs/slice-6-contract.md` rev 3, decisions D125–D131 (renumbered 202
 
 Deferred and **not** done: Req 34 progress updates with notes/photos (D130), review photos, review moderation / hiding
 (Slice 17), refund values (Q3, Slice 10), rescheduling (C5), notifications (Slice 8).
+
+## Slice 6 + 7 merge (2026-11-16)
+
+Owner-approved local merge (no push). Both slices branched from API `1a99cc7` / app `5791aa2`: Slice 7 was committed on
+`master` / `main` (API `f079086`, app `26e0556`), Slice 6 on `slice-6-execution-reviews` (API `ba60343`, app `342634a`).
+`slice-6-execution-reviews` was merged into `master` / `main` with a normal merge commit: API `3c0218f`, app `bedf8d0`.
+
+Conflicts (10) were resolved by keeping both slices' additions, nothing dropped: API `04-roadmap.md` (rows 5c/5c-W/6 from
+Slice 6, row 7 from Slice 7), `05-decisions-and-open-questions.md` (D117, D124 then D125–D131; Q36–Q39 then Q46–Q52),
+`lang/ar.json`, Postman environment/client/provider (both slices' folders and variables, valid JSON, no duplicate keys);
+app `ar-SA.json` / `en-US.json` (1799 keys each, identical sets, no duplicates), `locale_keys.g.dart` (1799 constants,
+matches the JSON), `test/support/fake_api.dart` (`FakeChat` and `FakeBookingExecution`).
+
+| Check (merged `master` / `main`) | Result |
+|---|---|
+| Laravel full suite (`php artisan test`, `testing` DB) | 447 passed (3766 assertions), 0 failed = Slice 7's 405 + Slice 6's 42 new |
+| Pint / `php -l` on merged PHP files | ok / no errors |
+| Flutter full suite | 3682 passed, 308 skipped, 176 failed — all 176 in `test/audit/matrix_*` (the known baseline) |
+| `flutter analyze` | 2 issues, both pre-existing (same 2 on the Slice 6 branch) |
+| Dashboard `typecheck` / `lint` / `build` | ok / ok / ok (chunk-size warning only) |
+| Dashboard Playwright (stubbed: `booking-cancellations`, `service-requests`, `roles`, `audit-flows`, `ui-review`) | 50 passed (same as Slice 6); `*-live` and `interaction-crawl` not run |
+
+Not run: live API tests, physical devices (final release checklist). S5 stays open.
 
 ## Slice 5a closure verification (2026-11-15)
 
