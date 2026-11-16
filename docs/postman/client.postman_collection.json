@@ -865,6 +865,153 @@
           }
         }
       ]
+    },
+    {
+      "name": "Notifications",
+      "description": "Slice 8 (docs/slice-8-contract.md §4, D137). Her own rows only (another id → 404); text in Accept-Language; meta.unread_count. Push goes to the device token set with PUT devices/current/fcm-token.",
+      "item": [
+        {
+          "name": "List notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/client/notifications?page=1&per_page=15&filter[read]=false",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "client",
+                "notifications"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "15"
+                },
+                {
+                  "key": "filter[read]",
+                  "value": "false"
+                }
+              ]
+            },
+            "description": "Newest first; per_page max 50; filter[read]=true|false optional."
+          }
+        },
+        {
+          "name": "Unread count",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/client/notifications/unread-count",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "client",
+                "notifications",
+                "unread-count"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mark one read",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/client/notifications/{{notification_id}}/read",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "client",
+                "notifications",
+                "{{notification_id}}",
+                "read"
+              ]
+            },
+            "description": "Idempotent."
+          }
+        },
+        {
+          "name": "Mark all read",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/client/notifications/read-all",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "client",
+                "notifications",
+                "read-all"
+              ]
+            },
+            "description": "Rows created up to now."
+          }
+        }
+      ]
     }
   ]
 }

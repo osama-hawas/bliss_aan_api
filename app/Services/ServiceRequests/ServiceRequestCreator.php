@@ -5,6 +5,8 @@ namespace App\Services\ServiceRequests;
 use App\Enums\ErrorCode;
 use App\Enums\ExecutionPlace;
 use App\Enums\GuestCountMode;
+use App\Enums\NotificationEvent;
+use App\Enums\NotificationTargetType;
 use App\Enums\RecipientStatus;
 use App\Enums\ServiceRequestStatus;
 use App\Enums\ServiceRequestType;
@@ -23,6 +25,7 @@ use App\Services\Audit\ActivityRecorder;
 use App\Services\Availability\DeadlockRetry;
 use App\Services\Availability\ProviderAvailability;
 use App\Services\Media\MediaService;
+use App\Services\Notifications\Notifier;
 use App\Services\Settings\AppSettings;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -67,6 +70,7 @@ class ServiceRequestCreator
         private readonly AppSettings $settings,
         private readonly ProviderAvailability $availability,
         private readonly DeadlockRetry $retry,
+        private readonly Notifier $notifier,
     ) {}
 
     /**
@@ -386,6 +390,14 @@ class ServiceRequestCreator
         }
 
         $this->activity->record($request, 'request_created', to: ServiceRequestStatus::AwaitingOffers, actor: $client, meta: ['type' => $draft->type->value]);
+
+        // E1/E2 (D133): every recipient provider, after commit.
+        $direct = $draft->type === ServiceRequestType::Direct;
+        $params = Notifier::requestParams($request, $direct ? Notifier::firstName($client->name) : null);
+        foreach (Provider::query()->whereKey($recipientIds->all())->orderBy('id')->pluck('user_id') as $userId) {
+            $this->notifier->send((int) $userId, $direct ? NotificationEvent::DirectRequestReceived : NotificationEvent::OpenRequestReceived,
+                $params, NotificationTargetType::Request, $request->id, 'request_received:'.$request->id, $client);
+        }
 
         return $request;
     }

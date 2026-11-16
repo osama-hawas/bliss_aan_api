@@ -54,7 +54,13 @@ return [
     ],
 
     'push' => [
-        'driver' => env('PUSH_DRIVER', 'fake'),
+        'driver' => env('PUSH_DRIVER', 'fake'), // fake | fcm (D139)
+        'fcm' => [
+            // Path to the Firebase service-account JSON (secret, never committed) and the project id
+            // (optional: defaults to the JSON's project_id). Provided by the owner, slice-8-contract.md §12.
+            'credentials' => env('FCM_CREDENTIALS'),
+            'project_id' => env('FCM_PROJECT_ID'),
+        ],
     ],
 
 ];

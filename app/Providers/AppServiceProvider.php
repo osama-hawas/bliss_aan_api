@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Integrations\Payments\FakePaymentGateway;
 use App\Integrations\Payments\PaymentGateway;
 use App\Integrations\Push\FakePushNotifier;
+use App\Integrations\Push\FcmPushNotifier;
 use App\Integrations\Push\PushNotifier;
 use App\Integrations\Sms\FakeSmsGateway;
 use App\Integrations\Sms\SmsGateway;
@@ -26,7 +27,7 @@ class AppServiceProvider extends ServiceProvider
     private const DRIVERS = [
         SmsGateway::class => ['services.sms.driver', ['fake' => FakeSmsGateway::class]],
         PaymentGateway::class => ['services.payments.driver', ['fake' => FakePaymentGateway::class]],
-        PushNotifier::class => ['services.push.driver', ['fake' => FakePushNotifier::class]],
+        PushNotifier::class => ['services.push.driver', ['fake' => FakePushNotifier::class, 'fcm' => FcmPushNotifier::class]],
     ];
 
     /**

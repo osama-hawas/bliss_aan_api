@@ -8,6 +8,8 @@ use App\Enums\CancellationReason;
 use App\Enums\CancellationRequesterRole;
 use App\Enums\CancellationStatus;
 use App\Enums\ErrorCode;
+use App\Enums\NotificationEvent;
+use App\Enums\NotificationTargetType;
 use App\Enums\ServiceRequestStatus;
 use App\Exceptions\ApiException;
 use App\Models\Booking;
@@ -17,6 +19,7 @@ use App\Services\Audit\ActivityRecorder;
 use App\Services\Audit\AuditLogger;
 use App\Services\Availability\DeadlockRetry;
 use App\Services\Bookings\BookingLocks;
+use App\Services\Notifications\Notifier;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -37,6 +40,7 @@ class BookingCancellations
         private readonly AuditLogger $audit,
         private readonly DeadlockRetry $retry,
         private readonly CancellationReferenceGenerator $references,
+        private readonly Notifier $notifier,
     ) {}
 
     public function request(User $actor, CancellationRequesterRole $role, Booking $booking, CancellationReason $reason, string $text): CancellationRequest
@@ -126,6 +130,16 @@ class BookingCancellations
                 $this->activity->record($request, 'booking_cancelled', $from, ServiceRequestStatus::Cancelled, $admin, ActivityVisibility::All, $meta);
             } else {
                 $this->activity->record($request, 'cancellation_rejected', CancellationStatus::UnderReview, CancellationStatus::Rejected, $admin, ActivityVisibility::All, $meta);
+            }
+            // E12 to the requester; E13 to the other participant when the booking is cancelled (D133), after commit.
+            $params = Notifier::bookingParams($booking, $request, null);
+            $this->notifier->send((int) $cancellation->requester_id, $accept ? NotificationEvent::CancellationApproved : NotificationEvent::CancellationRejected,
+                $params, NotificationTargetType::Booking, $booking->id, 'cancellation_decided:'.$cancellation->id, $admin);
+            if ($accept) {
+                $providerUserId = (int) $booking->provider()->value('user_id');
+                $other = (int) $cancellation->requester_id === (int) $booking->client_id ? $providerUserId : (int) $booking->client_id;
+                $this->notifier->send($other, NotificationEvent::BookingCancelled, $params, NotificationTargetType::Booking, $booking->id,
+                    'booking_cancelled:'.$booking->id, $admin);
             }
             $this->audit->log($accept ? 'cancellation.accepted' : 'cancellation.rejected', $admin, $cancellation, $reason,
                 ['status' => CancellationStatus::UnderReview->value, 'booking_status' => BookingStatus::Confirmed->value],

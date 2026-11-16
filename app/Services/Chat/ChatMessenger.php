@@ -4,6 +4,8 @@ namespace App\Services\Chat;
 
 use App\Enums\ErrorCode;
 use App\Enums\MessageType;
+use App\Enums\NotificationEvent;
+use App\Enums\NotificationTargetType;
 use App\Enums\OfferStatus;
 use App\Enums\UserType;
 use App\Exceptions\ApiException;
@@ -14,6 +16,7 @@ use App\Models\Message;
 use App\Models\Offer;
 use App\Models\User;
 use App\Services\Media\MediaService;
+use App\Services\Notifications\Notifier;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -24,7 +27,7 @@ use Illuminate\Validation\ValidationException;
  */
 class ChatMessenger
 {
-    public function __construct(private readonly ChatAccess $access, private readonly MediaService $media) {}
+    public function __construct(private readonly ChatAccess $access, private readonly MediaService $media, private readonly Notifier $notifier) {}
 
     /**
      * @param  array{client_uuid: string, type: string, body?: ?string, media_id?: ?int, offer_id?: ?int}  $data
@@ -74,6 +77,14 @@ class ChatMessenger
                 $conversation->update(['last_message_id' => $message->id, 'last_message_at' => $message->created_at]);
                 // Her own message is read by her.
                 $this->moveMarker($conversation, $sender, $message->id);
+                // E16 (D142): push only to the other participant, after commit; no text in the push (D141).
+                $fromProvider = (int) $sender->id !== (int) $conversation->client_id;
+                $this->notifier->send(
+                    $fromProvider ? (int) $conversation->client_id : (int) $conversation->provider->user_id,
+                    NotificationEvent::ChatMessage,
+                    ['name' => $fromProvider ? $conversation->provider->display_name : Notifier::firstName($sender->name)],
+                    NotificationTargetType::Conversation, $conversation->id, 'chat_message:'.$message->id, $sender,
+                );
 
                 return $message;
             }), true];

@@ -10,3 +10,6 @@ Artisan::command('inspire', function () {
 
 // Slice 5b: persist offer expiry (reads already treat a past valid_until as expired).
 Schedule::command('offers:expire')->everyFiveMinutes()->withoutOverlapping();
+
+// Slice 8 (D136): delete read notifications older than 180 days.
+Schedule::command('notifications:prune')->daily()->withoutOverlapping();

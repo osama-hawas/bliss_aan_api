@@ -6,6 +6,8 @@ use App\Enums\ActivityVisibility;
 use App\Enums\BookingPaymentStatus;
 use App\Enums\BookingStatus;
 use App\Enums\ErrorCode;
+use App\Enums\NotificationEvent;
+use App\Enums\NotificationTargetType;
 use App\Enums\OfferStatus;
 use App\Enums\ProviderStatus;
 use App\Enums\RecipientStatus;
@@ -21,6 +23,7 @@ use App\Models\User;
 use App\Services\Audit\ActivityRecorder;
 use App\Services\Availability\DeadlockRetry;
 use App\Services\Availability\ProviderAvailability;
+use App\Services\Notifications\Notifier;
 use App\Services\ServiceRequests\IdempotencyRace;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
@@ -47,6 +50,7 @@ class OfferAcceptor
         private readonly DeadlockRetry $retry,
         private readonly ProviderAvailability $availability,
         private readonly BookingReferenceGenerator $references,
+        private readonly Notifier $notifier,
     ) {}
 
     /**
@@ -131,6 +135,8 @@ class OfferAcceptor
 
         // D4: the accepted offer is selected, every other offer still in play is not selected.
         $offer->update(['status' => OfferStatus::Selected]);
+        // D134: providers whose offer was still live are told it was not selected.
+        $liveOthers = $offers->where('id', '!=', $offer->id)->filter(fn (Offer $o) => $o->effectiveStatus() === OfferStatus::Active)->values();
         $offers->where('id', '!=', $offer->id)
             ->filter(fn (Offer $o) => in_array($o->status, [OfferStatus::Active, OfferStatus::Expired], true))
             ->each(fn (Offer $o) => $o->update(['status' => OfferStatus::NotSelected, 'closed_at' => $now]));
@@ -142,6 +148,15 @@ class OfferAcceptor
         $from = $request->status;
         $request->update(['status' => ServiceRequestStatus::Confirmed]);
         $this->activity->record($request, 'booking_confirmed', $from, ServiceRequestStatus::Confirmed, $client, ActivityVisibility::All, ['booking_id' => $booking->id, 'offer_id' => $offer->id, 'provider_id' => $provider->id]);
+        // E8 / E9 (D133, D134), after commit.
+        $this->notifier->send((int) $provider->user_id, NotificationEvent::OfferAccepted,
+            Notifier::bookingParams($booking, $request, Notifier::firstName($client->name)), NotificationTargetType::Booking, $booking->id,
+            'offer_accepted:'.$booking->id, $client);
+        $losers = Provider::query()->whereKey($liveOthers->pluck('provider_id')->all())->pluck('user_id', 'id');
+        foreach ($liveOthers as $other) {
+            $this->notifier->send((int) $losers[$other->provider_id], NotificationEvent::OfferNotSelected, Notifier::requestParams($request, null),
+                NotificationTargetType::Request, $request->id, 'offer_not_selected:'.$other->id, $client);
+        }
 
         return $booking;
     }

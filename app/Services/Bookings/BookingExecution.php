@@ -6,12 +6,15 @@ use App\Enums\ActivityVisibility;
 use App\Enums\BookingStatus;
 use App\Enums\CancellationStatus;
 use App\Enums\ErrorCode;
+use App\Enums\NotificationEvent;
+use App\Enums\NotificationTargetType;
 use App\Enums\ServiceRequestStatus;
 use App\Exceptions\ApiException;
 use App\Models\Booking;
 use App\Models\User;
 use App\Services\Audit\ActivityRecorder;
 use App\Services\Availability\DeadlockRetry;
+use App\Services\Notifications\Notifier;
 use App\Services\Settings\AppSettings;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
@@ -29,6 +32,7 @@ class BookingExecution
         private readonly ActivityRecorder $activity,
         private readonly DeadlockRetry $retry,
         private readonly AppSettings $settings,
+        private readonly Notifier $notifier,
     ) {}
 
     /**
@@ -61,6 +65,7 @@ class BookingExecution
             $from = $request->status;
             $request->update(['status' => ServiceRequestStatus::InProgress]);
             $this->activity->record($request, 'booking_started', $from, ServiceRequestStatus::InProgress, $actor, ActivityVisibility::All, ['booking_id' => $booking->id]);
+            $this->notifyClient($booking, $request, NotificationEvent::BookingStarted, $actor); // E10
 
             return $booking;
         }), 'booking.start', ['booking_id' => $booking->id]);
@@ -85,8 +90,15 @@ class BookingExecution
             $from = $request->status;
             $request->update(['status' => ServiceRequestStatus::Completed]);
             $this->activity->record($request, 'booking_completed', $from, ServiceRequestStatus::Completed, $actor, ActivityVisibility::All, ['booking_id' => $booking->id]);
+            $this->notifyClient($booking, $request, NotificationEvent::BookingCompleted, $actor); // E11
 
             return $booking;
         }), 'booking.complete', ['booking_id' => $booking->id]);
+    }
+
+    private function notifyClient(Booking $booking, $request, NotificationEvent $event, User $actor): void
+    {
+        $this->notifier->send((int) $booking->client_id, $event, Notifier::bookingParams($booking, $request, $booking->provider?->display_name),
+            NotificationTargetType::Booking, $booking->id, $event->value.':'.$booking->id, $actor);
     }
 }

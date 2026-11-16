@@ -3,13 +3,10 @@
 namespace App\Integrations\Push;
 
 /**
- * Push delivery (FCM recommended). Device tokens come from user_devices.fcm_token.
+ * Push delivery (FCM, D139). Device tokens come from user_devices.fcm_token. One call = one token, so the caller can
+ * clear an invalid token and retry a temporary failure for that device only.
  */
 interface PushNotifier
 {
-    /**
-     * @param  list<string>  $tokens
-     * @param  array<string, string>  $data  deep-link payload; apps open the live state
-     */
-    public function send(array $tokens, string $title, string $body, array $data = []): void;
+    public function send(PushMessage $message): PushResult;
 }

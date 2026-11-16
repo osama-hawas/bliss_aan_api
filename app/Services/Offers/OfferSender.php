@@ -4,6 +4,8 @@ namespace App\Services\Offers;
 
 use App\Enums\ActivityVisibility;
 use App\Enums\ErrorCode;
+use App\Enums\NotificationEvent;
+use App\Enums\NotificationTargetType;
 use App\Enums\OfferStatus;
 use App\Enums\PolicyType;
 use App\Enums\RecipientStatus;
@@ -15,6 +17,7 @@ use App\Models\ServiceRequest;
 use App\Models\ServiceRequestRecipient;
 use App\Services\Audit\ActivityRecorder;
 use App\Services\Availability\DeadlockRetry;
+use App\Services\Notifications\Notifier;
 use App\Services\ServiceRequests\IdempotencyRace;
 use App\Services\Settings\PolicyResolver;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -45,6 +48,7 @@ class OfferSender
         private readonly DeadlockRetry $retry,
         private readonly OfferReferenceGenerator $references,
         private readonly PolicyResolver $policies,
+        private readonly Notifier $notifier,
     ) {}
 
     /**
@@ -126,6 +130,9 @@ class OfferSender
             $request->update(['status' => ServiceRequestStatus::OffersReceived]);
         }
         $this->activity->record($request, 'offer_sent', $from, $request->status, $provider->user, ActivityVisibility::All, ['offer_id' => $offer->id, 'provider_id' => $provider->id]);
+        // E4 (D133): the client, after commit.
+        $this->notifier->send((int) $request->client_id, NotificationEvent::OfferReceived, Notifier::requestParams($request, $provider->display_name),
+            NotificationTargetType::Offer, $offer->id, 'offer_received:'.$offer->id, $provider->user_id);
 
         return $offer;
     }

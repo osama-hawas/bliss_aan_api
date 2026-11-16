@@ -4,15 +4,23 @@ namespace App\Integrations\Push;
 
 use Illuminate\Support\Facades\Log;
 
+/**
+ * Local and test driver: nothing leaves the server. Tests may script a result per token.
+ */
 class FakePushNotifier implements PushNotifier
 {
-    /** @var list<array{tokens: list<string>, title: string, body: string, data: array}> */
+    /** @var list<PushMessage> */
     public array $sent = [];
 
-    public function send(array $tokens, string $title, string $body, array $data = []): void
-    {
-        $this->sent[] = compact('tokens', 'title', 'body', 'data');
+    /** @var array<string, PushResult> token => result */
+    public array $results = [];
 
-        Log::info('[fake-push] notification', ['tokens' => count($tokens), 'title' => $title]);
+    public function send(PushMessage $message): PushResult
+    {
+        $this->sent[] = $message;
+
+        Log::info('[fake-push] notification', ['event' => $message->data['event'] ?? null]);
+
+        return $this->results[$message->token] ?? PushResult::Sent;
     }
 }

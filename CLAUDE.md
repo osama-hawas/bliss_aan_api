@@ -197,6 +197,19 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
   audiences via `Http/Controllers/Concerns/RespondsWithChat`. No realtime, no moderation (S5).
 - Tests: `tests/Feature/Chat/ChatTest.php`, `tests/Feature/Database/ChatLockingTest.php`.
 
+## Notifications (Slice 8)
+
+- Contract: `docs/slice-8-contract.md` (D132–D142). Call `Services\Notifications\Notifier::send(recipient, NotificationEvent, params,
+  NotificationTargetType, targetId, dedupeKey, actor)` inside the business transaction; it dispatches `Jobs\DeliverNotification`
+  only after commit and drops the actor. Params are display values only (D141: name, reference, service); text lives in
+  `lang/{ar,en}/notifications.php`. Chat (`chat_message`) is push only (D142). Preferences gate the push only (D135).
+- `DeliverNotification` stores the row (`insertOrIgnore` on `dedupe_key`) and queues `Jobs\SendPushNotification` per active
+  device; that job maps `PushResult` (invalid token → cleared, retry → released 10 s / 60 s, 3 attempts). Neither throws.
+- `PushNotifier::send(PushMessage): PushResult` — drivers `fake` (default) and `fcm` (`FcmPushNotifier`, `FcmCredentials`,
+  `FCM_CREDENTIALS` / `FCM_PROJECT_ID`). `notifications:prune` daily; `offers:expire` notifies E7.
+- Tests: `Tests\Concerns\BuildsNotifications` (`device()`, `pushes()`, `pushesTo()`, `events()`, `row()`);
+  `tests/Feature/Notifications/*`. MySQL JSON reorders object keys: compare `data.target` with `assertEquals`.
+
 ## Commands
 
 - `docker compose up -d mysql` — local MySQL 8 (databases `bliss_aan` and `testing`)

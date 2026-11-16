@@ -7,7 +7,9 @@ use App\Enums\PolicyType;
 use App\Enums\UserStatus;
 use App\Exceptions\ApiException;
 use App\Integrations\Payments\PaymentGateway;
+use App\Integrations\Push\PushMessage;
 use App\Integrations\Push\PushNotifier;
+use App\Integrations\Push\PushResult;
 use App\Integrations\Sms\FakeSmsGateway;
 use App\Integrations\Sms\SmsGateway;
 use App\Models\PolicyVersion;
@@ -86,7 +88,8 @@ class PlatformServicesTest extends TestCase
         $this->assertSame($first->reference, $gateway->charge('100.00', 'SAR', 'tok_ok', 'key-1')->reference);
         $this->assertSame('failed', $gateway->charge('100.00', 'SAR', 'tok_fail', 'key-2')->status);
 
-        app(PushNotifier::class)->send(['t1'], 'Hi', 'Body');
+        // Slice 8: one token per call, with a delivery result (D139).
+        $this->assertSame(PushResult::Sent, app(PushNotifier::class)->send(new PushMessage('t1', 'Hi', 'Body', [], 'c')));
         $this->assertCount(1, app(PushNotifier::class)->sent);
     }
 

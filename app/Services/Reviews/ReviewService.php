@@ -6,6 +6,8 @@ use App\Enums\ActivityVisibility;
 use App\Enums\BookingStatus;
 use App\Enums\ContentReportStatus;
 use App\Enums\ErrorCode;
+use App\Enums\NotificationEvent;
+use App\Enums\NotificationTargetType;
 use App\Enums\ReportReason;
 use App\Enums\ReviewStatus;
 use App\Exceptions\ApiException;
@@ -17,6 +19,7 @@ use App\Models\ServiceRequest;
 use App\Models\User;
 use App\Services\Audit\ActivityRecorder;
 use App\Services\Availability\DeadlockRetry;
+use App\Services\Notifications\Notifier;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 
@@ -30,6 +33,7 @@ class ReviewService
     public function __construct(
         private readonly ActivityRecorder $activity,
         private readonly DeadlockRetry $retry,
+        private readonly Notifier $notifier,
     ) {}
 
     /**
@@ -65,6 +69,10 @@ class ReviewService
 
             $this->refreshRating($provider);
             $this->activity->record($request, 'review_published', null, null, $client, ActivityVisibility::All, ['booking_id' => $booking->id, 'review_id' => $review->id]);
+            // E14 (D133): the provider, after commit.
+            $this->notifier->send((int) $provider->user_id, NotificationEvent::ReviewReceived,
+                Notifier::bookingParams($booking, $request, Notifier::firstName($client->name)), NotificationTargetType::Reviews, $review->id,
+                'review_received:'.$review->id, $client);
 
             return $review;
         }), 'review.submit', ['booking_id' => $booking->id]);
@@ -78,6 +86,9 @@ class ReviewService
                 throw new ApiException(ErrorCode::InvalidState); // one reply, never edited
             }
             $review->update(['provider_reply' => $reply, 'replied_at' => now()]);
+            // E15 (D133): the client, after commit.
+            $this->notifier->send((int) $review->client_id, NotificationEvent::ReviewReplied, ['name' => $provider->display_name],
+                NotificationTargetType::Booking, (int) $review->booking_id, 'review_replied:'.$review->id, $provider->user_id);
 
             return $review;
         });

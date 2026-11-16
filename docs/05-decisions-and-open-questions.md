@@ -133,6 +133,17 @@ When a question is answered, move it to **Decided** with the date and source.
 | D129 | Q50 — reviews: 1–5 stars, optional comment, tags from the approved list; published immediately; no edit, no delete, no deadline, no images; one review per completed booking; one public provider reply per review; the provider may report a review; published reviews are listed on the provider profile | Project owner (Slice 6) | 2026-11-15 |
 | D130 | Q51 — booking progress updates with notes/photos (Req 34) are **deferred** (no approved design); not built in Slice 6 and not marked done | Project owner (Slice 6) | 2026-11-15 |
 | D131 | Q52 — cancellation decisions: dedicated admin endpoints (`cancellations.decide`, checked on every decision) and an approve/reject panel in the dashboard's booking section showing the reason and explanation; the decider, time and outcome are recorded | Project owner (Slice 6) | 2026-11-15 |
+| D132 | S6 — notification channels: **in-app (database) list + FCM push only**; no SMS, no email. Rationale: no extra vendor or cost, SMS provider still open (Q8), email is not collected reliably | Project owner (Slice 8, recommendations approved as baseline) | 2026-11-16 |
+| D133 | Q53 — events: E1–E17 of `slice-8-contract.md` §6 (new direct/open request, request cancelled, offer received/withdrawn/expired, direct request declined, offer accepted / not selected, service started/completed, cancellation decided, booking cancelled, new review, review reply, chat message, provider application update). E5 (offer withdrawn) only where the withdrawal is already client-visible (direct requests, D76/D91 → Q63). No payment, wallet, reminder, promotion or staff events. Rationale: every state change a party must act on or know about, nothing a party may not see | Project owner (Slice 8, recommendations approved as baseline) | 2026-11-16 |
+| D134 | Q54 — E7 offer expired → the provider who sent it only (the client already sees `expired`); E9 offer not selected → each provider whose active offer became `not_selected` when another offer was accepted. Rationale: tells the provider her offer is no longer live without revealing the winner | Project owner (Slice 8, recommendations approved as baseline) | 2026-11-16 |
+| D135 | Q55 — preferences (D26) gate the **push only**; the list row is always stored. `new_requests` gates E1/E2, `offers` gates E4/E5, `messages` gates E16; every other event is transactional (booking, cancellation, review, request and account/application updates) and is always pushed, not switchable. `promotions`/`reminders` have no events in Slice 8. Rationale: users cannot switch off events that change their bookings or account | Project owner (Slice 8, recommendations approved as baseline) | 2026-11-16 |
+| D136 | Q56 — retention: rows are kept; a daily `notifications:prune` deletes rows that are **read** and older than 180 days; unread rows are never pruned; users cannot delete notifications. Rationale: bounded growth without losing anything unread | Project owner (Slice 8, recommendations approved as baseline) | 2026-11-16 |
+| D137 | Q57 — individual rows, newest first, grouped by day only in the app UI; a row becomes read when opened (`POST …/{id}/read`) or by mark-all-read (`POST …/read-all`, rows up to the request time); unread count for the badge. Rationale: matches the approved designs | Project owner (Slice 8, recommendations approved as baseline) | 2026-11-16 |
+| D138 | Q58 — booking reminders are **deferred** (not in Slice 8); the `reminders` key stays without events. Rationale: needs timing rules and a scheduler design | Project owner (Slice 8, recommendations approved as baseline) | 2026-11-16 |
+| D139 | Q59 — delivery is best effort, at least once: database row and push run as queued jobs dispatched **after the business transaction commits**; one push job per device, 3 tries with backoff on 429/5xx/network errors; FCM `UNREGISTERED` / `SENDER_ID_MISMATCH` / token `INVALID_ARGUMENT` clears that device's `fcm_token`; failures are logged and never change the business action or the stored row; duplicates prevented by a per-recipient `dedupe_key` (rows) and per-notification collapse ids (push). API library: `google/auth` (service-account OAuth token only; HTTP v1 through Laravel's HTTP client). Rationale: smallest dependency, no paid service | Project owner (Slice 8, recommendations approved as baseline) | 2026-11-16 |
+| D140 | Q60 — no staff/dashboard notifications in Slice 8 (Slice 17); the dashboard is unchanged. Rationale: admin recipients and permissions belong to operations | Project owner (Slice 8, recommendations approved as baseline) | 2026-11-16 |
+| D141 | Q61 — push text may contain only the other party's name (client **first name** per D56; provider display name), the request/booking reference and the service name; never prices, addresses, phone numbers, file URLs, review text or chat text. The push `data` carries only `notification_id`, `event`, `target_type`, `target_id`. Rationale: lock-screen privacy | Project owner (Slice 8, recommendations approved as baseline) | 2026-11-16 |
+| D142 | Q62 — chat messages (E16) are **push only** ("New message from X", no text), collapsed per conversation; no list row (the chat keeps its own unread state). Rationale: avoids flooding the list and duplicating chat unread state | Project owner (Slice 8, recommendations approved as baseline) | 2026-11-16 |
 
 ## Open — blocking (needed before the related slice)
 
@@ -149,6 +160,7 @@ When a question is answered, move it to **Decided** with the date and source.
 | Q15 | Final Arabic and English wording of the seven decline reasons (D51; codes are fixed) | 4 (seed text) |
 | Q17 | Open request whose recipients all decline: does the request change status (e.g. `declined`) or stay `awaiting_offers`? No transition until answered | 4 |
 | Q24 | A provider suspended while a recipient of open requests: close her `new` recipient rows or leave them? | 4/15 |
+| Q63 | Slice 8: may a client be notified when a provider withdraws her offer on an **open** request (E5)? D76/D91 keep open-request withdrawals internal and clients never see `withdrawn` (`OfferStatus::clientVisible()`), so the approved E5 is implemented for **direct** requests only until this is answered | 8 |
 
 ## Resolved questions (kept for traceability)
 
@@ -184,6 +196,16 @@ When a question is answered, move it to **Decided** with the date and source.
 | Q50 | Review rules (window, edit/delete, publication, photos) | D129 |
 | Q51 | Booking progress updates with photos (Req 34) | D130 (deferred) |
 | Q52 | Cancellation decisions: admin API and dashboard panel | D131 |
+| Q53 | Slice 8: which events create notifications? | D133 |
+| Q54 | Slice 8: recipients of offer expired / not selected | D134 |
+| Q55 | Slice 8: what preferences gate; transactional events | D135 |
+| Q56 | Slice 8: retention and deletion | D136 |
+| Q57 | Slice 8: grouping and read behaviour | D137 |
+| Q58 | Slice 8: booking reminders | D138 (deferred) |
+| Q59 | Slice 8: delivery guarantees, retries, FCM library | D139 |
+| Q60 | Slice 8: staff notifications | D140 (Slice 17) |
+| Q61 | Slice 8: push text privacy | D141 |
+| Q62 | Slice 8: chat notifications | D142 |
 | Q1 | Service payment plan: full payment or deposit? Amount/timing? Is payment required to confirm a booking? Payment deadline? | D106 (scope for 5c: wallet CRUD only, no payments) |
 | Q5 | Booking time model: buffers/travel time, simultaneous capacity per provider | D107–D113 |
 | Q30 | Client availability (`slice-5a-contract.md` §7): is a date listed as unavailable when a block covers only part of it (API time-range blocks, D83)? (a) yes, when any part is blocked; (b) only when the whole date is blocked | D92 |
@@ -212,7 +234,7 @@ When a question is answered, move it to **Decided** with the date and source.
 | S3 | Promo codes: store only, or also services/shipping? |
 | S4 | Product reviews and store returns: in scope? |
 | S5 | Message moderation (Req 41): what is blocked (phone numbers, links?), automatic or manual? **Blocks the sensitive-content warning of Slice 7** (deferred; `messages.flagged` exists, never set) |
-| S6 | Notification channels: push only, or also SMS/email? Which events? |
+| S6 | Notification channels: push only, or also SMS/email? Which events? **Resolved 2026-11-16 → D132 (channels), D133 (events)** |
 | S7 | VAT / ZATCA e-invoicing requirements for receipts? |
 | S8 | Is the color theme picker in settings a real user feature or a stakeholder preview? |
 | S9 | Client web version needed? Landing site in scope for this team? |

@@ -4,6 +4,8 @@ namespace App\Services\Providers;
 
 use App\Enums\ActivityVisibility;
 use App\Enums\ErrorCode;
+use App\Enums\NotificationEvent;
+use App\Enums\NotificationTargetType;
 use App\Enums\ProviderDocumentStatus;
 use App\Enums\ProviderStatus;
 use App\Exceptions\ApiException;
@@ -14,9 +16,11 @@ use App\Models\ProviderReviewNote;
 use App\Models\User;
 use App\Services\Audit\ActivityRecorder;
 use App\Services\Audit\AuditLogger;
+use App\Services\Notifications\Notifier;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * The reviewer's side (Req 54): decide each document, leave notes, send the application back for
@@ -29,6 +33,7 @@ class ProviderReview
         private readonly ActivityRecorder $activity,
         private readonly AuditLogger $audit,
         private readonly ProviderOnboarding $onboarding,
+        private readonly Notifier $notifier,
     ) {}
 
     /**
@@ -107,6 +112,7 @@ class ProviderReview
             $provider->update(['status' => ProviderStatus::NeedsCompletion]);
             $this->activity->record($provider, 'application_needs_completion', ProviderStatus::Submitted, ProviderStatus::NeedsCompletion, $admin, ActivityVisibility::Provider, ['items' => array_values($items)]);
             $this->audit->log('application_needs_completion', $admin, $provider, $reason, new: ['items' => array_values($items)]);
+            $this->notifyProvider($provider, NotificationEvent::ApplicationNeedsCompletion, $admin);
 
             return $provider;
         });
@@ -133,6 +139,7 @@ class ProviderReview
             $provider->update(['status' => ProviderStatus::Active, 'status_reason' => null, 'activated_at' => $provider->activated_at ?? now()]);
             $this->activity->record($provider, 'application_activated', ProviderStatus::Submitted, ProviderStatus::Active, $admin, ActivityVisibility::Provider, array_filter(['internal_note' => $internalNote]));
             $this->audit->log('application_activated', $admin, $provider, $reason);
+            $this->notifyProvider($provider, NotificationEvent::ApplicationActivated, $admin);
 
             return $provider;
         });
@@ -160,6 +167,7 @@ class ProviderReview
             $event = $to === ProviderStatus::Suspended ? 'provider_suspended' : 'provider_reactivated';
             $this->activity->record($provider, $event, $from, $to, $admin, ActivityVisibility::Provider, array_filter(['internal_note' => $internalNote]));
             $this->audit->log($event, $admin, $provider, $reason, ['status' => $from->value], ['status' => $to->value]);
+            $this->notifyProvider($provider, $to === ProviderStatus::Suspended ? NotificationEvent::ApplicationSuspended : NotificationEvent::ApplicationReactivated, $admin);
 
             return $provider;
         });
@@ -177,6 +185,9 @@ class ProviderReview
             $event = $to === ProviderDocumentStatus::Accepted ? 'document_accepted' : 'document_rejected';
             $this->activity->record($provider, $event, ProviderDocumentStatus::Pending, $to, $admin, ActivityVisibility::Provider, array_filter(['document_id' => $document->id, 'internal_note' => $internalNote]));
             $this->audit->log($event, $admin, $document, $reason);
+            if ($to === ProviderDocumentStatus::Rejected) {
+                $this->notifyProvider($provider, NotificationEvent::ApplicationDocumentRejected, $admin, 'document:'.$document->id);
+            }
 
             return $document->load(['type', 'media']);
         });
@@ -206,5 +217,14 @@ class ProviderReview
         }
 
         return $provider;
+    }
+
+    /**
+     * E17 (D133, transactional): the applicant, after commit. Each decision is its own notification.
+     */
+    private function notifyProvider(Provider $provider, NotificationEvent $event, User $admin, ?string $key = null): void
+    {
+        $this->notifier->send((int) $provider->user_id, $event, [], NotificationTargetType::ProviderAccount, null,
+            $event->value.':'.$provider->id.':'.($key ?? (string) Str::ulid()), $admin);
     }
 }

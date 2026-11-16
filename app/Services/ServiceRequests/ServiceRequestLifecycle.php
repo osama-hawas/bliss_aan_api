@@ -4,6 +4,8 @@ namespace App\Services\ServiceRequests;
 
 use App\Enums\ActivityVisibility;
 use App\Enums\ErrorCode;
+use App\Enums\NotificationEvent;
+use App\Enums\NotificationTargetType;
 use App\Enums\OfferStatus;
 use App\Enums\RecipientStatus;
 use App\Enums\ServiceRequestStatus;
@@ -16,6 +18,7 @@ use App\Models\ServiceRequest;
 use App\Models\ServiceRequestRecipient;
 use App\Models\User;
 use App\Services\Audit\ActivityRecorder;
+use App\Services\Notifications\Notifier;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -26,7 +29,7 @@ use Illuminate\Support\Facades\DB;
  */
 class ServiceRequestLifecycle
 {
-    public function __construct(private readonly ActivityRecorder $activity) {}
+    public function __construct(private readonly ActivityRecorder $activity, private readonly Notifier $notifier) {}
 
     /**
      * Before an offer is accepted only. Every recipient still taking part is closed, and every offer still `active`
@@ -42,6 +45,7 @@ class ServiceRequestLifecycle
             }
 
             $from = $request->status;
+            $taking = $recipients->filter(fn (ServiceRequestRecipient $r) => $r->status->isActive())->pluck('provider_id');
             $request->update(['status' => ServiceRequestStatus::Cancelled, 'cancelled_at' => now(), 'cancel_reason' => $reason]);
             $recipients->filter(fn (ServiceRequestRecipient $r) => $r->status->isActive())
                 ->each(fn (ServiceRequestRecipient $r) => $r->update(['status' => RecipientStatus::Closed, 'closed_at' => now()]));
@@ -49,6 +53,12 @@ class ServiceRequestLifecycle
                 ->orderBy('id')->lockForUpdate()->get()
                 ->each(fn (Offer $o) => $o->update(['status' => OfferStatus::Closed, 'closed_at' => now()]));
             $this->activity->record($request, 'request_cancelled', $from, ServiceRequestStatus::Cancelled, $client, ActivityVisibility::All);
+            // E3 (D133): providers still taking part, after commit.
+            $params = Notifier::requestParams($request, Notifier::firstName($client->name));
+            foreach (Provider::query()->whereKey($taking->all())->orderBy('id')->pluck('user_id') as $userId) {
+                $this->notifier->send((int) $userId, NotificationEvent::RequestCancelled, $params, NotificationTargetType::Request,
+                    $request->id, 'request_cancelled:'.$request->id, $client);
+            }
 
             return $request;
         });
@@ -74,6 +84,7 @@ class ServiceRequestLifecycle
             }
 
             $from = $recipient->status;
+            $wasOfferSent = $from === RecipientStatus::OfferSent;
             $visibility = $request->type === ServiceRequestType::Direct ? ActivityVisibility::All : ActivityVisibility::Internal;
             if ($from === RecipientStatus::OfferSent) {
                 Offer::query()->where('service_request_id', $request->id)->where('provider_id', $provider->id)
@@ -96,6 +107,14 @@ class ServiceRequestLifecycle
                 $from = $request->status;
                 $request->update(['status' => ServiceRequestStatus::Declined]);
                 $this->activity->record($request, 'request_declined', $from, ServiceRequestStatus::Declined, $provider->user, ActivityVisibility::All);
+            }
+
+            // E5/E6 (D133): only on direct requests, where the client sees the decline and the withdrawal (D68, D76).
+            // Open-request withdrawals stay internal until Q63 is answered.
+            if ($request->type === ServiceRequestType::Direct) {
+                $this->notifier->send((int) $request->client_id, $wasOfferSent ? NotificationEvent::OfferWithdrawn : NotificationEvent::RequestDeclined,
+                    Notifier::requestParams($request, $provider->display_name), NotificationTargetType::Request, $request->id,
+                    'request_declined:'.$request->id, $provider->user_id);
             }
 
             return $recipient->setRelation('serviceRequest', $request);
