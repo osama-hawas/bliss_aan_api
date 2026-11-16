@@ -33,12 +33,13 @@ enum ErrorCode: string
     case StartTooEarly = 'START_TOO_EARLY';
     case AlreadyReviewed = 'ALREADY_REVIEWED';
     case AlreadyReported = 'ALREADY_REPORTED';
+    case OutOfStock = 'OUT_OF_STOCK'; // Slice 9 cart: quantity above the variant's current stock (03-api-conventions: 422)
     case ServerError = 'SERVER_ERROR';
 
     public function status(): int
     {
         return match ($this) {
-            self::ValidationFailed, self::OtpInvalid, self::OtpExpired, self::OutOfCoverage, self::NoMatchingProviders => 422,
+            self::ValidationFailed, self::OtpInvalid, self::OtpExpired, self::OutOfCoverage, self::NoMatchingProviders, self::OutOfStock => 422,
             self::Unauthenticated, self::TokenExpired => 401,
             self::Forbidden, self::AccountSuspended => 403,
             self::NotFound, self::AccountNotFound => 404,

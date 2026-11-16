@@ -1,0 +1,169 @@
+{
+  "info": {
+    "name": "Bliss aan — store (Slice 9, independent part)",
+    "description": "Slice 9 store catalogue (public, read-only) and the client's server cart. Kept as its own collection until the Slice 8 merge (`docs/slice-9-contract.md`). No checkout, orders, promo codes, payments or shipping here. Uses the shared environment (`base_url`, `lang`, `client_token`).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Catalogue (shared, auth optional)",
+      "item": [
+        {
+          "name": "List store categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              }
+            ],
+            "url": "{{base_url}}/shared/store/categories",
+            "description": "Active product categories in admin order: `id`, `name`, `image_url`."
+          }
+        },
+        {
+          "name": "List products",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              }
+            ],
+            "url": "{{base_url}}/shared/store/products?filter[category_id]=&q=&page=1&per_page=15",
+            "description": "Visible products (active, active category, ≥ 1 active variant), paginated (`per_page` ≤ 50). `q` matches the Arabic or English name, case-insensitive. Card: `price` (base price), `in_stock`, `variants_count`, `default_variant_id` (the only variant, else null). Exact stock is never exposed."
+          }
+        },
+        {
+          "name": "Show product",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              }
+            ],
+            "url": "{{base_url}}/shared/store/products/1",
+            "description": "Details + active `variants` [{id, attributes [{key, label, value}], price, in_stock}]. Hidden or unknown → 404 NOT_FOUND."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cart (client)",
+      "item": [
+        {
+          "name": "Show cart",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/client/cart",
+            "description": "Her cart; an empty cart before the first item. Lines use live prices: `unit_price`, `line_total`, `available`, `in_stock`, `exceeds_stock`; `count`, `subtotal` (available lines only; no discount, shipping or VAT), `has_issues`."
+          }
+        },
+        {
+          "name": "Set item quantity",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/client/cart/items/1",
+            "description": "Sets one variant's quantity (adds the line when missing); idempotent. `quantity` integer ≥ 1. Above current stock → 422 OUT_OF_STOCK. Inactive/hidden/unknown variant → 404. Nothing is reserved or deducted.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"quantity\": 1}"
+            }
+          }
+        },
+        {
+          "name": "Remove item",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/client/cart/items/1",
+            "description": "Removes the variant's line; removing a missing line is not an error."
+          }
+        },
+        {
+          "name": "Clear cart",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/client/cart",
+            "description": "Empties her cart (idempotent)."
+          }
+        }
+      ]
+    }
+  ]
+}

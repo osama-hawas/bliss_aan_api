@@ -27,6 +27,7 @@ return [
     'START_TOO_EARLY' => 'It is too early to start this service.',
     'ALREADY_REVIEWED' => 'You have already reviewed this booking.',
     'ALREADY_REPORTED' => 'You have already reported this review.',
+    'OUT_OF_STOCK' => 'This quantity is not available in stock.',
     'SERVER_ERROR' => 'Something went wrong. Please try again.',
 
     // Messages for specific INVALID_STATE cases.
