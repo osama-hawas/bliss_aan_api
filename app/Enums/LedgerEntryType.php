@@ -16,6 +16,8 @@ enum LedgerEntryType: string
     case RefundAdjustment = 'refund_adjustment';
     case Payout = 'payout';
     case PayoutReversal = 'payout_reversal';
+    // Slice 19 (D286, D291): a staff ledger adjustment written by Finance\ProviderLedgerWriter (no gross/commission).
+    case Adjustment = 'adjustment';
 
     /**
      * @return list<string> the types that come from bookings (they carry gross / commission).

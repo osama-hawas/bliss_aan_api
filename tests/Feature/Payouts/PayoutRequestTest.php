@@ -153,7 +153,8 @@ class PayoutRequestTest extends TestCase
         foreach (['0', '0.00', '-5', '10.123', 'abc', ''] as $amount) {
             $this->requestPayout($this->noura, $amount)->assertStatus(422)->assertJsonValidationErrors('amount');
         }
-        $this->asProvider($this->noura)->postJson('/api/v1/provider/payout-requests', ['amount' => '10'])
+        // Headers persist between requests in a test: drop the previous Idempotency-Key first.
+        $this->flushHeaders()->asProvider($this->noura)->postJson('/api/v1/provider/payout-requests', ['amount' => '10'])
             ->assertStatus(422)->assertJsonValidationErrors('idempotency_key');
         $this->assertSame(0, PayoutRequest::query()->count());
     }
@@ -182,5 +183,16 @@ class PayoutRequestTest extends TestCase
         $this->asProvider($this->noura)->getJson("/api/v1/provider/payout-requests/{$id}")->assertOk()->assertJsonPath('data.id', $id);
         $this->asProvider($huda)->getJson("/api/v1/provider/payout-requests/{$id}")->assertNotFound();
         $this->asProvider($huda)->getJson('/api/v1/provider/payout-requests')->assertOk()->assertJsonCount(0, 'data');
+    }
+
+    public function test_a_json_number_amount_is_accepted(): void
+    {
+        $this->readyToRequest();
+
+        $this->asProvider($this->noura)->withHeader('Idempotency-Key', (string) Str::uuid())
+            ->postJson('/api/v1/provider/payout-requests', ['amount' => 100.5])->assertCreated()
+            ->assertJsonPath('data.amount.amount', '100.50');
+        $this->asProvider($this->noura)->withHeader('Idempotency-Key', (string) Str::uuid())
+            ->postJson('/api/v1/provider/payout-requests', ['amount' => 1.005])->assertStatus(422)->assertJsonValidationErrors('amount');
     }
 }

@@ -6,6 +6,7 @@ use App\Enums\LedgerEntryType;
 use App\Models\Provider;
 use App\Models\ProviderLedgerEntry;
 use App\Services\Payouts\EarningsRecorder;
+use App\Services\Payouts\S10Payments;
 use App\Services\Settings\AppSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -189,8 +190,9 @@ class EarningsTest extends TestCase
     public function test_only_providers_reach_earnings(): void
     {
         $this->configurePayouts();
-        $this->asClient()->getJson('/api/v1/provider/earnings')->assertStatus(403);
+        // Guest first: the token and the resolved guard user persist between requests in one test.
         $this->getJson('/api/v1/provider/earnings')->assertStatus(401);
+        $this->asClient()->getJson('/api/v1/provider/earnings')->assertStatus(403);
     }
 
     public function test_she_sees_only_her_own_entries(): void
@@ -201,5 +203,56 @@ class EarningsTest extends TestCase
 
         $this->asProvider($this->noura)->getJson('/api/v1/provider/earnings/entries')->assertOk()->assertJsonCount(0, 'data');
         $this->earnings($this->noura)->assertJsonPath('data.pending.amount', '0.00');
+    }
+
+    public function test_entries_list_a_slice_19_staff_adjustment(): void
+    {
+        $this->configurePayouts('15', 0);
+        $this->paidCompletedBooking($this->noura);
+        // Exactly the row Finance\ProviderLedgerWriter writes (type `adjustment`, no gross / commission, no hold).
+        DB::table('provider_ledger_entries')->insert([
+            'provider_id' => $this->noura->id, 'type' => 'adjustment', 'amount_cents' => -2500, 'booking_id' => null,
+            'payout_request_id' => null, 'gross_cents' => null, 'commission_cents' => null, 'commission_bps' => null,
+            'available_at' => now(), 'entry_key' => 'adjustment:1', 'meta' => json_encode(['adjustment_id' => 1]),
+            'created_at' => now()->addSecond(), 'updated_at' => now()->addSecond(),
+        ]);
+
+        $this->asProvider($this->noura)->getJson('/api/v1/provider/earnings/entries')->assertOk()
+            ->assertJsonCount(2, 'data')
+            ->assertJsonPath('data.0.type', 'adjustment')
+            ->assertJsonPath('data.0.type_label', 'Balance adjustment')
+            ->assertJsonPath('data.0.amount.amount', '-25.00')
+            ->assertJsonPath('data.0.gross', null)
+            ->assertJsonPath('data.0.booking', null);
+        $this->asProvider($this->noura)->getJson('/api/v1/provider/earnings/entries?filter[type]=adjustment')->assertOk()
+            ->assertJsonCount(1, 'data');
+        $this->earnings($this->noura)->assertOk()
+            ->assertJsonPath('data.available.amount', '825.00') // 850 − 25
+            ->assertJsonPath('data.lifetime.net.amount', '850.00'); // staff adjustments are not booking earnings
+    }
+
+    public function test_the_back_fill_skips_netted_and_unrelated_refunds(): void
+    {
+        $this->configurePayouts('10', 7);
+        // A refund netted into the earning (settled before completion).
+        $netted = $this->paidBooking($this->noura, '1000.00');
+        $this->settledRefund($netted, '200.00');
+        $this->at(self::EVENT_STARTS);
+        $this->startBooking($this->noura, $netted)->assertOk();
+        $this->completeBooking($this->noura, $netted)->assertOk();
+        // A refund on a paid booking that is not completed (no earning).
+        $this->at('2026-12-01T09:00:00Z');
+        $open = $this->paidBooking($this->matchingProvider('Huda Studio'), '500.00');
+        $this->settledRefund($open, '50.00');
+
+        $this->assertSame([], app(S10Payments::class)->settledBookingRefundIds()->all());
+        $this->artisan('payouts:record-earnings')->assertSuccessful();
+        $this->assertSame(0, ProviderLedgerEntry::query()->where('type', LedgerEntryType::RefundAdjustment)->count());
+
+        // A refund settled after the earning is selected once, then drops out.
+        $late = $this->settledRefund($netted, '100.00');
+        $this->assertSame([$late], app(S10Payments::class)->settledBookingRefundIds()->all());
+        $this->artisan('payouts:record-earnings')->assertSuccessful();
+        $this->assertSame([], app(S10Payments::class)->settledBookingRefundIds()->all());
     }
 }
