@@ -48,6 +48,8 @@ final class SettingCatalog
         'uploads.team_photo' => [SettingKind::UploadLimits, null, 'D235'],
         // Slice 18 (S18).
         'store.low_stock_threshold' => [SettingKind::Integer, 'items', 'D278'],
+        // Slice 25 (S25).
+        'uploads.onboarding_image' => [SettingKind::UploadLimits, null, 'D361'],
         // --- later slices: append above this line in a marked block ---
     ];
 

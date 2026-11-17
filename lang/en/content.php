@@ -23,6 +23,7 @@ return [
         'broadcast_cancelled' => 'The campaign was cancelled.',
         'setting_saved' => 'Setting saved.',
         'policy_published' => 'New policy version published.',
+        'moved' => 'Order saved.', // Slice 25
     ],
     'settings' => [
         'invalid' => [
@@ -66,6 +67,7 @@ return [
             'uploads__booking_update' => 'Files: booking updates',
             'uploads__catalog_image' => 'Files: catalog images',
             'uploads__banner' => 'Files: banners',
+            'uploads__onboarding_image' => 'Files: onboarding images', // Slice 25
             'uploads__avatar' => 'Files: profile photos',
             'uploads__request_attachment' => 'Files: request attachments',
             'uploads__team_photo' => 'Files: team photos',

@@ -328,6 +328,7 @@ class DemoSeeder extends Seeder
             // Proposed, not approved (D53): local only so the request flow can be tried.
             UploadContext::RequestAttachment->value => ['mimes' => ['jpg', 'jpeg', 'png', 'webp', 'heic', 'pdf'], 'max_kb' => 10240],
             UploadContext::TeamPhoto->value => $image, // Slice 13 (D235)
+            UploadContext::OnboardingImage->value => $image, // Slice 25 (D361)
         ];
 
         foreach ($limits as $context => $value) {

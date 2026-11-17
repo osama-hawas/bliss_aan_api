@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             EventTypeSeeder::class,
             DeclineReasonSeeder::class,
             AppSettingSeeder::class,
+            OnboardingSlideSeeder::class, // Slice 25 (D368): only when an app has no slides yet
         ]);
 
         if (app()->environment('local')) {
