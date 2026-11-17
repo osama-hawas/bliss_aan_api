@@ -57,6 +57,9 @@ class AuthService
             // A suspension between the first check and here (D173): the user row lock serializes with it, so no open
             // session is ever issued to a suspended account.
             $user = User::query()->lockForUpdate()->findOrFail($user->id);
+            if ($user->status === UserStatus::Deleted) {
+                throw new ApiException(ErrorCode::AccountNotFound); // S22: deleted between the check and here
+            }
             if ($user->status === UserStatus::Suspended) {
                 throw new ApiException(ErrorCode::AccountSuspended, errors: ['reason' => $user->status_reason]);
             }
@@ -147,6 +150,10 @@ class AuthService
     {
         $user = User::query()->where('phone', $phone)->first()
             ?? throw new ApiException(ErrorCode::AccountNotFound);
+
+        if ($user->status === UserStatus::Deleted) {
+            throw new ApiException(ErrorCode::AccountNotFound); // S22 (D331)
+        }
 
         if ($user->type !== $app->userType()) {
             throw new ApiException(ErrorCode::Forbidden);

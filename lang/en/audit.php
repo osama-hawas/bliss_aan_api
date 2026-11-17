@@ -20,6 +20,7 @@ return [
         'client_suspended' => 'Client suspended',
         'client_reactivated' => 'Client reactivated',
         'client_updated' => 'Client details updated',
+        'account_deleted' => 'Account deleted (anonymised)', // S22
         'staff_created' => 'Staff account created',
         'staff_updated' => 'Staff details updated',
         'staff_role_changed' => 'Staff role changed',

@@ -4015,6 +4015,85 @@
           }
         }
       ]
+    },
+    {
+      "name": "Account deletion requests (S22: clients.edit)",
+      "item": [
+        {
+          "name": "List deletion requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/clients/deletion-requests?filter[status]=pending&filter[user_type]=&filter[blocked]=&q=&per_page=20",
+            "description": "clients.edit (D336): client and provider requests, pending first (oldest first). Each row: user (anonymised once processed), scheduled_for / is_due (D330), live obligations while pending (only keys above zero: active_bookings, open_store_orders, open_returns, pending_payouts, open_tickets — D333), can_process, blocked_by / checked_at from the last attempt, processed_by, internal_note."
+          }
+        },
+        {
+          "name": "Show deletion request",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/clients/deletion-requests/{{deletion_request_id}}",
+            "description": "clients.edit. 404 for an unknown id."
+          }
+        },
+        {
+          "name": "Process now",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/clients/deletion-requests/{{deletion_request_id}}/process",
+            "description": "clients.edit (D336): anonymises the account now, ignoring the grace period. Errors: 409 DELETION_BLOCKED (errors.obligations) while obligations remain · 409 INVALID_STATE (no longer pending) · 404 · 422 (reason required).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"طلبت العميلة الحذف الفوري عبر الدعم\"\n}"
+            }
+          }
+        }
+      ]
     }
   ]
 }

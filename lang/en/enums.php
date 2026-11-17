@@ -3,7 +3,7 @@
 // Labels for App\Enums (key = enum short name in snake_case).
 return [
     'user_type' => ['client' => 'Client', 'provider' => 'Provider', 'admin' => 'Admin'],
-    'user_status' => ['active' => 'Active', 'suspended' => 'Suspended', 'pending_deletion' => 'Pending deletion'],
+    'user_status' => ['active' => 'Active', 'suspended' => 'Suspended', 'pending_deletion' => 'Pending deletion', 'deleted' => 'Deleted'],
     'otp_purpose' => ['login' => 'Login', 'register' => 'Registration', 'change_phone' => 'Change mobile number'],
     'device_app' => ['client' => 'Client app', 'provider' => 'Provider app', 'dashboard' => 'Dashboard'],
     'notification_preference_key' => [

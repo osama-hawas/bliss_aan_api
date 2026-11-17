@@ -76,5 +76,6 @@ return [
     'ADJUSTMENT_LIMIT_EXCEEDED' => 'The amount is above the largest adjustment allowed.',
     'SELF_APPROVAL' => 'Another staff member must approve an adjustment you requested.',
     // S21 (D322).
+    'DELETION_BLOCKED' => 'This account still has open obligations (bookings, orders, returns, payouts or tickets). It can be deleted once they are closed.',
     'EXPORT_TOO_LARGE' => 'This export has more rows than one file can hold. Narrow the period or filters and try again.',
 ];

@@ -47,6 +47,8 @@ class AppSettingSeeder extends Seeder
             'finance.adjustment_approval_amount' => '1000.00',
             // S21 — reports (D320): the overview's low-stock item reads `store.low_stock_threshold` (S18's key above) and stays
             // hidden while it is null.
+            // S22 (D330): grace period before an account deletion request is processed (initial value, editable).
+            'account.deletion_grace_days' => 14, // days
         ];
 
         foreach (UploadContext::cases() as $context) {

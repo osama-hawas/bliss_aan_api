@@ -18,6 +18,11 @@ class EnsureAccountActive
     {
         $user = $request->user();
 
+        // S22 (D331): a deleted account has no session left; a token that still reaches here is refused like a signed-out one.
+        if ($user?->status === UserStatus::Deleted) {
+            throw new ApiException(ErrorCode::Unauthenticated);
+        }
+
         if ($user?->status === UserStatus::Suspended) {
             throw new ApiException(
                 ErrorCode::AccountSuspended,

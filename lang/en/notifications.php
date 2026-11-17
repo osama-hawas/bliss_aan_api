@@ -48,5 +48,7 @@ return [
         'ledger_debit_posted' => ['title' => 'Balance adjusted', 'body' => ':amount :currency was deducted from your balance (:reference).'],
         // S20 (E40): the campaign's own title and text, in the reader's language (D306).
         'broadcast' => ['title' => ':title', 'body' => ':body'],
+        // S22 (E50).
+        'account_deletion_blocked' => ['title' => 'Account deletion on hold', 'body' => 'We could not delete your account yet: it still has an open booking, order, return, payout or ticket. It will be deleted once they are closed.'],
     ],
 ];

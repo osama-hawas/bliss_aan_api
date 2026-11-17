@@ -47,5 +47,7 @@ return [
         'ledger_debit_posted' => ['title' => 'تعديل على رصيدكِ', 'body' => 'خُصم :amount :currency من رصيدكِ (:reference).'],
         // S20 (E40): the campaign's own title and text, in the reader's language (D306).
         'broadcast' => ['title' => ':title', 'body' => ':body'],
+        // S22 (E50).
+        'account_deletion_blocked' => ['title' => 'حذف الحساب معلّق', 'body' => 'لم نتمكن من حذف حسابك بعد: لا يزال لديك حجز أو طلب أو مرتجع أو تحويل أو تذكرة مفتوحة. سيُحذف الحساب بعد إغلاقها.'],
     ],
 ];

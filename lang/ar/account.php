@@ -8,6 +8,7 @@ return [
     'avatar_updated' => 'تم تحديث صورتكِ.',
     'deletion_requested' => 'تم إرسال طلب حذف الحساب.',
     'deletion_withdrawn' => 'تم سحب طلب حذف الحساب.',
+    'deletion_processed' => 'تم حذف الحساب.', // S22
     'attributes' => [
         'name' => 'الاسم',
         'email' => 'البريد الإلكتروني',

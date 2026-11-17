@@ -8,6 +8,7 @@ return [
     'avatar_updated' => 'Your photo has been updated.',
     'deletion_requested' => 'Your deletion request has been sent.',
     'deletion_withdrawn' => 'Your deletion request has been withdrawn.',
+    'deletion_processed' => 'The account has been deleted.', // S22
     'attributes' => [
         'name' => 'name',
         'email' => 'email',

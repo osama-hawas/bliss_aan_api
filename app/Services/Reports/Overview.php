@@ -67,7 +67,7 @@ class Overview
                 ->count('products.id'), '/store/products?low_stock=1'],
             ['payouts', ['payouts.process'], 'payout_requests', fn () => DB::table('payout_requests')->where('status', 'requested')->count(), '/finance/payouts?status=requested'],
             ['unknownPayments', ['finance.view'], 'payments', fn () => DB::table('payments')->where('status', 'unknown')->count(), '/finance/payments?status=unknown'],
-            ['deletions', ['clients.edit'], 'account_deletion_requests', fn () => DB::table('account_deletion_requests')->where('status', DeletionRequestStatus::Pending->value)->count(), '/clients?deletion_request=pending'],
+            ['deletions', ['clients.edit'], 'account_deletion_requests', fn () => DB::table('account_deletion_requests')->where('status', DeletionRequestStatus::Pending->value)->count(), '/clients/deletion-requests?status=pending'], // S22
         ];
 
         $queue = [];

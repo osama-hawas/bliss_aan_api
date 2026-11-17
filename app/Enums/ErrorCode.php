@@ -75,6 +75,9 @@ enum ErrorCode: string
     // S21 — reports (D322).
     case ExportTooLarge = 'EXPORT_TOO_LARGE';
 
+    // S22 — account deletion processing (D333): open obligations keep the account (409).
+    case DeletionBlocked = 'DELETION_BLOCKED';
+
     public function status(): int
     {
         return match ($this) {
@@ -99,6 +102,7 @@ enum ErrorCode: string
             self::SelfApproval => 409, // Slice 19
             self::TranslationMissing, self::AudienceChanged, self::NoRecipients => 409, // Slice 20
             self::ExportTooLarge => 422, // S21 (D322)
+            self::DeletionBlocked => 409, // S22 (D333)
         };
     }
 

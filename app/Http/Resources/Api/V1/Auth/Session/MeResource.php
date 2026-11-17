@@ -6,6 +6,7 @@ use App\Enums\UserType;
 use App\Http\Resources\Concerns\FormatsApiValues;
 use App\Models\User;
 use App\Services\Account\AccountDeletion;
+use App\Services\Account\AccountDeletionProcessor;
 use App\Services\Media\MediaService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -38,7 +39,8 @@ class MeResource extends JsonResource
             'avatar_url' => $this->when(! $this->isType(UserType::Admin), fn () => $this->isType(UserType::Client) && $this->avatar
                 ? app(MediaService::class)->url($this->avatar) : null),
             'deletion_request' => $this->when(! $this->isType(UserType::Admin), fn () => ($pending = app(AccountDeletion::class)->pending($this->resource))
-                ? ['id' => $pending->id, 'status' => $pending->status->value, 'status_label' => $pending->status->label(), 'requested_at' => $this->dateTime($pending->created_at)]
+                ? ['id' => $pending->id, 'status' => $pending->status->value, 'status_label' => $pending->status->label(), 'requested_at' => $this->dateTime($pending->created_at),
+                    'scheduled_for' => $this->dateTime(app(AccountDeletionProcessor::class)->scheduledFor($pending))] // S22
                 : null),
             // Providers only: the account state the app routes on (application under review, sent back,
             // suspended, active). Details come from `GET provider/application`.
