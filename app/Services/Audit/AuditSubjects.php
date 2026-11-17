@@ -32,6 +32,7 @@ class AuditSubjects
         'refund' => '/finance/refunds',
         'payout_request' => '/finance/payouts/{id}',
         'store_order' => '/store/orders/{id}',
+        'store_return' => '/store/returns/{id}', // S23
         'product' => '/store/products/{id}',
         'service' => '/catalog/services/{id}',
         'service_category' => '/catalog/categories',

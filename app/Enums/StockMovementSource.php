@@ -16,4 +16,5 @@ enum StockMovementSource: string
     case Adjustment = 'adjustment';
     case Order = 'order';
     case OrderCancelled = 'order_cancelled';
+    case StoreReturn = 'store_return'; // S23 (D346): a received return put back on the shelf
 }

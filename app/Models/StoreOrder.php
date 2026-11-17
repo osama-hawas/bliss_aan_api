@@ -122,6 +122,12 @@ class StoreOrder extends Model
             ->orWhere(fn (Builder $paid) => $paid->where('status', PaymentStatus::Succeeded->value)->where('fulfilment_status', FulfilmentStatus::Pending->value)));
     }
 
+    /** S23: returns of this order, oldest first. */
+    public function returns(): HasMany
+    {
+        return $this->hasMany(StoreReturn::class)->orderBy('id');
+    }
+
     public function activity(): MorphMany
     {
         return $this->morphMany(ActivityEvent::class, 'subject');

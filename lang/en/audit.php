@@ -91,6 +91,10 @@ return [
         'policy_published' => 'Policy version published',
         'setting_changed' => 'Setting changed',
         'report_exported' => 'Report exported',
+        // S23 — store returns.
+        'store_return_approved' => 'Return approved',
+        'store_return_rejected' => 'Return rejected',
+        'store_return_received' => 'Return received',
     ],
     'subjects' => [
         'client' => 'Client',
@@ -126,5 +130,6 @@ return [
         'document_type' => 'Document type',
         'policy_version' => 'Policy version',
         'broadcast_campaign' => 'Notification',
+        'store_return' => 'Store return', // S23
     ],
 ];

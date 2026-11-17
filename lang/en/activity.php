@@ -61,4 +61,17 @@ return [
     'team_member_unassigned' => 'Team member removed',
     'team_member_disabled' => 'Team member disabled',
     'team_member_enabled' => 'Team member enabled',
+    // S23 — store returns (return history; order entries are internal).
+    'return_requested' => 'Return requested',
+    'return_approved' => 'Return approved',
+    'return_rejected' => 'Return rejected',
+    'return_received' => 'Items received',
+    'return_refunded' => 'Refund issued',
+    'return_cancelled' => 'Return cancelled',
+    'return_note' => 'Staff note',
+    'order_return_requested' => 'Return requested',
+    'order_return_approved' => 'Return approved',
+    'order_return_rejected' => 'Return rejected',
+    'order_return_received' => 'Returned items received',
+    'order_return_cancelled' => 'Return cancelled',
 ];

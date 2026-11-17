@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             EventTypeSeeder::class,
             DeclineReasonSeeder::class,
             AppSettingSeeder::class,
+            StoreReturnPolicySeeder::class, // S23 (D348): first store_return policy text, never overwritten
         ]);
 
         if (app()->environment('local')) {

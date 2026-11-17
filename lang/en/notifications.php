@@ -48,5 +48,11 @@ return [
         'ledger_debit_posted' => ['title' => 'Balance adjusted', 'body' => ':amount :currency was deducted from your balance (:reference).'],
         // S20 (E40): the campaign's own title and text, in the reader's language (D306).
         'broadcast' => ['title' => ':title', 'body' => ':body'],
+        // S23 — store returns (E55–E59).
+        'store_return_requested' => ['title' => 'Return requested', 'body' => 'We received your return request :reference. We will review it soon.'],
+        'store_return_approved' => ['title' => 'Return approved', 'body' => 'Your return :reference was approved. Open it to see how to send the items back.'],
+        'store_return_rejected' => ['title' => 'Return not accepted', 'body' => 'Your return :reference was not accepted. Open it for the reason.'],
+        'store_return_received' => ['title' => 'Return received', 'body' => 'We received the items of your return :reference. Your refund is on its way.'],
+        'store_return_refunded' => ['title' => 'Refund issued', 'body' => 'A refund of :amount was issued for your return :reference.'],
     ],
 ];

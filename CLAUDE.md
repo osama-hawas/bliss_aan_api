@@ -466,3 +466,22 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
   batch cell cache, id ceiling, cap `reports.export_max_rows` (10 000). Money cells: `Cell::money()` (numeric). Receipts: `Services\Reports\Receipts\PaymentReceipts` (+ `payment_receipts` VAT snapshot) and `ReceiptPdf`
   (dompdf + `ar-php` shaping, view `resources/views/reports/receipt.blade.php`); listener `Listeners\Reports\IssuePaymentReceipt`.
 - Tests: `tests/Feature/Admin/Reports/*` (money sources in `MoneyKpisTest`, rows by table contract via `BuildsFinance`).
+
+## Store returns (Slice 23 — S23)
+
+- Contract: `docs/slice-23-contract.md` (D340–D349, E55–E59). Client routes `routes/api/v1/client/store-returns.php`
+  (`client/store-orders/{order}/returns` + `client/store-returns`), public `GET shared/store/return-policy`; admin
+  `routes/api/v1/admin/store-returns/` (`orders.view`; approve / reject `orders.update_status`; receive / refund also
+  `refunds.process`). Logic in `app/Services/Store/Returns/`.
+- `StoreReturnRequests::create` (Idempotency-Key + fingerprint; lock her order → key re-check → delivered + paid, window
+  `store.return_window_days` (`ReturnPolicy`; null → NOT_CONFIGURED, past → `409 RETURN_WINDOW_CLOSED`), quantities ≤
+  `returnable()` → own unattached `store_return_photo` media (≤ 3) → `ReturnMoney` → `RT-` insert → E55); `cancel` while requested.
+- `StoreReturnProcessing`: lock order **return → order → variants (id asc) → payment**. `receive` restocks through S18
+  `StockAdjustments::record()` (source `store_return`), commits, then `refund()` → S10 `PaymentRefunds::refund(…, RefundKind::StoreReturn,
+  staff, …, 'store_return:{id}:{n}')` (n = 1 + failed refunds; amount capped at the payment remainder; refusals → `refund_error`).
+  `settle()` (also from `Listeners\Store\SettleStoreReturnRefund` on `RefundSettled`) moves received → refunded once (E59).
+- Money: `ReturnMoney::compute()` — lines at order unit prices minus the cumulatively prorated promo discount; shipping never.
+- Policy text: `store_return` policy version (`StoreReturnPolicySeeder` v1 when none; `:days` placeholder).
+- Tests: `Tests\Concerns\BuildsStoreReturns` (`configureReturns()`, `deliveredOrder()` paid through the fake gateway,
+  `requestReturn()`, `returnPhoto()`); `tests/Feature/Store/{StoreReturn,AdminStoreReturn}Test.php`,
+  `tests/Feature/Database/StoreReturnLockingTest.php`, `tests/Unit/Store/ReturnMoneyTest.php`.

@@ -47,5 +47,11 @@ return [
         'ledger_debit_posted' => ['title' => 'تعديل على رصيدكِ', 'body' => 'خُصم :amount :currency من رصيدكِ (:reference).'],
         // S20 (E40): the campaign's own title and text, in the reader's language (D306).
         'broadcast' => ['title' => ':title', 'body' => ':body'],
+        // S23 — إرجاع المتجر (E55–E59).
+        'store_return_requested' => ['title' => 'تم استلام طلب الإرجاع', 'body' => 'وصلنا طلب الإرجاع :reference وسنراجعه قريبًا.'],
+        'store_return_approved' => ['title' => 'تم قبول الإرجاع', 'body' => 'تم قبول طلب الإرجاع :reference. افتحيه لمعرفة طريقة إعادة المنتجات.'],
+        'store_return_rejected' => ['title' => 'لم يُقبل الإرجاع', 'body' => 'لم يُقبل طلب الإرجاع :reference. افتحيه لمعرفة السبب.'],
+        'store_return_received' => ['title' => 'تم استلام المرتجع', 'body' => 'استلمنا منتجات طلب الإرجاع :reference، وجارٍ استرداد المبلغ.'],
+        'store_return_refunded' => ['title' => 'تم استرداد المبلغ', 'body' => 'تم استرداد :amount لطلب الإرجاع :reference.'],
     ],
 ];

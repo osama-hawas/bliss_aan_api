@@ -69,6 +69,9 @@ return [
             'uploads__avatar' => 'Files: profile photos',
             'uploads__request_attachment' => 'Files: request attachments',
             'uploads__team_photo' => 'Files: team photos',
+            // S23 — store returns.
+            'store__return_window_days' => 'Store return period after delivery',
+            'uploads__store_return_photo' => 'Files: return photos',
         ],
     ],
 ];

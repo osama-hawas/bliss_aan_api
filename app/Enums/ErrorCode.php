@@ -74,6 +74,7 @@ enum ErrorCode: string
 
     // S21 — reports (D322).
     case ExportTooLarge = 'EXPORT_TOO_LARGE';
+    case ReturnWindowClosed = 'RETURN_WINDOW_CLOSED'; // S23 (D343)
 
     public function status(): int
     {
@@ -99,6 +100,7 @@ enum ErrorCode: string
             self::SelfApproval => 409, // Slice 19
             self::TranslationMissing, self::AudienceChanged, self::NoRecipients => 409, // Slice 20
             self::ExportTooLarge => 422, // S21 (D322)
+            self::ReturnWindowClosed => 409, // S23 (D343)
         };
     }
 

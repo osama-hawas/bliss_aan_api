@@ -43,6 +43,7 @@ return [
         'avatar' => 'الصورة الشخصية',
         'request_attachment' => 'مرفق الطلب',
         'team_photo' => 'صورة عضوة الفريق',
+        'store_return_photo' => 'صورة الإرجاع', // S23
     ],
     'provider_account_type' => ['individual' => 'فرد', 'establishment' => 'منشأة'],
     'provider_status' => [
@@ -93,7 +94,7 @@ return [
     'payment_purpose' => ['full' => 'دفع كامل', 'store' => 'طلب متجر'],
     'fulfilment_status' => ['not_applicable' => 'لا ينطبق', 'pending' => 'قيد الإتمام', 'fulfilled' => 'تم', 'failed' => 'تعذّر الإتمام'],
     'refund_status' => ['in_progress' => 'قيد التنفيذ', 'refunded' => 'تم الاسترداد', 'failed' => 'فشل'],
-    'refund_kind' => ['acceptance_failed' => 'تعذّر تأكيد الحجز', 'superseded_attempt' => 'محاولة دفع مستبدلة', 'staff' => 'بواسطة الفريق'],
+    'refund_kind' => ['acceptance_failed' => 'تعذّر تأكيد الحجز', 'superseded_attempt' => 'محاولة دفع مستبدلة', 'staff' => 'بواسطة الفريق', 'store_return' => 'إرجاع من المتجر'],
     'payment_refund_state' => ['none' => 'لم يُسترد', 'in_progress' => 'الاسترداد قيد التنفيذ', 'partial' => 'مسترد جزئيًا', 'full' => 'مسترد بالكامل'],
     // Slice 9b (store orders)
     'store_order_status' => ['pending_payment' => 'بانتظار الدفع', 'confirmed' => 'مؤكَّد', 'preparing' => 'قيد التجهيز', 'shipped' => 'في الطريق', 'delivered' => 'تم التوصيل', 'cancelled' => 'ملغى', 'expired' => 'لم يكتمل الدفع'],
@@ -112,7 +113,7 @@ return [
     // Slice 13 (S13): provider team (D230).
     'team_member_status' => ['active' => 'نشطة', 'disabled' => 'موقوفة'],
     // Slice 18 (S18) — store management.
-    'stock_movement_source' => ['initial' => 'المخزون الأولي', 'adjustment' => 'تعديل من الفريق', 'order' => 'طلب', 'order_cancelled' => 'إلغاء طلب'],
+    'stock_movement_source' => ['initial' => 'المخزون الأولي', 'adjustment' => 'تعديل من الفريق', 'order' => 'طلب', 'order_cancelled' => 'إلغاء طلب', 'store_return' => 'إرجاع من عميلة'],
     'stock_adjustment_reason' => ['restock' => 'استلام مخزون جديد', 'stocktake' => 'جرد', 'damaged' => 'تالف أو مفقود', 'correction' => 'تصحيح', 'other' => 'سبب آخر'],
     // Slice 19 (S19) — المالية.
     'ledger_adjustment_direction' => ['credit' => 'إضافة', 'debit' => 'خصم'],
@@ -128,4 +129,7 @@ return [
     'broadcast_status' => ['draft' => 'مسودة', 'scheduled' => 'مجدولة', 'sending' => 'قيد الإرسال', 'sent' => 'أُرسلت', 'cancelled' => 'ملغاة'],
     'content_status' => ['visible' => 'ظاهر', 'hidden' => 'مخفي'],
     'setting_kind' => ['integer' => 'عدد صحيح', 'decimal' => 'رقم', 'money' => 'مبلغ (ريال)', 'boolean' => 'تشغيل / إيقاف', 'integer_list' => 'قائمة أرقام', 'upload_limits' => 'حدود الملفات', 'json' => 'قيمة'],
+    // S23 — إرجاع المتجر (OD37).
+    'store_return_status' => ['requested' => 'تم الطلب', 'approved' => 'مقبول', 'rejected' => 'مرفوض', 'received' => 'تم الاستلام', 'refunded' => 'تم الاسترداد', 'cancelled' => 'ملغى'],
+    'store_return_reason' => ['damaged' => 'تالف أو به عيب', 'wrong_item' => 'منتج غير المطلوب', 'not_as_described' => 'لا يطابق الوصف', 'changed_mind' => 'غيّرت رأيي', 'other' => 'سبب آخر'],
 ];

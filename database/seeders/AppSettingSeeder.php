@@ -47,6 +47,8 @@ class AppSettingSeeder extends Seeder
             'finance.adjustment_approval_amount' => '1000.00',
             // S21 — reports (D320): the overview's low-stock item reads `store.low_stock_threshold` (S18's key above) and stays
             // hidden while it is null.
+            // S23 — store returns (OD37, D343): days after delivery a client may ask for a return (initial value, editable).
+            'store.return_window_days' => 7,
         ];
 
         foreach (UploadContext::cases() as $context) {
@@ -54,6 +56,8 @@ class AppSettingSeeder extends Seeder
         }
 
         $settings = [...$settings, ...$this->requestAttachmentLimits()];
+        // S23 (D342): return photos get initial limits (images, 10 MB) like D242; editable in Settings.
+        $settings[UploadContext::StoreReturnPhoto->settingKey()] = ['mimes' => ['jpg', 'jpeg', 'png', 'heic', 'webp'], 'max_kb' => 10240];
 
         foreach ($settings as $key => $value) {
             AppSetting::query()->firstOrCreate(['key' => $key], ['value' => $value]);

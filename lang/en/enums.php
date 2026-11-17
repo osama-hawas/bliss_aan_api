@@ -43,6 +43,7 @@ return [
         'avatar' => 'Profile photo',
         'request_attachment' => 'Request attachment',
         'team_photo' => 'Team member photo',
+        'store_return_photo' => 'Return photo', // S23
     ],
     'provider_account_type' => ['individual' => 'Individual', 'establishment' => 'Establishment'],
     'provider_status' => [
@@ -93,7 +94,7 @@ return [
     'payment_purpose' => ['full' => 'Full payment', 'store' => 'Store order'],
     'fulfilment_status' => ['not_applicable' => 'Not applicable', 'pending' => 'Pending', 'fulfilled' => 'Completed', 'failed' => 'Could not be completed'],
     'refund_status' => ['in_progress' => 'In progress', 'refunded' => 'Refunded', 'failed' => 'Failed'],
-    'refund_kind' => ['acceptance_failed' => 'Booking could not be confirmed', 'superseded_attempt' => 'Replaced payment attempt', 'staff' => 'By staff'],
+    'refund_kind' => ['acceptance_failed' => 'Booking could not be confirmed', 'superseded_attempt' => 'Replaced payment attempt', 'staff' => 'By staff', 'store_return' => 'Store return'],
     'payment_refund_state' => ['none' => 'Not refunded', 'in_progress' => 'Refund in progress', 'partial' => 'Partially refunded', 'full' => 'Fully refunded'],
     // Slice 9b (store orders)
     'store_order_status' => ['pending_payment' => 'Awaiting payment', 'confirmed' => 'Confirmed', 'preparing' => 'Preparing', 'shipped' => 'On the way', 'delivered' => 'Delivered', 'cancelled' => 'Cancelled', 'expired' => 'Payment not completed'],
@@ -112,7 +113,7 @@ return [
     // Slice 13 (S13): provider team (D230).
     'team_member_status' => ['active' => 'Active', 'disabled' => 'Disabled'],
     // Slice 18 (S18) — store management.
-    'stock_movement_source' => ['initial' => 'Initial stock', 'adjustment' => 'Staff adjustment', 'order' => 'Order', 'order_cancelled' => 'Order cancelled'],
+    'stock_movement_source' => ['initial' => 'Initial stock', 'adjustment' => 'Staff adjustment', 'order' => 'Order', 'order_cancelled' => 'Order cancelled', 'store_return' => 'Returned by a client'],
     'stock_adjustment_reason' => ['restock' => 'New stock received', 'stocktake' => 'Stocktake', 'damaged' => 'Damaged or lost', 'correction' => 'Correction', 'other' => 'Other'],
     // Slice 19 (S19) — finance.
     'ledger_adjustment_direction' => ['credit' => 'Credit', 'debit' => 'Debit'],
@@ -128,4 +129,7 @@ return [
     'broadcast_status' => ['draft' => 'Draft', 'scheduled' => 'Scheduled', 'sending' => 'Sending', 'sent' => 'Sent', 'cancelled' => 'Cancelled'],
     'content_status' => ['visible' => 'Visible', 'hidden' => 'Hidden'],
     'setting_kind' => ['integer' => 'Whole number', 'decimal' => 'Number', 'money' => 'Amount (SAR)', 'boolean' => 'On / off', 'integer_list' => 'List of numbers', 'upload_limits' => 'File limits', 'json' => 'Value'],
+    // S23 — store returns (OD37).
+    'store_return_status' => ['requested' => 'Requested', 'approved' => 'Approved', 'rejected' => 'Rejected', 'received' => 'Received', 'refunded' => 'Refunded', 'cancelled' => 'Cancelled'],
+    'store_return_reason' => ['damaged' => 'Damaged or defective', 'wrong_item' => 'Wrong item', 'not_as_described' => 'Not as described', 'changed_mind' => 'Changed my mind', 'other' => 'Other'],
 ];

@@ -91,6 +91,10 @@ return [
         'policy_published' => 'نشر إصدار سياسة',
         'setting_changed' => 'تغيير إعداد',
         'report_exported' => 'تصدير تقرير',
+        // S23 — إرجاع المتجر.
+        'store_return_approved' => 'قبول طلب إرجاع',
+        'store_return_rejected' => 'رفض طلب إرجاع',
+        'store_return_received' => 'استلام مرتجع',
     ],
     'subjects' => [
         'client' => 'عميلة',
@@ -126,5 +130,6 @@ return [
         'document_type' => 'نوع مستند',
         'policy_version' => 'إصدار سياسة',
         'broadcast_campaign' => 'إشعار',
+        'store_return' => 'طلب إرجاع', // S23
     ],
 ];

@@ -77,4 +77,6 @@ return [
     'SELF_APPROVAL' => 'Another staff member must approve an adjustment you requested.',
     // S21 (D322).
     'EXPORT_TOO_LARGE' => 'This export has more rows than one file can hold. Narrow the period or filters and try again.',
+    // S23 (D343).
+    'RETURN_WINDOW_CLOSED' => 'The return period for this order has ended.',
 ];

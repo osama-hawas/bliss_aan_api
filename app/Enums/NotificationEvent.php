@@ -52,6 +52,12 @@ enum NotificationEvent: string
     case LedgerDebitPosted = 'ledger_debit_posted';           // E36
     // S20 (Slice 20): broadcast campaign, push gated by `promotions` (D305/D306).
     case Broadcast = 'broadcast';                             // E40
+    // S23 — store returns (OD37, D347), client, transactional.
+    case StoreReturnRequested = 'store_return_requested';     // E55
+    case StoreReturnApproved = 'store_return_approved';       // E56
+    case StoreReturnRejected = 'store_return_rejected';       // E57
+    case StoreReturnReceived = 'store_return_received';       // E58
+    case StoreReturnRefunded = 'store_return_refunded';       // E59
 
     /**
      * The D26 key that can switch off the push (D135). Null = transactional, always pushed.

@@ -134,7 +134,9 @@ Labels: **[C]** confirmed · **[R]** recommendation · **[?]** open question.
 | `store_order_items` | store_order_id, product_variant_id, product_id, **name/options/sku/unit_price snapshot**, quantity, line_total | M |
 | `shipments` | store_order_id, method (carrier/internal), carrier, tracking_number, tracking_url, status (pending/in_transit/delivered/failed), assigned_admin_id (delivery officer), **request_key unique**, failure_reason, attempts, created_by, delivered_at (S9b) | M |
 | `shipment_events` | shipment_id, external_event_id unique (`{tracking}:{carrier_status}` or `staff:{uuid}`), status, carrier_status, note, occurred_at, raw JSON, actor_id (S9b) | M |
-| `returns`, `product_reviews` | Out of scope (D203) — not built | — |
+| `store_returns` | S23 (OD37, D340–D349): reference `RT-` unique, store_order_id, user_id, status (requested/approved/rejected/received/refunded/cancelled), reason_code (damaged/wrong_item/not_as_described/changed_mind/other), note, policy_version_id (snapshot), subtotal / discount (prorated promo share) / refund_amount decimal(12,2) (cents in code; shipping never refunded), refund_id → `refunds` unique nullable, refund_attempts, refund_error, restocked, approved/rejected/received/refunded/cancelled `_at` (+ `_by` for staff), reject_reason, **unique(user_id, idempotency_key)** + fingerprint. Migration `2026_12_02_100000_create_store_return_tables` | P2 (S23) |
+| `store_return_items` | store_return_id (cascade), store_order_item_id, product_variant_id, snapshots name JSON / options JSON / sku / unit_price / quantity / line_total; unique(store_return_id, store_order_item_id) | P2 (S23) |
+| `product_reviews` | Out of scope (D203) — not built | — |
 
 ## 9. Content, configuration, notifications, audit
 

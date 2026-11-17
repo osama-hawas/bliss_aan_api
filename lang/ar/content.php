@@ -69,6 +69,9 @@ return [
             'uploads__avatar' => 'الملفات: الصور الشخصية',
             'uploads__request_attachment' => 'الملفات: مرفقات الطلب',
             'uploads__team_photo' => 'الملفات: صور الفريق',
+            // S23 — إرجاع المتجر.
+            'store__return_window_days' => 'مدة إرجاع منتجات المتجر بعد التوصيل',
+            'uploads__store_return_photo' => 'الملفات: صور المرتجعات',
         ],
     ],
 ];
