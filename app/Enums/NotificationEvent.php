@@ -30,6 +30,13 @@ enum NotificationEvent: string
     case ApplicationSuspended = 'application_suspended';
     case ApplicationReactivated = 'application_reactivated';
     case ApplicationDocumentRejected = 'application_document_rejected';
+    // Slice 17 (D257, D263): staff actions — E20–E25 (S11 owns E18–E19, S9b E26–E29)
+    case SupportReplied = 'support_replied';                  // E20
+    case SupportTicketResolved = 'support_ticket_resolved';   // E21
+    case RequestCancelledByStaff = 'request_cancelled_by_staff'; // E22
+    case BookingCancelledByStaff = 'booking_cancelled_by_staff'; // E23
+    case BookingCompletedByStaff = 'booking_completed_by_staff'; // E24
+    case RefundIssued = 'refund_issued';                      // E25
 
     /**
      * The D26 key that can switch off the push (D135). Null = transactional, always pushed.

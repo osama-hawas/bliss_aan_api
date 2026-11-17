@@ -13,3 +13,6 @@ Schedule::command('offers:expire')->everyFiveMinutes()->withoutOverlapping();
 
 // Slice 8 (D136): delete read notifications older than 180 days.
 Schedule::command('notifications:prune')->daily()->withoutOverlapping();
+
+// Slice 17 (D265): close resolved tickets after support.auto_close_days (null = off, no-op).
+Schedule::command('support:auto-close')->daily()->withoutOverlapping();

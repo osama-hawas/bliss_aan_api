@@ -13,7 +13,7 @@ class ReviewQueries
 {
     public function forProvider(Provider $provider, int $perPage): LengthAwarePaginator
     {
-        return Review::query()->where('provider_id', $provider->id)
+        return Review::query()->published()->where('provider_id', $provider->id) // S17 (D261): hidden reviews leave her list
             ->with(['client', 'booking'])
             ->withExists(['reports as reported_by_me' => fn ($q) => $q->where('reporter_id', $provider->user_id)])
             ->orderByDesc('created_at')->orderByDesc('id')

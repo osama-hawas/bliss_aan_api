@@ -26,5 +26,12 @@ return [
         'application_suspended' => ['title' => 'تم إيقاف حسابكِ', 'body' => 'أُوقف حسابكِ كمقدمة خدمة. افتحيه لمعرفة التفاصيل.'],
         'application_reactivated' => ['title' => 'أُعيد تفعيل حسابكِ', 'body' => 'أصبح حسابكِ مفعّلًا من جديد.'],
         'application_document_rejected' => ['title' => 'لم يُقبل أحد المستندات', 'body' => 'لم يُقبل أحد مستندات طلبكِ. افتحيه لرفع مستند جديد.'],
+        // Slice 17 (E20–E25). :amount مبلغ للعرض (E25 فقط).
+        'support_replied' => ['title' => 'ردّ فريق الدعم', 'body' => 'ردّ دعم Bliss aan على تذكرتكِ :reference.'],
+        'support_ticket_resolved' => ['title' => 'تم حل التذكرة', 'body' => 'تم تحديد تذكرتكِ :reference كمحلولة. ردّي عليها إن كنتِ ما زلتِ بحاجة إلى مساعدة.'],
+        'request_cancelled_by_staff' => ['title' => 'تم إلغاء الطلب', 'body' => 'ألغى دعم Bliss aan طلبكِ :reference.'],
+        'booking_cancelled_by_staff' => ['title' => 'تم إلغاء الحجز', 'body' => 'ألغى دعم Bliss aan الحجز :reference.'],
+        'booking_completed_by_staff' => ['title' => 'اكتمل الحجز', 'body' => 'حدّد دعم Bliss aan الحجز :reference كمكتمل.'],
+        'refund_issued' => ['title' => 'تم إصدار استرداد', 'body' => 'تم إصدار استرداد بمبلغ :amount عن :reference.'],
     ],
 ];

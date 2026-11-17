@@ -24,6 +24,8 @@ class AppSettingSeeder extends Seeder
             'bookings.buffer_minutes' => 0, // D108
             'bookings.start_early_minutes' => 60, // D126
             'support.auto_close_days' => null, // D160 (S12b): no auto-close until decided
+            // Slice 17 (D260): technical chat-review window in minutes, not a business number; null = reason on every page
+            'support.chat_access_minutes' => 30,
         ];
 
         foreach (UploadContext::cases() as $context) {

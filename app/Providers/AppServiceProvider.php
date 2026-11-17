@@ -11,12 +11,14 @@ use App\Integrations\Shipping\Carrier;
 use App\Integrations\Shipping\FakeCarrier;
 use App\Integrations\Sms\FakeSmsGateway;
 use App\Integrations\Sms\SmsGateway;
+use App\Listeners\Operations\NotifyRefundIssued;
 use App\Services\Settings\AppSettings;
 use App\Support\Phone;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
@@ -71,6 +73,10 @@ class AppServiceProvider extends ServiceProvider
             Limit::perHour(config('services.sms.rate_limits.request_per_phone_per_hour'))->by('otp-phone:'.$phone($request)),
             Limit::perHour(config('services.sms.rate_limits.request_per_ip_per_hour'))->by('otp-ip:'.$request->ip()),
         ]);
+        // --- S17 (Slice 17, D263): E25 on a settled staff refund. Bound by class name: Slice 10 owns the event. ---
+        Event::listen('App\\Events\\Payments\\RefundSettled', [NotifyRefundIssued::class, 'handle']);
+        // --- end S17 ---
+
         RateLimiter::for('otp-verify', fn (Request $request) => Limit::perMinute(config('services.sms.rate_limits.verify_per_ip_per_minute'))->by('otp-verify:'.$request->ip()));
     }
 }

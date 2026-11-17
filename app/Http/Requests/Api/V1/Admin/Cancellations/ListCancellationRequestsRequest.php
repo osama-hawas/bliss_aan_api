@@ -15,6 +15,7 @@ class ListCancellationRequestsRequest extends FormRequest
             'filter.status' => ['nullable', Rule::enum(CancellationStatus::class)],
             'filter.requester_role' => ['nullable', Rule::enum(CancellationRequesterRole::class)],
             'sort' => ['nullable', 'in:created_at,-created_at'],
+            'q' => ['nullable', 'string', 'max:100'], // S17
             'per_page' => ['nullable', 'integer', 'min:1'],
         ];
     }
