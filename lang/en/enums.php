@@ -106,4 +106,6 @@ return [
     'payout_request_status' => ['requested' => 'Requested', 'paid' => 'Transferred', 'rejected' => 'Rejected'],
     // Slice 17 (operations & support)
     'content_report_decision' => ['actioned' => 'Action taken', 'dismissed' => 'Dismissed'],
+    // Slice 16 (S16): admin catalog rows.
+    'catalog_status' => ['active' => 'Active', 'inactive' => 'Stopped'],
 ];

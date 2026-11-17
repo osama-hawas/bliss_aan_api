@@ -46,9 +46,20 @@ class Service extends Model
         return $this->belongsTo(ServiceCategory::class, 'category_id');
     }
 
+    /**
+     * Inclusions that apply: the active ones (D179). Every reader outside the admin catalog uses this.
+     */
     public function inclusions(): HasMany
     {
-        return $this->hasMany(ServiceInclusion::class)->orderBy('sort');
+        return $this->hasMany(ServiceInclusion::class)->where('is_active', true)->orderBy('sort')->orderBy('id');
+    }
+
+    /**
+     * Every inclusion, switched-off ones included (admin catalog only).
+     */
+    public function allInclusions(): HasMany
+    {
+        return $this->hasMany(ServiceInclusion::class)->orderBy('sort')->orderBy('id');
     }
 
     public function providerServices(): HasMany
@@ -58,6 +69,6 @@ class Service extends Model
 
     public function addons(): BelongsToMany
     {
-        return $this->belongsToMany(Addon::class)->withTimestamps();
+        return $this->belongsToMany(Addon::class)->withTimestamps()->orderBy('addons.sort')->orderBy('addons.id');
     }
 }

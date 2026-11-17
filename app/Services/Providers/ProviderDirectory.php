@@ -2,6 +2,7 @@
 
 namespace App\Services\Providers;
 
+use App\Models\Addon;
 use App\Models\Provider;
 use App\Models\ProviderAddon;
 use App\Models\ProviderService;
@@ -104,6 +105,8 @@ class ProviderDirectory
             ->whereHas('addon', fn (Builder $addon) => $addon->where('is_active', true)
                 ->whereHas('services', fn (Builder $service) => $service->whereKey($providerService->service_id)))
             ->with('addon')
+            // Catalog order (D183b), then her rows as before.
+            ->orderBy(Addon::query()->select('sort')->whereColumn('addons.id', 'provider_addons.addon_id'))
             ->orderBy('provider_addons.id')
             ->get();
     }

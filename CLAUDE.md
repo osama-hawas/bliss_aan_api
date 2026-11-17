@@ -360,3 +360,17 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
   in `AppServiceProvider` (staff refunds settled `refunded`, booking payments only).
 - Tests: `Tests\Concerns\BuildsOperations`; `tests/Feature/{Operations,Support,Reviews}/*` (S17 files),
   `tests/Feature/Database/{StaffCancelLockingTest,TicketStatusLockingTest}.php`. `RefundNotificationTest` skips until S10 is merged.
+
+## Catalog management (Slice 16 — S16)
+
+- Contract: `docs/slice-16-contract.md` rev 3 (D178–D184). Routes `routes/api/v1/admin/catalog/catalog.php` (`admin/catalog/{categories,
+  services,addons,event-types}`), all `permission:catalog.manage` (D182). No DELETE route: rows are stopped / activated (reason
+  required to stop, D181) and never deleted (D180). Logic in `app/Services/Catalog/Admin/`: `CatalogRows` (stop/activate under a row
+  lock, move = swap with the neighbour, `catalog_image` media, bilingual text where `null` clears to SQL NULL), `CatalogCategories`,
+  `CatalogServices`, `CatalogAddons`, `CatalogEventTypes`, `CatalogImpact` (preview counts over active `provider_services`).
+- Guide price (D181): `null` or `> 0`; a change needs `reason`, writes only `services.guide_price` and the audit row
+  `catalog_guide_price_changed` (with `providers_default`). No min/max check, no notification, nothing repriced.
+- Inclusions (D179): `service_inclusions.is_active`; `Service::inclusions()` returns active ones only (every reader),
+  `allInclusions()` is admin-only. A PUT with `inclusions[]` is the full list: ids kept and switched on, new texts created,
+  missing ones switched off. Add-on links: `addon_service` only. `addons.sort` orders add-ons everywhere (D183b).
+- Tests: `Tests\Concerns\BuildsAdminCatalog`; `tests/Feature/Admin/Catalog/*`, `tests/Feature/Database/CatalogLockingTest.php`.

@@ -12,7 +12,17 @@ class ServiceInclusion extends Model
 
     public array $translatable = ['text'];
 
-    protected $fillable = ['service_id', 'text', 'sort'];
+    /**
+     * Same default as the column (D179), so a new model reads it before a refresh.
+     */
+    protected $attributes = ['is_active' => true];
+
+    protected $fillable = ['service_id', 'text', 'sort', 'is_active'];
+
+    protected function casts(): array
+    {
+        return ['is_active' => 'boolean'];
+    }
 
     public function service(): BelongsTo
     {

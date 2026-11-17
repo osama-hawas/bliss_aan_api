@@ -106,4 +106,6 @@ return [
     'payout_request_status' => ['requested' => 'مطلوب', 'paid' => 'تم التحويل', 'rejected' => 'مرفوض'],
     // Slice 17 (operations & support)
     'content_report_decision' => ['actioned' => 'تم اتخاذ إجراء', 'dismissed' => 'تم الرفض'],
+    // Slice 16 (S16): admin catalog rows.
+    'catalog_status' => ['active' => 'نشط', 'inactive' => 'موقوف'],
 ];
