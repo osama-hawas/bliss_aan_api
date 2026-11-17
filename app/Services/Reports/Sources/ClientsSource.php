@@ -35,6 +35,11 @@ class ClientsSource extends StatusKpiSource
         return UserStatus::values();
     }
 
+    protected function listScopeKeys(): array
+    {
+        return ['city_id'];
+    }
+
     protected function listPath(): string
     {
         return '/clients';

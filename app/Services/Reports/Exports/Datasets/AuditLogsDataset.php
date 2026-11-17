@@ -32,6 +32,11 @@ class AuditLogsDataset extends ReportDataset
         return ['created_at', 'actor', 'action', 'record_type', 'record', 'reason', 'changes'];
     }
 
+    public function idColumn(): string
+    {
+        return 'audit_logs.id';
+    }
+
     public function extraFilters(): array
     {
         return ['q', 'action', 'actor_id', 'subject_type'];

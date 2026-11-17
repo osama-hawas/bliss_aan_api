@@ -52,7 +52,7 @@ class ProvidersDataset extends ReportDataset
     {
         return [
             $row->id, $row->display_name, __('enums.provider_account_type.'.$row->account_type), $row->phone, Cell::translated($row->city_name), Cell::status($row->status),
-            Cell::bool($row->is_verified), Cell::bool($row->is_featured), $row->rating_avg, Cell::dateTime($row->activated_at), Cell::dateTime($row->created_at),
+            Cell::bool($row->is_verified), Cell::bool($row->is_featured), Cell::number($row->rating_avg), Cell::dateTime($row->activated_at), Cell::dateTime($row->created_at),
         ];
     }
 }

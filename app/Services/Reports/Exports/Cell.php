@@ -2,8 +2,8 @@
 
 namespace App\Services\Reports\Exports;
 
-use App\Services\Reports\Cents;
 use App\Services\Reports\StatusLabels;
+use App\Support\Money;
 use App\Support\RiyadhCalendar;
 use Illuminate\Support\Carbon;
 
@@ -43,14 +43,21 @@ final class Cell
         return __($value ? 'reports.yes' : 'reports.no');
     }
 
-    /** Decimal money as stored ("5500.00"); Excel reads it as a number. */
-    public static function money(mixed $amount): ?string
+    /**
+     * Money as a numeric cell (display only; nothing is calculated from it). Strings are bound as text (review H1).
+     */
+    public static function money(mixed $amount): ?float
     {
-        return $amount === null ? null : number_format((float) $amount, 2, '.', '');
+        return $amount === null ? null : Money::toCents(Money::normalize((string) $amount)) / 100;
     }
 
-    public static function cents(mixed $cents): ?string
+    public static function cents(mixed $cents): ?float
     {
-        return $cents === null ? null : Cents::toDecimal((int) $cents);
+        return $cents === null ? null : ((int) $cents) / 100;
+    }
+
+    public static function number(mixed $value): ?float
+    {
+        return $value === null ? null : (float) $value;
     }
 }

@@ -34,6 +34,11 @@ class StoreOrdersSource extends StatusKpiSource
         return self::STATUSES;
     }
 
+    protected function listScopeKeys(): array
+    {
+        return ['from', 'to'];
+    }
+
     protected function listPath(): string
     {
         return '/store/orders';

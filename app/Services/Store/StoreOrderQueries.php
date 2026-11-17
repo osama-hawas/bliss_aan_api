@@ -54,6 +54,7 @@ class StoreOrderQueries
             ->when($status === null, fn (Builder $query) => $query->whereNotIn('status', [StoreOrderStatus::PendingPayment->value, StoreOrderStatus::Expired->value]))
             ->when($status !== null && $status !== 'all', fn (Builder $query) => $query->where('status', $status))
             ->when($filters['method'] ?? null, fn (Builder $query, string $method) => $query->whereHas('latestShipment', fn (Builder $s) => $s->where('method', $method)))
+            ->when($filters['shipment_status'] ?? null, fn (Builder $query, string $shipment) => $query->whereHas('latestShipment', fn (Builder $s) => $s->where('status', $shipment)))
             ->when($filters['from'] ?? null, fn (Builder $query, string $from) => $query->where('created_at', '>=', $from.' 00:00:00'))
             ->when($filters['to'] ?? null, fn (Builder $query, string $to) => $query->where('created_at', '<=', $to.' 23:59:59'))
             ->when($q, function (Builder $query, string $text) {

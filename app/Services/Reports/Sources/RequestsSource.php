@@ -28,6 +28,11 @@ class RequestsSource extends StatusKpiSource
         return ServiceRequestStatus::values();
     }
 
+    protected function listScopeKeys(): array
+    {
+        return ['from', 'to', 'city_id'];
+    }
+
     protected function listPath(): string
     {
         return '/requests';

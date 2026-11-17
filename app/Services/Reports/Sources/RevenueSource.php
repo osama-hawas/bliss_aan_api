@@ -12,8 +12,9 @@ use Illuminate\Support\Facades\Schema;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
- * Money in and out of the gateway in the period (D329, `finance.view`): collected = succeeded payments, refunded =
- * settled refunds, net = collected − refunded. Store and booking payments together; no city.
+ * Money in and out of the gateway in the period (D329, `finance.view`): collected = succeeded payments by `paid_at`,
+ * refunded = settled refunds by `processed_at`, net = collected − refunded — the same dates as S19's FinanceOverview
+ * (review M2). Store and booking payments together; no city.
  */
 class RevenueSource implements KpiSource
 {
@@ -51,11 +52,11 @@ class RevenueSource implements KpiSource
     {
         $unavailable = $scope->hasCity();
 
-        $collected = $unavailable ? null : $scope->applyPeriod(DB::table('payments'), 'payments.created_at')
+        $collected = $unavailable ? null : $scope->applyPeriod(DB::table('payments'), 'payments.paid_at')
             ->where('status', 'succeeded')
             ->selectRaw('COUNT(*) as aggregate, '.Cents::sumOfDecimal('payments.amount').' as cents')
             ->first();
-        $refunded = $unavailable ? null : $scope->applyPeriod(DB::table('refunds'), 'refunds.created_at')
+        $refunded = $unavailable ? null : $scope->applyPeriod(DB::table('refunds'), 'refunds.processed_at')
             ->where('status', 'refunded')
             ->selectRaw('COUNT(*) as aggregate, '.Cents::sumOfDecimal('refunds.amount').' as cents')
             ->first();
@@ -66,21 +67,21 @@ class RevenueSource implements KpiSource
                 'label' => StatusLabels::label('collected'),
                 'value' => $collected ? (int) $collected->aggregate : null,
                 'amount' => $collected ? Cents::money((int) $collected->cents) : null,
-                'href' => '/finance/payments'.$scope->query(['status' => 'succeeded']),
+                'href' => '/finance/payments'.$scope->query(['status' => 'succeeded'], []),
             ],
             [
                 'key' => 'refunded',
                 'label' => StatusLabels::label('refunded'),
                 'value' => $refunded ? (int) $refunded->aggregate : null,
                 'amount' => $refunded ? Cents::money((int) $refunded->cents) : null,
-                'href' => '/finance/refunds'.$scope->query(['status' => 'refunded']),
+                'href' => '/finance/refunds'.$scope->query(['status' => 'refunded'], []),
             ],
             [
                 'key' => 'net',
                 'label' => StatusLabels::label('net'),
                 'value' => null,
                 'amount' => $collected && $refunded ? Cents::money((int) $collected->cents - (int) $refunded->cents) : null,
-                'href' => '/finance/payments'.$scope->query(),
+                'href' => '/finance/payments',
             ],
         ];
     }
@@ -88,8 +89,8 @@ class RevenueSource implements KpiSource
     public function records(string $key, ReportScope $scope, int $perPage): LengthAwarePaginator
     {
         return match ($key) {
-            'collected' => $this->payments->records('succeeded', $scope, $perPage),
-            'refunded' => $this->refunds->records('refunded', $scope, $perPage),
+            'collected' => $this->payments->recordsByPeriod('succeeded', $scope, $perPage, 'payments.paid_at'),
+            'refunded' => $this->refunds->recordsByPeriod('refunded', $scope, $perPage, 'refunds.processed_at'),
             default => throw new NotFoundHttpException,
         };
     }

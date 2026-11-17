@@ -46,6 +46,15 @@ abstract class ReportDataset
         return true;
     }
 
+    /**
+     * The main table's id column. The export caps the query at its max id taken when the export starts, so rows created
+     * while offset chunks are read never shift a page and duplicate a row (review L1).
+     */
+    public function idColumn(): string
+    {
+        return $this->tables()[0].'.id';
+    }
+
     /** @return list<string> extra `filter[...]` keys this dataset accepts besides from/to/city_id/status */
     public function extraFilters(): array
     {

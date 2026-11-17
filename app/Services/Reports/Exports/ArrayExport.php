@@ -3,17 +3,20 @@
 namespace App\Services\Reports\Exports;
 
 use Maatwebsite\Excel\Concerns\FromArray;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithStrictNullComparison;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Events\AfterSheet;
 
 /**
  * A small computed sheet (indicators); right-to-left in Arabic.
  */
-class ArrayExport implements FromArray, ShouldAutoSize, WithEvents, WithHeadings, WithTitle
+class ArrayExport implements FromArray, WithCustomValueBinder, WithEvents, WithHeadings, WithStrictNullComparison, WithTitle
 {
+    use SafeCells;
+
     /**
      * @param  list<list<mixed>>  $rows
      */
