@@ -1489,6 +1489,621 @@
           }
         }
       ]
+    },
+    {
+      "name": "Operations & support (Slice 17) — S17",
+      "item": [
+        {
+          "name": "List bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/bookings?q=&filter[status][]=&filter[payment_status]=&filter[has_pending_cancellation]=&filter[provider_id]=&filter[from]=&filter[to]=&sort=starts_at&page=1&per_page=15",
+            "description": "bookings.view (§5.1). Rows with has_pending_cancellation and open_tickets_count."
+          }
+        },
+        {
+          "name": "Show booking",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/bookings/{{booking_id}}",
+            "description": "bookings.view. Address with pin (D64), cancellation_requests (+refunds), review with moderation fields, payment (Slice 10 summary or null), tickets, history (staff view), staff_notes, actions."
+          }
+        },
+        {
+          "name": "Cancel booking (staff)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/bookings/{{booking_id}}/cancel",
+            "description": "bookings.intervene (D256). confirmed/in_progress only; pending party request → 409 CANCELLATION_PENDING. E23 to both. No refund: use Slice 10's refund endpoint.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"The provider cannot attend; agreed with the client.\",\n  \"internal_note\": \"Called both parties.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Complete booking (staff)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/bookings/{{booking_id}}/complete",
+            "description": "bookings.intervene (D256). in_progress only (409 otherwise); repeat = 200 unchanged. E24 to both.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"The provider forgot to confirm completion.\",\n  \"internal_note\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "Note on booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/bookings/{{booking_id}}/notes",
+            "description": "bookings.intervene. Internal history entry; no notification.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Client called about parking.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Cancel open request (staff)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/service-requests/{{request_id}}/cancel",
+            "description": "bookings.intervene (D256). awaiting_offers/offers_received only. E3 to providers still taking part, E22 to the client.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Duplicate request, confirmed with the client.\",\n  \"internal_note\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "Note on request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/service-requests/{{request_id}}/notes",
+            "description": "bookings.intervene. Internal.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Watch this one.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List cancellation requests (q, staff role)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/cancellation-requests?q=&filter[status]=&filter[requester_role]=staff",
+            "description": "bookings.view. Rows gain payment + refunds (Slice 10)."
+          }
+        },
+        {
+          "name": "List tickets",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/support-tickets?q=&filter[status][]=open&filter[topic]=&filter[assigned]=me&filter[user_type]=&filter[related_type]=&sort=-last_message_at",
+            "description": "support.view (§6). filter[assigned] = me | none | any | staff id."
+          }
+        },
+        {
+          "name": "Show ticket",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/support-tickets/{{ticket_id}}",
+            "description": "support.view. messages (kind user/reply/note), history, chat {available, conversations_count, can_review}, chat_access_logs, actions."
+          }
+        },
+        {
+          "name": "Assign ticket",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/support-tickets/{{ticket_id}}/assign",
+            "description": "support.assign (D259). assignee_id = active staff with support.reply, or null.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assignee_id\": null,\n  \"reason\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "Take ticket",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/support-tickets/{{ticket_id}}/take",
+            "description": "support.reply. Only an unassigned ticket (409 otherwise)."
+          }
+        },
+        {
+          "name": "Staff reply",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/support-tickets/{{ticket_id}}/messages",
+            "description": "support.reply (D258). open/in_progress → waiting; closed → 409. E20 to the user. 201 / 200 replay.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"We are checking with the provider.\",\n  \"client_uuid\": \"{{$guid}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Internal note",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/support-tickets/{{ticket_id}}/notes",
+            "description": "support.reply. is_internal, never shown to the user.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"Check the booking history.\",\n  \"client_uuid\": \"{{$guid}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Change ticket status",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/support-tickets/{{ticket_id}}/status",
+            "description": "support.reply (D258). Reason required to close or reopen. E21 on resolved (or closed straight from an open state).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"resolved\",\n  \"reason\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "Ticket conversations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/support-tickets/{{ticket_id}}/conversations",
+            "description": "chats.view_for_ticket + assignee (D260). No messages."
+          }
+        },
+        {
+          "name": "Review conversation (reason, logged)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/support-tickets/{{ticket_id}}/conversations/{{conversation_id}}/review",
+            "description": "chats.view_for_ticket + assignee; ticket not closed. One conversation_access_logs row per page. Returns access_log_id, messages, meta.has_more/next_before.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Late arrival complaint\",\n  \"before\": null,\n  \"per_page\": 30\n}"
+            }
+          }
+        },
+        {
+          "name": "Next chat page (window)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/support-tickets/{{ticket_id}}/conversations/{{conversation_id}}/messages?access_log_id={{access_log_id}}&before={{before}}",
+            "description": "Within support.chat_access_minutes of that log row (else 409); logged again."
+          }
+        },
+        {
+          "name": "List reviews",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/reviews?q=&filter[status]=&filter[rating]=&filter[reported]=1&sort=-created_at",
+            "description": "reviews.moderate (§8)."
+          }
+        },
+        {
+          "name": "Hide review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/reviews/{{review_id}}/hide",
+            "description": "reviews.moderate (D261). Rating recomputed; open reports closed as actioned.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Abusive language\",\n  \"internal_note\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "Restore review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/reviews/{{review_id}}/restore",
+            "description": "reviews.moderate.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Appeal accepted\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List content reports",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/content-reports?filter[status]=open&filter[reason]=",
+            "description": "reviews.moderate (D262). Open first."
+          }
+        },
+        {
+          "name": "Decide content report",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/content-reports/{{report_id}}/decide",
+            "description": "reviews.moderate (D262). actioned hides the review and closes its other open reports; dismissed closes one.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"actioned\",\n  \"reason\": \"Abusive, hidden\",\n  \"internal_note\": null\n}"
+            }
+          }
+        }
+      ]
     }
   ]
 }

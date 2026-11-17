@@ -18,6 +18,7 @@ class SupportTicket extends Model
     protected $fillable = [
         'reference', 'user_id', 'topic', 'subject', 'related_type', 'related_id', 'status', 'assigned_to',
         'last_message_at', 'idempotency_key', 'idempotency_fingerprint',
+        'resolved_at', 'closed_at', // Slice 17
     ];
 
     protected $hidden = ['idempotency_key', 'idempotency_fingerprint'];
@@ -31,12 +32,24 @@ class SupportTicket extends Model
             'status' => TicketStatus::class,
             'related_type' => TicketRelatedType::class,
             'last_message_at' => 'datetime',
+            'resolved_at' => 'datetime',
+            'closed_at' => 'datetime',
         ];
     }
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function assignee(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_to');
+    }
+
+    public function accessLogs(): HasMany
+    {
+        return $this->hasMany(ConversationAccessLog::class, 'ticket_id');
     }
 
     public function messages(): HasMany

@@ -12,6 +12,7 @@ use App\Integrations\Shipping\Carrier;
 use App\Integrations\Shipping\FakeCarrier;
 use App\Integrations\Sms\FakeSmsGateway;
 use App\Integrations\Sms\SmsGateway;
+use App\Listeners\Operations\NotifyRefundIssued;
 use App\Models\StoreOrder;
 use App\Services\Payments\Handlers\OfferPaymentHandler;
 use App\Services\Payments\PayableRegistry;
@@ -23,6 +24,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
@@ -89,6 +91,9 @@ class AppServiceProvider extends ServiceProvider
         // S9b (Slice 9b store orders): the store order is the Slice 10 payable `store_order` (D214); its handler is
         // registered in the PayableRegistry block above.
         Relation::morphMap(['store_order' => StoreOrder::class]);
+        // --- S17 (Slice 17, D263): E25 on a settled staff refund. Bound by class name: Slice 10 owns the event. ---
+        Event::listen('App\\Events\\Payments\\RefundSettled', [NotifyRefundIssued::class, 'handle']);
+        // --- end S17 ---
 
         RateLimiter::for('otp-verify', fn (Request $request) => Limit::perMinute(config('services.sms.rate_limits.verify_per_ip_per_minute'))->by('otp-verify:'.$request->ip()));
     }

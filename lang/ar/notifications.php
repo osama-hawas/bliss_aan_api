@@ -34,5 +34,12 @@ return [
         // Slice 11 (D224): E18, E19.
         'payout_paid' => ['title' => 'تم التحويل', 'body' => 'تم تحويل طلبكِ :reference إلى حسابكِ البنكي.'],
         'payout_rejected' => ['title' => 'رُفض طلب التحويل', 'body' => 'رُفض طلب التحويل :reference. افتحيه لمعرفة السبب.'],
+        // Slice 17 (E20–E25). :amount مبلغ للعرض (E25 فقط).
+        'support_replied' => ['title' => 'ردّ فريق الدعم', 'body' => 'ردّ دعم Bliss aan على تذكرتكِ :reference.'],
+        'support_ticket_resolved' => ['title' => 'تم حل التذكرة', 'body' => 'تم تحديد تذكرتكِ :reference كمحلولة. ردّي عليها إن كنتِ ما زلتِ بحاجة إلى مساعدة.'],
+        'request_cancelled_by_staff' => ['title' => 'تم إلغاء الطلب', 'body' => 'ألغى دعم Bliss aan طلبكِ :reference.'],
+        'booking_cancelled_by_staff' => ['title' => 'تم إلغاء الحجز', 'body' => 'ألغى دعم Bliss aan الحجز :reference.'],
+        'booking_completed_by_staff' => ['title' => 'اكتمل الحجز', 'body' => 'حدّد دعم Bliss aan الحجز :reference كمكتمل.'],
+        'refund_issued' => ['title' => 'تم إصدار استرداد', 'body' => 'تم إصدار استرداد بمبلغ :amount عن :reference.'],
     ],
 ];

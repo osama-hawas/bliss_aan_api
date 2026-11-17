@@ -45,4 +45,15 @@ return [
     'order_refunded' => 'تم استرداد المبلغ',
     'order_partially_refunded' => 'تم استرداد جزء من المبلغ',
     'order_note' => 'ملاحظة من الفريق',
+    // Slice 17
+    'request_cancelled_by_staff' => 'ألغى دعم Bliss aan الطلب',
+    'booking_cancelled_by_staff' => 'ألغى دعم Bliss aan الحجز',
+    'booking_completed_by_staff' => 'أكمل دعم Bliss aan الحجز',
+    'staff_note' => 'ملاحظة داخلية',
+    'ticket_assigned' => 'أُسندت التذكرة',
+    'ticket_replied_by_staff' => 'ردّ فريق الدعم',
+    'ticket_status_changed' => 'تغيّرت حالة التذكرة',
+    'ticket_auto_closed' => 'أُغلقت التذكرة تلقائيًا',
+    'review_hidden' => 'أخفى فريق Bliss aan التقييم',
+    'review_restored' => 'أُعيد نشر التقييم',
 ];

@@ -67,8 +67,8 @@ return [
     'offer_status' => ['active' => 'ساري', 'superseded' => 'استُبدل بعرض أحدث', 'withdrawn' => 'مسحوب', 'expired' => 'منتهي الصلاحية', 'closed' => 'مغلق', 'selected' => 'مقبول', 'not_selected' => 'غير مختار'],
     'booking_status' => ['confirmed' => 'مؤكد', 'in_progress' => 'قيد التنفيذ', 'completed' => 'مكتمل', 'cancelled' => 'ملغي'],
     'cancellation_status' => ['under_review' => 'قيد المراجعة', 'accepted' => 'تمت الموافقة على الإلغاء', 'rejected' => 'لم تتم الموافقة على الإلغاء', 'withdrawn' => 'تم السحب'],
-    'cancellation_requester_role' => ['client' => 'العميلة', 'provider' => 'مقدمة الخدمة'],
-    'cancellation_reason' => ['event_date_changed' => 'تغيّر موعد المناسبة', 'requirements_changed' => 'تغيّرت احتياجاتي', 'unable_to_deliver' => 'تعذر تنفيذ الخدمة', 'emergency' => 'ظرف طارئ', 'other' => 'سبب آخر'],
+    'cancellation_requester_role' => ['client' => 'العميلة', 'provider' => 'مقدمة الخدمة', 'staff' => 'دعم Bliss aan'],
+    'cancellation_reason' => ['event_date_changed' => 'تغيّر موعد المناسبة', 'requirements_changed' => 'تغيّرت احتياجاتي', 'unable_to_deliver' => 'تعذر تنفيذ الخدمة', 'emergency' => 'ظرف طارئ', 'other' => 'سبب آخر', 'staff_decision' => 'ألغاه دعم Bliss aan'],
     'review_status' => ['published' => 'منشور', 'hidden' => 'مخفي'],
     'review_tag' => ['punctuality' => 'الالتزام بالموعد', 'service_quality' => 'جودة الخدمة', 'friendly' => 'حسن التعامل', 'matches_quote' => 'مطابقة للعرض', 'clean_organized' => 'النظافة والترتيب'],
     'report_reason' => ['abusive' => 'مسيء أو جارح', 'spam' => 'رسائل مزعجة', 'false_info' => 'معلومات غير صحيحة', 'privacy' => 'يكشف تفاصيل خاصة', 'other' => 'سبب آخر'],
@@ -104,4 +104,6 @@ return [
     'ledger_entry_type' => ['earning' => 'أرباح حجز', 'refund_adjustment' => 'تسوية استرداد', 'payout' => 'طلب تحويل', 'payout_reversal' => 'إعادة مبلغ تحويل'],
     'ledger_entry_status' => ['pending' => 'قيد الانتظار', 'available' => 'متاح'],
     'payout_request_status' => ['requested' => 'مطلوب', 'paid' => 'تم التحويل', 'rejected' => 'مرفوض'],
+    // Slice 17 (operations & support)
+    'content_report_decision' => ['actioned' => 'تم اتخاذ إجراء', 'dismissed' => 'تم الرفض'],
 ];

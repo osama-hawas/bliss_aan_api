@@ -5,6 +5,7 @@ namespace App\Http\Resources\Api\V1\Admin\Cancellations;
 use App\Http\Resources\Concerns\DescribesAdminCancellation;
 use App\Http\Resources\Concerns\FormatsApiValues;
 use App\Models\CancellationRequest;
+use App\Services\Operations\PaymentSummary;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -37,6 +38,9 @@ class AdminCancellationResource extends JsonResource
                 'client' => ['id' => $b->client_id, 'name' => $b->client?->name],
                 'provider' => ['id' => $b->provider_id, 'display_name' => $b->provider?->display_name],
             ] : null,
+            // S17 (§5.3): the booking's Slice 10 payment summary and the refunds linked to this cancellation.
+            'payment' => $b ? app(PaymentSummary::class)->forBooking($b) : null,
+            'refunds' => app(PaymentSummary::class)->refundsForCancellation($c),
         ];
     }
 }

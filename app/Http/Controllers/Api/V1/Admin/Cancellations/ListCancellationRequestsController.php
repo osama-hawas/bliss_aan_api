@@ -20,7 +20,8 @@ class ListCancellationRequestsController extends Controller
 
     public function __invoke(ListCancellationRequestsRequest $request)
     {
-        $page = $this->queries->admin($request->validated('filter.status'), $request->validated('filter.requester_role'), $request->validated('sort'), Pagination::perPage($request));
+        $page = $this->queries->admin($request->validated('filter.status'), $request->validated('filter.requester_role'), $request->validated('sort'), Pagination::perPage($request),
+            $request->filled('q') ? trim($request->validated('q')) : null);
 
         return $this->success(AdminCancellationResource::collection($page));
     }

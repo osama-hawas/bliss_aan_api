@@ -35,6 +35,8 @@ class AppSettingSeeder extends Seeder
             'store.shipping_fee' => null,      // D201: flat fee; null → checkout 409 NOT_CONFIGURED
             'store.max_qty_per_line' => null,  // D208: null = current stock only
             'tax.vat_percent' => null,         // D202: prices include VAT; null = no VAT line
+            // Slice 17 (D260): technical chat-review window in minutes, not a business number; null = reason on every page
+            'support.chat_access_minutes' => 30,
         ];
 
         foreach (UploadContext::cases() as $context) {

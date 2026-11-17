@@ -13,4 +13,5 @@ enum CancellationRequesterRole: string
 
     case Client = 'client';
     case Provider = 'provider';
+    case Staff = 'staff'; // Slice 17 (D256): a staff cancellation, stored already accepted
 }

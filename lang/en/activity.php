@@ -45,4 +45,15 @@ return [
     'order_refunded' => 'Refunded',
     'order_partially_refunded' => 'Partially refunded',
     'order_note' => 'Staff note',
+    // Slice 17
+    'request_cancelled_by_staff' => 'Request cancelled by Bliss aan support',
+    'booking_cancelled_by_staff' => 'Booking cancelled by Bliss aan support',
+    'booking_completed_by_staff' => 'Booking marked completed by Bliss aan support',
+    'staff_note' => 'Internal note',
+    'ticket_assigned' => 'Ticket assigned',
+    'ticket_replied_by_staff' => 'Support replied',
+    'ticket_status_changed' => 'Ticket status changed',
+    'ticket_auto_closed' => 'Ticket closed automatically',
+    'review_hidden' => 'Review hidden by Bliss aan',
+    'review_restored' => 'Review restored',
 ];

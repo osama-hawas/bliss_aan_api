@@ -16,6 +16,7 @@ class Review extends Model
     protected $fillable = [
         'booking_id', 'client_id', 'provider_id', 'rating', 'comment', 'tags', 'status', 'hidden_reason',
         'provider_reply', 'replied_at',
+        'hidden_by', 'hidden_at', 'moderation_note', // Slice 17 (D261)
     ];
 
     protected function casts(): array
@@ -25,6 +26,7 @@ class Review extends Model
             'tags' => 'array',
             'status' => ReviewStatus::class,
             'replied_at' => 'datetime',
+            'hidden_at' => 'datetime',
         ];
     }
 
@@ -46,6 +48,11 @@ class Review extends Model
     public function provider(): BelongsTo
     {
         return $this->belongsTo(Provider::class);
+    }
+
+    public function hiddenBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'hidden_by');
     }
 
     public function reports(): MorphMany

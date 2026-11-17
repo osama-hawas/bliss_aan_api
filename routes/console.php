@@ -21,3 +21,5 @@ Schedule::command('store-orders:expire')->everyFiveMinutes()->withoutOverlapping
 Schedule::command('shipments:sync')->everyThirtyMinutes()->withoutOverlapping();
 // Slice 11 (S11): back-fill provider earnings and refund adjustments (slice-11-contract.md §4).
 Schedule::command('payouts:record-earnings')->everyFifteenMinutes()->withoutOverlapping();
+// Slice 17 (D265): close resolved tickets after support.auto_close_days (null = off, no-op).
+Schedule::command('support:auto-close')->daily()->withoutOverlapping();

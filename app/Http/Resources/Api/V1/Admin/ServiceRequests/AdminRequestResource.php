@@ -2,10 +2,12 @@
 
 namespace App\Http\Resources\Api\V1\Admin\ServiceRequests;
 
+use App\Enums\Permission;
 use App\Http\Resources\Api\V1\Client\ServiceRequests\ClientRequestResource;
 use App\Http\Resources\Concerns\DescribesAdminCancellation;
 use App\Http\Resources\Concerns\DescribesBooking;
 use App\Http\Resources\Concerns\DescribesOffer;
+use App\Http\Resources\Concerns\DescribesStaffHistory;
 use App\Models\Media;
 use App\Models\Offer;
 use App\Models\ServiceRequest;
@@ -24,7 +26,7 @@ use Illuminate\Http\Request;
  */
 class AdminRequestResource extends ClientRequestResource
 {
-    use DescribesAdminCancellation, DescribesBooking, DescribesOffer;
+    use DescribesAdminCancellation, DescribesBooking, DescribesOffer, DescribesStaffHistory;
 
     private bool $full = false;
 
@@ -99,6 +101,17 @@ class AdminRequestResource extends ClientRequestResource
             'cancellation_requests' => $r->booking->cancellationRequests->map(fn ($c) => $this->adminCancellation($c))->values()->all(),
             'review' => $r->booking->review ? $this->reviewItem($r->booking->review) : null,
         ] : null;
+
+        // --- S17 (Slice 17, D256): staff notes, the staff history (actor + note/reason) and the intervention actions ---
+        $events = $r->history->loadMissing('actor');
+        $data['staff_history'] = $this->staffHistory($events);
+        $data['staff_notes'] = $this->staffNotes($events);
+        $canIntervene = $request->user()->checkPermissionTo(Permission::BookingsIntervene->value);
+        $data['actions'] = [
+            'can_cancel' => $canIntervene && $r->status->isOpenForResponses(),
+            'can_add_note' => $canIntervene,
+        ];
+        // --- end S17 ---
 
         return $data;
     }

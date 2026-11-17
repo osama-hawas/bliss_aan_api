@@ -67,8 +67,8 @@ return [
     'offer_status' => ['active' => 'Active', 'superseded' => 'Replaced by a newer offer', 'withdrawn' => 'Withdrawn', 'expired' => 'Expired', 'closed' => 'Closed', 'selected' => 'Accepted', 'not_selected' => 'Not selected'],
     'booking_status' => ['confirmed' => 'Confirmed', 'in_progress' => 'In progress', 'completed' => 'Completed', 'cancelled' => 'Cancelled'],
     'cancellation_status' => ['under_review' => 'Under review', 'accepted' => 'Cancellation approved', 'rejected' => 'Cancellation not approved', 'withdrawn' => 'Withdrawn'],
-    'cancellation_requester_role' => ['client' => 'Client', 'provider' => 'Provider'],
-    'cancellation_reason' => ['event_date_changed' => 'The event date changed', 'requirements_changed' => 'My requirements changed', 'unable_to_deliver' => 'Unable to deliver the service', 'emergency' => 'Unexpected circumstances', 'other' => 'Other reason'],
+    'cancellation_requester_role' => ['client' => 'Client', 'provider' => 'Provider', 'staff' => 'Bliss aan support'],
+    'cancellation_reason' => ['event_date_changed' => 'The event date changed', 'requirements_changed' => 'My requirements changed', 'unable_to_deliver' => 'Unable to deliver the service', 'emergency' => 'Unexpected circumstances', 'other' => 'Other reason', 'staff_decision' => 'Cancelled by Bliss aan support'],
     'review_status' => ['published' => 'Published', 'hidden' => 'Hidden'],
     'review_tag' => ['punctuality' => 'Punctuality', 'service_quality' => 'Service quality', 'friendly' => 'Friendly service', 'matches_quote' => 'Matches the quote', 'clean_organized' => 'Clean and organized'],
     'report_reason' => ['abusive' => 'Abusive or offensive', 'spam' => 'Spam', 'false_info' => 'False information', 'privacy' => 'Shares private details', 'other' => 'Something else'],
@@ -104,4 +104,6 @@ return [
     'ledger_entry_type' => ['earning' => 'Booking earning', 'refund_adjustment' => 'Refund adjustment', 'payout' => 'Payout request', 'payout_reversal' => 'Payout returned'],
     'ledger_entry_status' => ['pending' => 'On hold', 'available' => 'Available'],
     'payout_request_status' => ['requested' => 'Requested', 'paid' => 'Transferred', 'rejected' => 'Rejected'],
+    // Slice 17 (operations & support)
+    'content_report_decision' => ['actioned' => 'Action taken', 'dismissed' => 'Dismissed'],
 ];

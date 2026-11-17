@@ -19,6 +19,8 @@ enum CancellationReason: string
     case Emergency = 'emergency';
     // Both
     case Other = 'other';
+    // Slice 17 (D256): staff cancellation
+    case StaffDecision = 'staff_decision';
 
     /**
      * @return list<self>
@@ -28,6 +30,7 @@ enum CancellationReason: string
         return match ($role) {
             CancellationRequesterRole::Client => [self::EventDateChanged, self::RequirementsChanged, self::Other],
             CancellationRequesterRole::Provider => [self::UnableToDeliver, self::Emergency, self::Other],
+            CancellationRequesterRole::Staff => [self::StaffDecision],
         };
     }
 }

@@ -13,6 +13,7 @@ use App\Exceptions\ApiException;
 use App\Models\Booking;
 use App\Models\User;
 use App\Services\Audit\ActivityRecorder;
+use App\Services\Audit\AuditLogger;
 use App\Services\Availability\DeadlockRetry;
 use App\Services\Notifications\Notifier;
 use App\Services\Payouts\EarningsRecorder;
@@ -75,10 +76,14 @@ class BookingExecution
 
     /**
      * Idempotent (D125): an already completed booking answers unchanged, with no second transition.
+     * Slice 17 (D256): `$staff` = `{reason, internal_note}` when staff complete it for the provider — the history entry,
+     * audit row and E24 (both parties) replace the provider's E11 path.
+     *
+     * @param  array{reason: string, internal_note: ?string}|null  $staff
      */
-    public function complete(User $actor, Booking $booking): Booking
+    public function complete(User $actor, Booking $booking, ?array $staff = null): Booking
     {
-        return $this->retry->run(fn () => DB::transaction(function () use ($actor, $booking) {
+        return $this->retry->run(fn () => DB::transaction(function () use ($actor, $booking, $staff) {
             [$request, $booking] = $this->locks->lock($booking);
 
             if ($booking->status === BookingStatus::Completed) {
@@ -91,9 +96,28 @@ class BookingExecution
             $booking->update(['status' => BookingStatus::Completed, 'completed_at' => now(), 'completed_by' => $actor->id]);
             $from = $request->status;
             $request->update(['status' => ServiceRequestStatus::Completed]);
-            $this->activity->record($request, 'booking_completed', $from, ServiceRequestStatus::Completed, $actor, ActivityVisibility::All, ['booking_id' => $booking->id]);
-            $this->notifyClient($booking, $request, NotificationEvent::BookingCompleted, $actor); // E11
+            // --- S17 (Slice 17, D256/D257): staff completion ---
+            if ($staff !== null) {
+                $this->activity->record($request, 'booking_completed_by_staff', $from, ServiceRequestStatus::Completed, $actor, ActivityVisibility::All,
+                    ['booking_id' => $booking->id, 'reason' => $staff['reason']]);
+                if (($staff['internal_note'] ?? null) !== null && $staff['internal_note'] !== '') {
+                    $this->activity->record($request, 'staff_note', null, null, $actor, ActivityVisibility::Internal,
+                        ['note' => $staff['internal_note'], 'booking_id' => $booking->id]);
+                }
+                app(AuditLogger::class)->log('booking.completed_by_staff', $actor, $booking, $staff['reason'],
+                    ['status' => BookingStatus::InProgress->value], ['status' => BookingStatus::Completed->value]);
+                $params = Notifier::bookingParams($booking, $request, $booking->provider?->display_name);
+                foreach ([(int) $booking->client_id, (int) $booking->provider()->value('user_id')] as $userId) { // E24
+                    $this->notifier->send($userId, NotificationEvent::BookingCompletedByStaff, $params, NotificationTargetType::Booking,
+                        $booking->id, 'booking_completed:'.$booking->id, $actor);
+                }
+            } else {
+                // --- end S17 (no early return: later completion hooks run for both paths) ---
+                $this->activity->record($request, 'booking_completed', $from, ServiceRequestStatus::Completed, $actor, ActivityVisibility::All, ['booking_id' => $booking->id]);
+                $this->notifyClient($booking, $request, NotificationEvent::BookingCompleted, $actor); // E11
+            }
             // S11 (slice-11-contract.md §4.1): the provider's earning for a paid booking; records nothing otherwise.
+            // Runs for both the provider's and the staff completion (S17 D256).
             $this->earnings->recordLocked($booking);
 
             return $booking;

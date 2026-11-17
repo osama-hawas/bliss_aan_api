@@ -4,6 +4,7 @@ namespace App\Http\Resources\Concerns;
 
 use App\Enums\BookingStatus;
 use App\Enums\CancellationStatus;
+use App\Enums\ReviewStatus;
 use App\Enums\ReviewTag;
 use App\Models\Booking;
 use App\Models\CancellationRequest;
@@ -71,6 +72,9 @@ trait DescribesBookingExecution
             'tags' => $this->reviewTags($r),
             'provider_reply' => $r->provider_reply,
             'replied_at' => $this->dateTime($r->replied_at),
+            // S17 (D261): a hidden review is marked, never with the reason or the staff member.
+            'status' => $r->status->value,
+            'status_label' => $r->status === ReviewStatus::Hidden ? __('support.review_hidden_label') : $r->status->label(),
             'created_at' => $this->dateTime($r->created_at),
         ];
     }
