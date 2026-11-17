@@ -50,8 +50,6 @@ Labels: **[C]** confirmed · **[R]** recommendation · **[?]** open question.
 | `addon_service` | addon_id, service_id | F |
 | `event_types` | name (ar/en), is_active, sort | F |
 | `occasion_tags`, `occasion_tag_service` | Req 15 — not defined yet (D178: not built in Slice 16; question added to S2) | M (seeded) |
-| `packages`, `package_items` [?] | Req 16, scope unclear | M/D |
-| `occasion_tags`, `occasion_tag_service` | Req 15 | M (seeded) |
 | `packages`, `package_items` | Req 16 — **not built** (D231): no definition or designs | — |
 
 ## 4. Providers
