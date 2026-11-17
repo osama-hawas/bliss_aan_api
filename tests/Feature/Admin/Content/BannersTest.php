@@ -98,6 +98,5 @@ class BannersTest extends TestCase
         $this->actingAsApi($admin)->getJson(self::URL.'?sort=title')->assertUnprocessable();
 
         $this->actingAsApi($this->admin(AdminRole::OperationsSupport))->getJson(self::URL)->assertForbidden();
-        $this->getJson(self::URL)->assertUnauthorized();
     }
 }

@@ -2,13 +2,16 @@
 
 namespace App\Services\Settings;
 
+use App\Enums\ErrorCode;
 use App\Enums\PolicyType;
+use App\Exceptions\ApiException;
 use App\Models\PolicyVersion;
 use App\Models\User;
 use App\Services\Audit\AuditLogger;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -45,6 +48,20 @@ class PolicyPublisher
      * @param  array<string, scalar|null>  $values
      */
     public function publish(PolicyType $type, CarbonInterface $effectiveFrom, ?array $content, array $values, User $admin, string $reason): PolicyVersion
+    {
+        try {
+            return $this->insert($type, $effectiveFrom, $content, $values, $admin, $reason);
+        } catch (UniqueConstraintViolationException) {
+            // Two first publishes of a type race past the (empty) lock: the loser gets 409, never a 500 (review L8).
+            throw new ApiException(ErrorCode::InvalidState);
+        }
+    }
+
+    /**
+     * @param  array{ar: string, en: string}|null  $content
+     * @param  array<string, scalar|null>  $values
+     */
+    private function insert(PolicyType $type, CarbonInterface $effectiveFrom, ?array $content, array $values, User $admin, string $reason): PolicyVersion
     {
         return DB::transaction(function () use ($type, $effectiveFrom, $content, $values, $admin, $reason) {
             $latest = PolicyVersion::query()->where('type', $type)->orderByDesc('version')->lockForUpdate()->first();

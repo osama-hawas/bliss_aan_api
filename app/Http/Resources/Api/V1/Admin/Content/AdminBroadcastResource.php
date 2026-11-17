@@ -30,6 +30,8 @@ class AdminBroadcastResource extends JsonResource
             'city' => $this->city ? ['id' => $this->city->id, 'name' => $this->city->getTranslations('name')] : null,
             'status' => $this->status->value,
             'status_label' => $this->status->label(),
+            // The audience size confirmed when sending started (D305). Delivery walks the audience when the job runs, so
+            // users who join or leave it in between are included or skipped (review L7, documented in the contract).
             'recipients_count' => $this->recipients_count,
             'scheduled_at' => $this->dateTime($this->scheduled_at),
             'sent_at' => $this->dateTime($this->sent_at),

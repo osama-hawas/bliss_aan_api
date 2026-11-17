@@ -30,7 +30,7 @@ class PagesAndFaqsTest extends TestCase
 
         $this->actingAsApi($admin)->putJson(self::PAGES."/{$id}", [...$body, 'title' => $this->both('Terms'), 'body' => $this->both('## Intro')])->assertOk();
         $this->actingAsApi($admin)->postJson(self::PAGES."/{$id}/show")->assertOk()->assertJsonPath('data.status', 'visible');
-        $this->getJson('/api/v1/shared/pages/terms?app=client')->assertOk()->assertJsonPath('data.title', 'Terms ع');
+        $this->getJson('/api/v1/shared/pages/terms?app=client')->assertOk()->assertJsonPath('data.title', 'Terms'); // default locale en; both() puts 'Terms ع' in ar
         $this->getJson('/api/v1/shared/pages/terms?app=provider')->assertNotFound();
 
         // Slug and app are locked while visible; the same slug is free in the other app.

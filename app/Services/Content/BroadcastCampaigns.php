@@ -103,6 +103,7 @@ class BroadcastCampaigns
         return DB::transaction(function () use ($campaign, $admin, $expectedCount) {
             $campaign = $this->lock($campaign);
             $this->guardMove($campaign, BroadcastStatus::Sending);
+            $this->guardTranslations($campaign); // before counting: a draft missing a language is TRANSLATION_MISSING (review M4)
             $count = $this->audience->count($campaign);
             if ($count === 0) {
                 throw new ApiException(ErrorCode::NoRecipients);
@@ -173,6 +174,36 @@ class BroadcastCampaigns
         }
 
         return $started;
+    }
+
+    /** Minutes after which a campaign still `sending` is handed to the job again (review M3). */
+    public const STALE_SENDING_MINUTES = 15;
+
+    /**
+     * Re-dispatches campaigns stuck in `sending` (job failed or lost). Safe: every notification is deduplicated on
+     * `broadcast:{id}`, so recipients already reached are skipped. `updated_at` is touched so one stuck campaign is
+     * retried once per period, not every minute.
+     */
+    public function redispatchStale(): int
+    {
+        $retried = 0;
+        $ids = BroadcastCampaign::query()->where('status', BroadcastStatus::Sending)
+            ->where('updated_at', '<=', now()->subMinutes(self::STALE_SENDING_MINUTES))->pluck('id');
+        foreach ($ids as $id) {
+            $retried += DB::transaction(function () use ($id) {
+                $campaign = BroadcastCampaign::query()->whereKey($id)->lockForUpdate()->first();
+                if ($campaign === null || $campaign->status !== BroadcastStatus::Sending
+                    || $campaign->updated_at->gt(now()->subMinutes(self::STALE_SENDING_MINUTES))) {
+                    return 0;
+                }
+                $campaign->touch();
+                DB::afterCommit(fn () => SendBroadcastCampaign::dispatch($id));
+
+                return 1;
+            });
+        }
+
+        return $retried;
     }
 
     /**

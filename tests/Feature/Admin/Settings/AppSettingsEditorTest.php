@@ -76,4 +76,29 @@ class AppSettingsEditorTest extends TestCase
         $this->actingAsApi($admin)->putJson(self::URL.'/nothing.here', ['value' => 1, 'reason' => 'x'])->assertNotFound();
         $this->actingAsApi($this->admin(AdminRole::StoreContentOfficer))->getJson(self::URL)->assertForbidden();
     }
+
+    public function test_sign_in_settings_can_never_be_cleared_or_zero(): void
+    {
+        $this->seed(AppSettingSeeder::class);
+        $admin = $this->admin();
+
+        foreach (['otp.expiry_seconds', 'otp.max_attempts', 'otp.resend_cooldown_seconds'] as $key) {
+            $this->actingAsApi($admin)->putJson(self::URL."/{$key}", ['value' => null, 'reason' => 'x'])->assertUnprocessable()->assertJsonValidationErrors('value');
+            $this->actingAsApi($admin)->putJson(self::URL."/{$key}", ['value' => 0, 'reason' => 'x'])->assertUnprocessable()->assertJsonValidationErrors('value');
+            $this->actingAsApi($admin)->putJson(self::URL."/{$key}", ['value' => 1, 'reason' => 'x'])->assertOk()->assertJsonPath('data.nullable', false)->assertJsonPath('data.min', 1);
+        }
+        $this->actingAsApi($admin)->putJson(self::URL.'/payments.intent_ttl_minutes', ['value' => 0, 'reason' => 'x'])->assertUnprocessable();
+        $this->actingAsApi($admin)->putJson(self::URL.'/payments.intent_ttl_minutes', ['value' => null, 'reason' => 'D191: never expire'])->assertOk();
+        $this->actingAsApi($admin)->putJson(self::URL.'/requests.max_attachments', ['value' => 0, 'reason' => 'x'])->assertUnprocessable();
+    }
+
+    public function test_the_low_stock_threshold_is_a_whole_number(): void
+    {
+        $admin = $this->admin();
+        $rows = collect($this->actingAsApi($admin)->getJson(self::URL)->assertOk()->json('data'))->keyBy('key');
+        $this->assertSame('integer', $rows['store.low_stock_threshold']['kind']);
+
+        $this->actingAsApi($admin)->putJson(self::URL.'/store.low_stock_threshold', ['value' => 'many', 'reason' => 'x'])->assertUnprocessable();
+        $this->actingAsApi($admin)->putJson(self::URL.'/store.low_stock_threshold', ['value' => 5, 'reason' => 'x'])->assertOk()->assertJsonPath('data.value', 5);
+    }
 }
