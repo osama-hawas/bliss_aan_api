@@ -69,12 +69,15 @@ trait BuildsOperations
             'service_request_id' => $request->id, 'client_id' => $request->client_id, 'provider_id' => $provider->id,
         ]);
         for ($i = 1; $i <= $messages; $i++) {
+            $body = "Message {$i}";
             $message = Message::query()->create([
                 'conversation_id' => $conversation->id,
                 'sender_id' => $i % 2 ? $request->client_id : $provider->user_id,
                 'type' => MessageType::Text,
-                'body' => "Message {$i}",
+                'body' => $body,
                 'client_uuid' => (string) Str::uuid(),
+                // The ChatMessenger fingerprint (NOT NULL column): conversation, type, body, media, offer.
+                'fingerprint' => hash('sha256', json_encode([$conversation->id, MessageType::Text->value, $body, null, null])),
             ]);
             $conversation->update(['last_message_id' => $message->id, 'last_message_at' => now()]);
         }

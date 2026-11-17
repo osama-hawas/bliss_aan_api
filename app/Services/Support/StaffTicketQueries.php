@@ -29,9 +29,7 @@ class StaffTicketQueries
 
         $page = SupportTicket::query()
             ->with(['user', 'assignee'])
-            ->addSelect(['last_message_author_id' => fn ($q) => $q->select('author_id')->from('ticket_messages')
-                ->whereColumn('ticket_messages.ticket_id', 'support_tickets.id')->where('is_internal', false)
-                ->orderByDesc('id')->limit(1)])
+            ->addSelect(['last_message_author_id' => $this->lastAuthor()])
             ->when($filters['q'] ?? null, function (Builder $q, string $text) {
                 $digits = ltrim(preg_replace('/\D+/', '', $text) ?? '', '0');
                 $q->where(fn (Builder $w) => $w
@@ -62,11 +60,22 @@ class StaffTicketQueries
     public function find(int $id): SupportTicket
     {
         $ticket = SupportTicket::query()
+            ->addSelect(['last_message_author_id' => $this->lastAuthor()])
             ->with(['user', 'assignee', 'messages' => fn ($q) => $q->with('author')->orderBy('id'), 'accessLogs' => fn ($q) => $q->with('staff')->orderByDesc('id')])
             ->findOrFail($id);
         $this->tickets->fillRelatedReferences(collect([$ticket]));
 
         return $ticket;
+    }
+
+    /**
+     * Author of the latest non-internal message (for `last_message_from`), list and detail alike.
+     */
+    private function lastAuthor(): \Closure
+    {
+        return fn ($q) => $q->select('author_id')->from('ticket_messages')
+            ->whereColumn('ticket_messages.ticket_id', 'support_tickets.id')->where('is_internal', false)
+            ->orderByDesc('id')->limit(1);
     }
 
     /**

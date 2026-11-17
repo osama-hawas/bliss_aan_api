@@ -38,7 +38,8 @@ return [
         // Slice 17 (E20–E25). :amount is a display amount (E25 only).
         'support_replied' => ['title' => 'Support replied', 'body' => 'Bliss aan support replied to your ticket :reference.'],
         'support_ticket_resolved' => ['title' => 'Ticket resolved', 'body' => 'Your ticket :reference was marked resolved. Reply if you still need help.'],
-        'request_cancelled_by_staff' => ['title' => 'Request cancelled', 'body' => 'Bliss aan support cancelled your request :reference.'],
+        'support_ticket_closed' => ['title' => 'Ticket closed', 'body' => 'Your ticket :reference was closed. Open a new ticket if you need more help.'],
+        'request_cancelled_by_staff' => ['title' => 'Request cancelled', 'body' => 'Bliss aan support cancelled request :reference.'],
         'booking_cancelled_by_staff' => ['title' => 'Booking cancelled', 'body' => 'Bliss aan support cancelled booking :reference.'],
         'booking_completed_by_staff' => ['title' => 'Booking completed', 'body' => 'Bliss aan support marked booking :reference as completed.'],
         'refund_issued' => ['title' => 'Refund issued', 'body' => 'A refund of :amount was issued for :reference.'],

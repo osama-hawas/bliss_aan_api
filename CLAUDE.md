@@ -344,24 +344,25 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
 - Contract: `docs/slice-17-contract.md` rev 2 (D255–D265). Migration `2026_11_27_100000_create_operations_support_tables`
   (`conversation_access_logs`, ticket `resolved_at`/`closed_at`, review moderation fields, content-report decisions).
 - Interventions (`bookings.intervene`, reason required, audit + history + notifications): `Services\Operations\RequestInterventions`
-  (cancel an open request: E3 + E22; internal notes) and `BookingInterventions` (cancel `confirmed`/`in_progress` → an accepted
+  (cancel an open request: E22 to the client and the providers still taking part; internal notes) and `BookingInterventions` (cancel `confirmed`/`in_progress` → an accepted
   `cancellation_requests` row with `requester_role = staff`, E23 to both; complete via `BookingExecution::complete($staff, $booking,
   ['reason', 'internal_note'])` → E24 to both; notes). Staff notes = `activity_events` `staff_note`, visibility internal.
 - Reads: `BookingAdminQueries` (`GET admin/bookings`, detail), `PaymentSummary` (reads Slice 10's `payments` / `refunds` rows via the
   query builder; null before S10). No refund code here: refunds are Slice 10's `POST admin/payments/{id}/refunds`.
 - Tickets (`routes/api/v1/admin/support-tickets/`): `Services\Support\StaffTickets` (assign/take, reply = `waiting` + E20, internal
-  note, status moves `transitions()` + reason to close/reopen, E21; `support:auto-close` daily on `support.auto_close_days`, null = off),
+  note, status moves `transitions()` + reason to close/reopen, E21 resolved / closed variant; `support:auto-close` daily on `support.auto_close_days`, null = off),
   `StaffTicketQueries`. Every write locks the ticket row.
 - Chat review (Req 42): `Services\Support\ChatReview` — `chats.view_for_ticket` + assignee, ticket not closed, linked record's
   conversations where the ticket's user takes part; one `conversation_access_logs` row (+ audit `chat.reviewed`) per page;
-  follow-up pages within `support.chat_access_minutes` (seeded 30) reuse the reason. Read-only, nobody notified.
+  follow-up pages within `support.chat_access_minutes` (seeded 30) **of the row that carried the reason** (`review_log_id`;
+  the window never slides) reuse the reason. Read-only, nobody notified.
 - Moderation (`reviews.moderate`): `Services\Reviews\ReviewModeration` (hide/restore, rating recomputed, actioned report hides the
   review and closes its other reports), `ReviewModerationQueries`. Hidden reviews leave the public and provider lists; the client
   sees `status_label` "Hidden by Bliss aan".
 - E25 `refund_issued`: `Listeners\Operations\NotifyRefundIssued`, bound by class name to Slice 10's `App\Events\Payments\RefundSettled`
   in `AppServiceProvider` (staff refunds settled `refunded`, booking payments only).
 - Tests: `Tests\Concerns\BuildsOperations`; `tests/Feature/{Operations,Support,Reviews}/*` (S17 files),
-  `tests/Feature/Database/{StaffCancelLockingTest,TicketStatusLockingTest}.php`. `RefundNotificationTest` skips until S10 is merged.
+  `tests/Feature/Database/{StaffCancelLockingTest,TicketStatusLockingTest}.php`.
 
 ## Catalog management (Slice 16 — S16)
 

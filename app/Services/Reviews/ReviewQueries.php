@@ -22,7 +22,8 @@ class ReviewQueries
 
     public function providerReview(Provider $provider, int $id): Review
     {
-        return Review::query()->where('provider_id', $provider->id)->findOrFail($id);
+        // S17 (D261): a hidden review is out of her list, so she can neither reply to it nor report it (404).
+        return Review::query()->published()->where('provider_id', $provider->id)->findOrFail($id);
     }
 
     /**

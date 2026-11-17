@@ -37,6 +37,7 @@ class ReviewModerationTest extends TestCase
 
     private function reviewed(int $rating): Review
     {
+        $this->freezeNow(); // completedBooking() travels to the event start; each booking starts from "now" again (ReviewTest pattern)
         $booking = $this->completedBooking($this->noura);
 
         return app(ReviewService::class)->submit($this->client, $booking, $rating, 'Comment '.$rating, []);
@@ -68,6 +69,9 @@ class ReviewModerationTest extends TestCase
             ->assertJsonMissing(['hidden_reason' => 'Abusive language'])
             ->assertJsonPath('data.actions.can_review', false);
         $this->assertSame([], array_values(array_filter($this->events($this->client), fn ($e) => str_contains($e, 'review_h'))));
+        // She can neither reply to nor report a hidden review (L6).
+        $this->asProvider($this->noura)->postJson("/api/v1/provider/reviews/{$bad->id}/reply", ['reply' => 'Sorry'])->assertNotFound();
+        $this->asProvider($this->noura)->postJson("/api/v1/provider/reviews/{$bad->id}/report", ['reason_code' => 'spam'])->assertNotFound();
 
         $this->asStaff($this->staff)->postJson("/api/v1/admin/reviews/{$bad->id}/hide", ['reason' => 'Again'])->assertStatus(409);
         $this->asStaff($this->staff)->postJson("/api/v1/admin/reviews/{$bad->id}/restore", ['reason' => 'Appeal accepted'])->assertOk()

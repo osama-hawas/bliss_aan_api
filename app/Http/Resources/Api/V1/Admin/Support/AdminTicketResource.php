@@ -89,6 +89,7 @@ class AdminTicketResource extends JsonResource
                 'reason' => $l->reason,
                 'messages_count' => $l->messages_count,
                 'before_message_id' => $l->before_message_id,
+                'review_log_id' => $l->review_log_id,
                 'created_at' => $this->dateTime($l->created_at),
             ])->values()->all(),
             'actions' => [

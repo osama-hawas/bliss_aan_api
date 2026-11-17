@@ -47,7 +47,7 @@ class TicketStaffReplyTest extends TestCase
             ->assertJsonPath('data.status', 'waiting')
             ->assertJsonPath('data.messages.1.kind', 'reply')
             ->assertJsonPath('data.messages.1.author.name', 'Hind Staff')
-            ->assertJsonPath('data.last_message_from', null);
+            ->assertJsonPath('data.last_message_from', 'staff');
         $this->assertSame(['support_replied'], $this->events($this->sara));
         $row = $this->row($this->sara, 'support_replied');
         $this->assertEquals(['type' => 'support_ticket', 'id' => $this->t->id], $row->data['target']);

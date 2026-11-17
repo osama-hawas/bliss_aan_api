@@ -62,8 +62,10 @@ class RequestInterventionTest extends TestCase
         $this->assertSame(OfferStatus::Closed, Offer::query()->where('service_request_id', $request->id)->sole()->status);
         $this->assertSame('service_request.cancelled_by_staff', AuditLog::query()->latest('id')->value('action'));
         $this->assertContains('request_cancelled_by_staff', $this->events($this->client));
-        $this->assertContains('request_cancelled', $this->events($this->noura->user_id));
-        $this->assertContains('request_cancelled', $this->events($this->huda->user_id));
+        // Providers get the staff wording too (never "<client> cancelled", E3).
+        $this->assertContains('request_cancelled_by_staff', $this->events($this->noura->user_id));
+        $this->assertContains('request_cancelled_by_staff', $this->events($this->huda->user_id));
+        $this->assertNotContains('request_cancelled', $this->events($this->noura->user_id));
     }
 
     public function test_a_booked_or_cancelled_request_is_refused(): void

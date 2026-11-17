@@ -41,6 +41,7 @@ enum NotificationEvent: string
     // Slice 17 (D257, D263): staff actions — E20–E25 (S11 owns E18–E19, S9b E26–E29)
     case SupportReplied = 'support_replied';                  // E20
     case SupportTicketResolved = 'support_ticket_resolved';   // E21
+    case SupportTicketClosed = 'support_ticket_closed';       // E21 (closed straight from an open state: no reply possible)
     case RequestCancelledByStaff = 'request_cancelled_by_staff'; // E22
     case BookingCancelledByStaff = 'booking_cancelled_by_staff'; // E23
     case BookingCompletedByStaff = 'booking_completed_by_staff'; // E24
