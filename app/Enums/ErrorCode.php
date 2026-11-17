@@ -42,6 +42,10 @@ enum ErrorCode: string
     case OwnAccount = 'OWN_ACCOUNT';
     case RoleInUse = 'ROLE_IN_USE';
     case PermissionRestricted = 'PERMISSION_RESTRICTED';
+    // Slice 11 — payouts (D216, D221).
+    case PayoutAccountRequired = 'PAYOUT_ACCOUNT_REQUIRED';
+    case PayoutRequestOpen = 'PAYOUT_REQUEST_OPEN';
+    case InsufficientBalance = 'INSUFFICIENT_BALANCE';
 
     public function status(): int
     {
@@ -56,6 +60,7 @@ enum ErrorCode: string
             self::ServerError => 500,
             self::LastSuperAdmin, self::OwnAccount, self::RoleInUse => 409, // Slice 14b
             self::PermissionRestricted => 422, // Slice 14b
+            self::PayoutAccountRequired, self::PayoutRequestOpen, self::InsufficientBalance => 409, // Slice 11
         };
     }
 

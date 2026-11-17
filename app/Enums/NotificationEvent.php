@@ -30,6 +30,9 @@ enum NotificationEvent: string
     case ApplicationSuspended = 'application_suspended';
     case ApplicationReactivated = 'application_reactivated';
     case ApplicationDocumentRejected = 'application_document_rejected';
+    // Slice 11 (D224).
+    case PayoutPaid = 'payout_paid';                          // E18
+    case PayoutRejected = 'payout_rejected';                  // E19
 
     /**
      * The D26 key that can switch off the push (D135). Null = transactional, always pushed.

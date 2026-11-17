@@ -85,4 +85,8 @@ return [
     // Slice 12b (support tickets)
     'ticket_status' => ['open' => 'مفتوحة', 'in_progress' => 'قيد المعالجة', 'waiting' => 'بانتظار ردّك', 'resolved' => 'تم الحل', 'closed' => 'مغلقة'],
     'ticket_topic' => ['service_quality' => 'جودة الخدمة', 'late_arrival' => 'تأخر الوصول', 'payment' => 'الدفع', 'cancellation' => 'الإلغاء', 'account' => 'الحساب', 'other' => 'أخرى'],
+    // Slice 11 (payouts)
+    'ledger_entry_type' => ['earning' => 'أرباح حجز', 'refund_adjustment' => 'تسوية استرداد', 'payout' => 'طلب تحويل', 'payout_reversal' => 'إعادة مبلغ تحويل'],
+    'ledger_entry_status' => ['pending' => 'قيد الانتظار', 'available' => 'متاح'],
+    'payout_request_status' => ['requested' => 'مطلوب', 'paid' => 'تم التحويل', 'rejected' => 'مرفوض'],
 ];

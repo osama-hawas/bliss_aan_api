@@ -1,0 +1,61 @@
+<?php
+
+namespace App\Services\Payouts;
+
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+
+/**
+ * The only place Slice 11 reads Slice 10 payment data (slice-11-contract.md §10). Reads rows, never S10 events'
+ * payloads, and never writes S10 tables. Values are the S10 contract's (`slice-10-contract.md` §4.1, §5).
+ */
+class S10Payments
+{
+    /** `BookingPaymentStatus` values that mean the booking was paid (S10 D190). */
+    public const PAID_BOOKING_STATUSES = ['paid', 'partially_refunded'];
+
+    public const PAYMENT_SUCCEEDED = 'succeeded';
+
+    public const REFUND_REFUNDED = 'refunded';
+
+    /**
+     * The booking's payment row, locked (lock order request → booking → payment → refunds, S10 §9).
+     */
+    public function lockPayment(int $paymentId): ?object
+    {
+        return DB::table('payments')->where('id', $paymentId)->lockForUpdate()->first(['id', 'amount', 'status']);
+    }
+
+    /**
+     * Settled refunds of a payment (`refunds.status = refunded`), locked. `payments.refunded_amount` is not used: it
+     * also counts in-progress reservations.
+     *
+     * @return Collection<int, object{id: int, amount: string}>
+     */
+    public function lockSettledRefunds(int $paymentId): Collection
+    {
+        return DB::table('refunds')->where('payment_id', $paymentId)->where('status', self::REFUND_REFUNDED)
+            ->orderBy('id')->lockForUpdate()->get(['id', 'amount']);
+    }
+
+    public function refund(int $refundId): ?object
+    {
+        return DB::table('refunds')->where('id', $refundId)->first(['id', 'payment_id', 'amount', 'status']);
+    }
+
+    /**
+     * Settled refunds on booking payments, for the back-fill command.
+     *
+     * @return Collection<int, int> refund ids
+     */
+    public function settledBookingRefundIds(): Collection
+    {
+        return DB::table('refunds')
+            ->join('bookings', 'bookings.payment_id', '=', 'refunds.payment_id')
+            ->where('refunds.status', self::REFUND_REFUNDED)
+            ->whereNotExists(fn ($q) => $q->from('provider_ledger_entries')
+                ->whereRaw("provider_ledger_entries.entry_key = CONCAT('refund:', refunds.id)"))
+            ->orderBy('refunds.id')
+            ->pluck('refunds.id');
+    }
+}

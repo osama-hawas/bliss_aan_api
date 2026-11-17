@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Services\Audit\ActivityRecorder;
 use App\Services\Availability\DeadlockRetry;
 use App\Services\Notifications\Notifier;
+use App\Services\Payouts\EarningsRecorder;
 use App\Services\Settings\AppSettings;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
@@ -33,6 +34,7 @@ class BookingExecution
         private readonly DeadlockRetry $retry,
         private readonly AppSettings $settings,
         private readonly Notifier $notifier,
+        private readonly EarningsRecorder $earnings, // S11
     ) {}
 
     /**
@@ -91,6 +93,8 @@ class BookingExecution
             $request->update(['status' => ServiceRequestStatus::Completed]);
             $this->activity->record($request, 'booking_completed', $from, ServiceRequestStatus::Completed, $actor, ActivityVisibility::All, ['booking_id' => $booking->id]);
             $this->notifyClient($booking, $request, NotificationEvent::BookingCompleted, $actor); // E11
+            // S11 (slice-11-contract.md §4.1): the provider's earning for a paid booking; records nothing otherwise.
+            $this->earnings->recordLocked($booking);
 
             return $booking;
         }), 'booking.complete', ['booking_id' => $booking->id]);

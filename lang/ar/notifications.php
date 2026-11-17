@@ -26,5 +26,8 @@ return [
         'application_suspended' => ['title' => 'تم إيقاف حسابكِ', 'body' => 'أُوقف حسابكِ كمقدمة خدمة. افتحيه لمعرفة التفاصيل.'],
         'application_reactivated' => ['title' => 'أُعيد تفعيل حسابكِ', 'body' => 'أصبح حسابكِ مفعّلًا من جديد.'],
         'application_document_rejected' => ['title' => 'لم يُقبل أحد المستندات', 'body' => 'لم يُقبل أحد مستندات طلبكِ. افتحيه لرفع مستند جديد.'],
+        // Slice 11 (D224): E18, E19.
+        'payout_paid' => ['title' => 'تم التحويل', 'body' => 'تم تحويل طلبكِ :reference إلى حسابكِ البنكي.'],
+        'payout_rejected' => ['title' => 'رُفض طلب التحويل', 'body' => 'رُفض طلب التحويل :reference. افتحيه لمعرفة السبب.'],
     ],
 ];

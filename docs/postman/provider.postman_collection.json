@@ -2038,6 +2038,261 @@
           }
         }
       ]
+    },
+    {
+      "name": "Earnings & payouts (Slice 11)",
+      "description": "docs/slice-11-contract.md §5/§12 (D215–D225). 409 NOT_CONFIGURED while payouts.commission_percent or payouts.hold_days is null.",
+      "item": [
+        {
+          "name": "Earnings summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/provider/earnings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "provider",
+                "earnings"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ledger entries",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/provider/earnings/entries?page=1&filter[type]=earning",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "provider",
+                "earnings",
+                "entries"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "filter[type]",
+                  "value": "earning"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Payout account",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/provider/payout-account",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "provider",
+                "payout-account"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Save payout account",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/provider/payout-account",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "provider",
+                "payout-account"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"holder_name\": \"Noura Alharbi\",\n  \"iban\": \"SA03 8000 0000 6080 1016 7519\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Payout requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/provider/payout-requests?page=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "provider",
+                "payout-requests"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Payout request",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/provider/payout-requests/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "provider",
+                "payout-requests",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Request payout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/provider/payout-requests",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "provider",
+                "payout-requests"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": \"500.00\"\n}"
+            }
+          },
+          "description": "Same Idempotency-Key + same amount → 200 replay; other amount → 409 DUPLICATE_REQUEST."
+        }
+      ]
     }
   ]
 }

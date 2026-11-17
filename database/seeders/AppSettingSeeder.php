@@ -23,6 +23,10 @@ class AppSettingSeeder extends Seeder
             'requests.max_attachments' => null, // D53, Q14: not approved
             'bookings.buffer_minutes' => 0, // D108
             'bookings.start_early_minutes' => 60, // D126
+            // Slice 11 (D215, D216): not specified until the owner sets them (null = NOT_CONFIGURED / no minimum).
+            'payouts.commission_percent' => null,
+            'payouts.hold_days' => null,
+            'payouts.min_amount' => null,
             'support.auto_close_days' => null, // D160 (S12b): no auto-close until decided
         ];
 

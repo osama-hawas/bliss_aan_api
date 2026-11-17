@@ -85,4 +85,8 @@ return [
     // Slice 12b (support tickets)
     'ticket_status' => ['open' => 'Open', 'in_progress' => 'In progress', 'waiting' => 'Waiting for your reply', 'resolved' => 'Resolved', 'closed' => 'Closed'],
     'ticket_topic' => ['service_quality' => 'Service quality', 'late_arrival' => 'Late arrival', 'payment' => 'Payment', 'cancellation' => 'Cancellation', 'account' => 'Account', 'other' => 'Other'],
+    // Slice 11 (payouts)
+    'ledger_entry_type' => ['earning' => 'Booking earning', 'refund_adjustment' => 'Refund adjustment', 'payout' => 'Payout request', 'payout_reversal' => 'Payout returned'],
+    'ledger_entry_status' => ['pending' => 'On hold', 'available' => 'Available'],
+    'payout_request_status' => ['requested' => 'Requested', 'paid' => 'Transferred', 'rejected' => 'Rejected'],
 ];

@@ -48,4 +48,8 @@ return [
     'staff_escalation' => 'You cannot grant permissions you do not hold, or manage super admins.',
     // Slice 12a (S12a).
     'DELETION_PENDING' => 'You already have an account deletion request under review.',
+    // Slice 11 (payouts).
+    'PAYOUT_ACCOUNT_REQUIRED' => 'Add your bank account before requesting a payout.',
+    'PAYOUT_REQUEST_OPEN' => 'You already have a payout request in progress.',
+    'INSUFFICIENT_BALANCE' => 'The amount is more than your available balance.',
 ];

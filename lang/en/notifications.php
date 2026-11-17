@@ -27,5 +27,8 @@ return [
         'application_suspended' => ['title' => 'Account suspended', 'body' => 'Your provider account was suspended. Open it for details.'],
         'application_reactivated' => ['title' => 'Account reactivated', 'body' => 'Your provider account is active again.'],
         'application_document_rejected' => ['title' => 'Document not accepted', 'body' => 'A document in your application was not accepted. Open it to upload a new one.'],
+        // Slice 11 (D224): E18, E19.
+        'payout_paid' => ['title' => 'Payout transferred', 'body' => 'Your payout :reference was transferred to your bank account.'],
+        'payout_rejected' => ['title' => 'Payout request rejected', 'body' => 'Your payout request :reference was rejected. Open it to see the reason.'],
     ],
 ];

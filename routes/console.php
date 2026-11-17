@@ -13,3 +13,6 @@ Schedule::command('offers:expire')->everyFiveMinutes()->withoutOverlapping();
 
 // Slice 8 (D136): delete read notifications older than 180 days.
 Schedule::command('notifications:prune')->daily()->withoutOverlapping();
+
+// Slice 11 (S11): back-fill provider earnings and refund adjustments (slice-11-contract.md §4).
+Schedule::command('payouts:record-earnings')->everyFifteenMinutes()->withoutOverlapping();

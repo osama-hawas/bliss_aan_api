@@ -48,4 +48,8 @@ return [
     'staff_escalation' => 'لا يمكنكِ منح صلاحيات لا تملكينها أو إدارة المشرفات العامات.',
     // Slice 12a (S12a).
     'DELETION_PENDING' => 'لديكِ طلب حذف حساب قيد المراجعة بالفعل.',
+    // Slice 11 (payouts).
+    'PAYOUT_ACCOUNT_REQUIRED' => 'أضيفي حسابكِ البنكي قبل طلب التحويل.',
+    'PAYOUT_REQUEST_OPEN' => 'لديكِ طلب تحويل قيد المعالجة بالفعل.',
+    'INSUFFICIENT_BALANCE' => 'المبلغ أكبر من رصيدكِ المتاح.',
 ];
