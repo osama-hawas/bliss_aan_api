@@ -49,6 +49,8 @@ enum NotificationEvent: string
     // Slice 19 (S19, D293): a staff adjustment of her ledger was posted.
     case LedgerCreditPosted = 'ledger_credit_posted';         // E35
     case LedgerDebitPosted = 'ledger_debit_posted';           // E36
+    // S20 (Slice 20): broadcast campaign, push gated by `promotions` (D305/D306).
+    case Broadcast = 'broadcast';                             // E40
 
     /**
      * The D26 key that can switch off the push (D135). Null = transactional, always pushed.
@@ -59,6 +61,7 @@ enum NotificationEvent: string
             self::DirectRequestReceived, self::OpenRequestReceived => NotificationPreferenceKey::NewRequests,
             self::OfferReceived, self::OfferWithdrawn => NotificationPreferenceKey::Offers,
             self::ChatMessage => NotificationPreferenceKey::Messages,
+            self::Broadcast => NotificationPreferenceKey::Promotions, // S20 (D306)
             default => null,
         };
     }

@@ -124,4 +124,8 @@ return [
         'webhooks_unprocessed' => 'أحداث بوابة غير معالجة', 'missing_earnings' => 'أرباح غير مسجلة', 'refund_not_in_ledger' => 'استردادات غير مسجلة في الحساب',
         'negative_balances' => 'أرصدة سالبة لمقدمات الخدمة', 'pending_adjustments' => 'تسويات بانتظار الاعتماد',
     ],
+    // Slice 20 (S20)
+    'broadcast_status' => ['draft' => 'مسودة', 'scheduled' => 'مجدولة', 'sending' => 'قيد الإرسال', 'sent' => 'أُرسلت', 'cancelled' => 'ملغاة'],
+    'content_status' => ['visible' => 'ظاهر', 'hidden' => 'مخفي'],
+    'setting_kind' => ['integer' => 'عدد صحيح', 'decimal' => 'رقم', 'money' => 'مبلغ (ريال)', 'boolean' => 'تشغيل / إيقاف', 'integer_list' => 'قائمة أرقام', 'upload_limits' => 'حدود الملفات', 'json' => 'قيمة'],
 ];

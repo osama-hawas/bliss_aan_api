@@ -44,5 +44,7 @@ return [
         // Slice 19 (S19).
         'ledger_credit_posted' => ['title' => 'أُضيف مبلغ إلى رصيدكِ', 'body' => 'أُضيف :amount :currency إلى رصيدكِ (:reference).'],
         'ledger_debit_posted' => ['title' => 'تعديل على رصيدكِ', 'body' => 'خُصم :amount :currency من رصيدكِ (:reference).'],
+        // S20 (E40): the campaign's own title and text, in the reader's language (D306).
+        'broadcast' => ['title' => ':title', 'body' => ':body'],
     ],
 ];

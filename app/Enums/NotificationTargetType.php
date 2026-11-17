@@ -17,4 +17,5 @@ enum NotificationTargetType: string
     case PayoutRequest = 'payout_request'; // Slice 11 (D224)
     case SupportTicket = 'support_ticket'; // Slice 17 (E20, E21)
     case Earnings = 'earnings'; // Slice 19 (S19): the provider's earnings screen, no id
+    case Broadcast = 'broadcast'; // S20 (D306): no deep link, opens the list
 }

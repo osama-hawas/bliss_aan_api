@@ -23,3 +23,5 @@ Schedule::command('shipments:sync')->everyThirtyMinutes()->withoutOverlapping();
 Schedule::command('payouts:record-earnings')->everyFifteenMinutes()->withoutOverlapping();
 // Slice 17 (D265): close resolved tickets after support.auto_close_days (null = off, no-op).
 Schedule::command('support:auto-close')->daily()->withoutOverlapping();
+// Slice 20 (S20, D305): start scheduled broadcast campaigns.
+Schedule::command('broadcasts:dispatch-due')->everyMinute()->withoutOverlapping();

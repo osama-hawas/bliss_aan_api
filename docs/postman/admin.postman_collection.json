@@ -3212,6 +3212,809 @@
           }
         }
       ]
+    },
+    {
+      "name": "Content & configuration (Slice 20)",
+      "item": [
+        {
+          "name": "List banners",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/banners?filter[status]=visible&sort=sort",
+            "description": "content.manage. D304: client-app banners."
+          }
+        },
+        {
+          "name": "Create banner",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/banners",
+            "description": "Created hidden (D301). `media_id` = own unattached `banner` upload.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": {\n    \"ar\": \"عروض العيد\",\n    \"en\": \"Eid offers\"\n  },\n  \"media_id\": 1,\n  \"destination\": {\n    \"type\": \"category\",\n    \"id\": 1\n  },\n  \"city_id\": null,\n  \"starts_at\": null,\n  \"ends_at\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "Update banner",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/banners/1",
+            "description": "Visible banners keep both languages.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": {\n    \"ar\": \"عروض العيد\",\n    \"en\": \"Eid offers\"\n  },\n  \"media_id\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "Show banner",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/banners/1/show",
+            "description": "409 TRANSLATION_MISSING / INVALID_STATE (no image, window ended).",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          }
+        },
+        {
+          "name": "Hide banner",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/banners/1/hide",
+            "description": "Reason required.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Season over\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List pages",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/content-pages?filter[audience]=client",
+            "description": "D302."
+          }
+        },
+        {
+          "name": "Create page",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/content-pages",
+            "description": "Slug unique per app.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slug\": \"terms\",\n  \"audience\": \"client\",\n  \"title\": {\n    \"ar\": \"الشروط\",\n    \"en\": \"Terms\"\n  },\n  \"body\": {\n    \"ar\": \"## مقدمة\",\n    \"en\": \"## Intro\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Show page",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/content-pages/1/show",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          }
+        },
+        {
+          "name": "Hide page",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/content-pages/1/hide",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Rewrite\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List FAQs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/faqs?filter[audience]=client&sort=sort",
+            "description": "D303."
+          }
+        },
+        {
+          "name": "Create FAQ",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/faqs",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"audience\": \"client\",\n  \"question\": {\n    \"ar\": \"كيف أحجز؟\",\n    \"en\": \"How do I book?\"\n  },\n  \"answer\": {\n    \"ar\": \"من صفحة الخدمة.\",\n    \"en\": \"From the service page.\"\n  },\n  \"sort\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "List broadcasts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/broadcasts?filter[status]=draft",
+            "description": "notifications.broadcast. D305."
+          }
+        },
+        {
+          "name": "Create broadcast",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/broadcasts",
+            "description": "Draft.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": {\n    \"ar\": \"عروض\",\n    \"en\": \"Offers\"\n  },\n  \"body\": {\n    \"ar\": \"خصومات هذا الأسبوع\",\n    \"en\": \"Discounts this week\"\n  },\n  \"audience\": \"client\",\n  \"city_id\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "Broadcast audience",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/broadcasts/1/audience",
+            "description": "Live recipient count."
+          }
+        },
+        {
+          "name": "Send broadcast",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/broadcasts/1/send",
+            "description": "409 AUDIENCE_CHANGED / NO_RECIPIENTS / TRANSLATION_MISSING. E40 via Notifier; push gated by promotions (D306).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expected_count\": 10\n}"
+            }
+          }
+        },
+        {
+          "name": "Schedule broadcast",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/broadcasts/1/schedule",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scheduled_at\": \"2026-12-01T09:00:00Z\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Cancel broadcast",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/broadcasts/1/cancel",
+            "description": "Draft or scheduled.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Wrong date\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List app settings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/settings/app",
+            "description": "settings.manage. D307: every key, null = not configured."
+          }
+        },
+        {
+          "name": "Update app setting",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/settings/app/store.shipping_fee",
+            "description": "Value validated by kind; null clears it.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"value\": \"25.00\",\n  \"reason\": \"Launch price\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List cities",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/settings/cities",
+            "description": "D308, with providers_count / clients_count."
+          }
+        },
+        {
+          "name": "Create city",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/settings/cities",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": {\n    \"ar\": \"أبها\",\n    \"en\": \"Abha\"\n  },\n  \"sort\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "City impact",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/settings/cities/1/impact",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          }
+        },
+        {
+          "name": "Stop city",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/settings/cities/1/stop",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Paused\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Activate city",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/settings/cities/1/activate",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          }
+        },
+        {
+          "name": "List document types",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/settings/document-types",
+            "description": "D309."
+          }
+        },
+        {
+          "name": "Create document type",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/settings/document-types",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": {\n    \"ar\": \"السجل التجاري\",\n    \"en\": \"Commercial register\"\n  },\n  \"applies_to\": \"establishment\",\n  \"is_required\": true,\n  \"allowed_mimes\": [\n    \"pdf\"\n  ],\n  \"max_size_kb\": 5120\n}"
+            }
+          }
+        },
+        {
+          "name": "Stop document type",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/settings/document-types/1/stop",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Not needed\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List policy versions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/settings/policies?filter[type]=cancellation",
+            "description": "D310."
+          }
+        },
+        {
+          "name": "Publish policy version",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/settings/policies",
+            "description": "Append-only.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"cancellation\",\n  \"effective_from\": \"2026-12-01T00:00:00Z\",\n  \"content\": null,\n  \"values\": {\n    \"refund_percent\": null\n  },\n  \"reason\": \"Owner decision\"\n}"
+            }
+          }
+        }
+      ]
     }
   ]
 }

@@ -124,4 +124,8 @@ return [
         'webhooks_unprocessed' => 'Unprocessed gateway events', 'missing_earnings' => 'Missing earnings', 'refund_not_in_ledger' => 'Refunds missing from the ledger',
         'negative_balances' => 'Negative provider balances', 'pending_adjustments' => 'Adjustments awaiting approval',
     ],
+    // Slice 20 (S20)
+    'broadcast_status' => ['draft' => 'Draft', 'scheduled' => 'Scheduled', 'sending' => 'Sending', 'sent' => 'Sent', 'cancelled' => 'Cancelled'],
+    'content_status' => ['visible' => 'Visible', 'hidden' => 'Hidden'],
+    'setting_kind' => ['integer' => 'Whole number', 'decimal' => 'Number', 'money' => 'Amount (SAR)', 'boolean' => 'On / off', 'integer_list' => 'List of numbers', 'upload_limits' => 'File limits', 'json' => 'Value'],
 ];

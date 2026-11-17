@@ -430,3 +430,20 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
   Periods: `FinancePeriod` (Riyadh days, default this month). Routes `routes/api/v1/admin/finance/*.php`. No exports (S21).
 - Tests: `Tests\Concerns\BuildsFinance` (inserts S10/S11 rows by table contract); `tests/Feature/Finance/*`,
   `tests/Feature/Database/LedgerAdjustmentLockingTest.php` — they need the S10/S11 tables, so they run after that merge.
+
+## Content & configuration (Slice 20 — S20)
+
+- Contract: `docs/slice-20-contract.md` (D300–D314). Routes `routes/api/v1/admin/content.php` (banners, content-pages, faqs:
+  `content.manage`; broadcasts: `notifications.broadcast`) and `routes/api/v1/admin/settings/config.php` (app, cities,
+  document-types, policies: `settings.manage`).
+- Content (`app/Services/Content/`): `BannerManagement` (client app only, own unattached `banner` upload, typed destination),
+  `PageManagement` (slug per app, locked while visible), `FaqManagement` (sort); show/hide through `ContentVisibility` (row
+  lock, both languages via `ContentTranslations` → `409 TRANSLATION_MISSING`, hide needs a reason, nothing deleted).
+- Campaigns: `BroadcastCampaigns` (draft → scheduled → sending → sent / cancelled, row lock, `expected_count` →
+  `409 AUDIENCE_CHANGED`, `409 NO_RECIPIENTS`), `BroadcastAudience`, job `SendBroadcastCampaign` → `Notifier` E40
+  `broadcast` (target `broadcast`, dedupe `broadcast:{id}`, push gated by `promotions`), `broadcasts:dispatch-due` every minute.
+- Settings (`app/Services/Settings/`): `SettingCatalog` (every key the platform reads, kind/unit/decision; **later slices
+  append their keys here**), `SettingsEditor` (list = catalogue ∪ stored rows, `null` = not configured, kind validation,
+  audit + cache flush; fixed keys read-only), `CityManagement`, `DocumentTypeManagement`, `PolicyPublisher` (append-only).
+- Tests: `Tests\Concerns\BuildsContent`; `tests/Feature/Admin/Content/*`, `tests/Feature/Admin/Settings/*`,
+  `tests/Feature/Database/BroadcastSendLockingTest.php`.

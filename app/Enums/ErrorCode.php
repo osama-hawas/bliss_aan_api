@@ -67,6 +67,11 @@ enum ErrorCode: string
     case AdjustmentLimitExceeded = 'ADJUSTMENT_LIMIT_EXCEEDED';
     case SelfApproval = 'SELF_APPROVAL';
 
+    // Slice 20 (S20) — content & config (D312).
+    case TranslationMissing = 'TRANSLATION_MISSING';
+    case AudienceChanged = 'AUDIENCE_CHANGED';
+    case NoRecipients = 'NO_RECIPIENTS';
+
     public function status(): int
     {
         return match ($this) {
@@ -89,6 +94,7 @@ enum ErrorCode: string
             self::StockChanged => 409, // Slice 18 (S18)
             self::AdjustmentLimitExceeded => 422, // Slice 19
             self::SelfApproval => 409, // Slice 19
+            self::TranslationMissing, self::AudienceChanged, self::NoRecipients => 409, // Slice 20
         };
     }
 

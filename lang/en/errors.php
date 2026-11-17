@@ -39,6 +39,10 @@ return [
     'OWN_ACCOUNT' => 'You cannot change your own role or suspend your own account.',
     'ROLE_IN_USE' => 'This role is assigned to staff members and cannot be deleted.',
     'PERMISSION_RESTRICTED' => 'This permission is reserved for the super admin role.',
+    // Slice 20 (S20)
+    'TRANSLATION_MISSING' => 'The text must be filled in Arabic and English first.',
+    'AUDIENCE_CHANGED' => 'The number of recipients changed. Check the audience again before sending.',
+    'NO_RECIPIENTS' => 'No user matches this audience.',
     'role_unchanged' => 'The role already has exactly these permissions.',
     'role_super_admin_fixed' => 'The super admin role always has every permission and cannot be edited.',
     'role_system' => 'System roles cannot be renamed or deleted.',
