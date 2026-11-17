@@ -19,7 +19,7 @@ class CreateProductCategoryController extends Controller
 
     public function __invoke(ProductCategoryRequest $request)
     {
-        $category = $this->categories->create($request->data(), $request->user());
+        $category = $this->categories->create($request->fields(), $request->user());
 
         return $this->success(new AdminProductCategoryResource($category), __('store.admin.messages.category_created'), 201);
     }

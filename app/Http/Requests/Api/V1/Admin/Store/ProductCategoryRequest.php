@@ -21,7 +21,7 @@ class ProductCategoryRequest extends FormRequest
         ];
     }
 
-    public function data(): array
+    public function fields(): array
     {
         $data = $this->validated();
         if (isset($data['name'])) {

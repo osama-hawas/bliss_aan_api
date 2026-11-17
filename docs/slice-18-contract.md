@@ -27,7 +27,7 @@ Sources: BRD M6 Req 45–47 and M7 Req 58, `02-database-plan.md` §8, `03-api-co
 | D276 | **Stop / activate** for categories, products and variants: stop needs a reason (3–500), activate takes an optional one; both may carry a staff-only note; repeating the current state → `409 INVALID_STATE`; audit-logged. Nothing is deleted. A stopped category hides its products (existing `Product::visible()`); a stopped product / variant is hidden from the apps; cart lines stay and are flagged unavailable (D205); orders are snapshots and never change. |
 | D277 | **Order**: categories move up / down (swap `sort` with the neighbour; ties renumbered 1..n under a lock; at the edge `409 INVALID_STATE`), like S16. Products take an integer `sort` (0–65535) in create / edit — **S9b's column** `products.sort` (D209); the apps list by it after S9b merges. |
 | D278 | **Low stock**: `store.low_stock_threshold` (`app_settings`, default `null`, S18 block). `null` → no low-stock flag (`low_stock: null`) and `filter[low_stock]=1` → `409 NOT_CONFIGURED`. A variant is low when active and `stock ≤ threshold`. No number is invented. |
-| D279 | **Stock history**: new table `stock_movements` (append-only: source `initial|adjustment|order|order_cancelled`, reason, note, change, before, after, actor, optional `store_order_id`). S18 writes `initial` and `adjustment`. `order` / `order_cancelled` are reserved for S9b's deduction / restoration and are written only after the merge (§9, optional). Every admin write is also an `audit_logs` row with the **product** as subject, so the product page shows one history. |
+| D279 | **Stock history**: new table `stock_movements` (append-only: source `initial|adjustment|order|order_cancelled`, reason, note, change, before, after, actor, optional `store_order_id`). S18 writes `initial` and `adjustment`; S9b's `StoreOrderLifecycle::confirmPaid` writes `order` and `cancelByStaff` writes `order_cancelled` (with `store_order_id`, on the locked variant row; fix round M1). Every admin write is also an `audit_logs` row with the **product** as subject, so the product page shows one history. |
 | D280 | **Locks**: product → its variants for product / variant writes; an adjustment locks only its variant row. S9b locks order → variants (id asc) → promo; neither path locks a product row after a variant, so no cycle. A product stop does not lock variants: a sale already being confirmed may still finish (a stop is a display change, not a stock guarantee). |
 | D281 | **Price changes** take effect at once for carts (S9b shows the D210 notice at checkout) and never touch orders (snapshots). No notification. Every change is audit-logged with old / new. |
 | D282 | **Validation**: names `{ar, en}` both required, 2–60 (category) / 2–120 (product); category names unique per language (case-insensitive); description optional, ≤ 2000 per language; at most 50 variants in one create body; stock whole number 0–1,000,000. These are input guards, not business numbers. |
@@ -40,7 +40,7 @@ Migration `2026_11_28_100000_create_stock_movements_table` (dated after S9b's 20
 
 `stock_movements`: `product_variant_id` (restrict), `source` varchar(24), `reason_code` varchar(24) null, `note`
 varchar(500) null, `change` int (signed), `stock_before` / `stock_after` int unsigned, `store_order_id` bigint null
-(index, **no FK** until S9b's `store_orders` is merged), `actor_id` null (users, null on delete), `created_at`; index
+(index; FK → `store_orders`, restrict, added by `2026_11_30_100000_add_store_order_fk_to_stock_movements` after the S9b merge), `actor_id` null (users, null on delete), `created_at`; index
 (`product_variant_id`, `id`). Enums `StockMovementSource`, `StockAdjustmentReason` (labels in `lang/*/enums.php`).
 
 No other schema change. `products.sort` is S9b's (`2026_11_24_100000_add_store_checkout_columns`); S18 code writes it
@@ -141,3 +141,13 @@ answers `STOCK_CHANGED`). `EnumLabelTest` covers the two new enums through the l
 3. `03-api-conventions.md` 409 row: add `STOCK_CHANGED` (Slice 18) at merge (not edited here, S9b edits the same row).
 4. Dashboard: drop the dead product / category mock handlers in `src/mocks/modules/store.ts` and the unused
    `Product*` types in `features/store/types.ts` / `storeApi.products|categories` once S9b's version of those files is merged.
+
+## 10. Fix round (2026-11-17, after the final review)
+
+- M1: order deductions / restorations now write stock movements (`StoreOrderLifecycle` loops); FK migration
+  `2026_11_30_100000_add_store_order_fk_to_stock_movements`. Test: `tests/Feature/Store/Admin/OrderStockMovementTest.php`.
+- L2: a SKU taken by a concurrent save (unique index) answers `422` on the SKU field instead of `500`
+  (`ProductManagement::guardSkuRace`). L3: numeric SKUs name the right `variants.N.sku` field.
+- Found while testing: the form requests' `data()` clashed with Laravel's `Request::data()` (fatal) → renamed `fields()`.
+- Dashboard: the product editor keeps unsaved edits across variant changes (keyed on the id); stock history paginates;
+  categories load every page (`catalogApi.categories.all`); the activate spinner is per variant row.

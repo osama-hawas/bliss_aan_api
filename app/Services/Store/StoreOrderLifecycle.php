@@ -7,6 +7,7 @@ use App\Enums\ErrorCode;
 use App\Enums\NotificationEvent;
 use App\Enums\NotificationTargetType;
 use App\Enums\PromoCodeUsageStatus;
+use App\Enums\StockMovementSource;
 use App\Enums\StoreOrderStatus;
 use App\Exceptions\ApiException;
 use App\Models\CartItem;
@@ -19,6 +20,7 @@ use App\Services\Audit\ActivityRecorder;
 use App\Services\Audit\AuditLogger;
 use App\Services\Availability\DeadlockRetry;
 use App\Services\Notifications\Notifier;
+use App\Services\Store\Admin\StockAdjustments;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -75,7 +77,12 @@ class StoreOrderLifecycle
             }
 
             foreach ($items as $item) {
-                ProductVariant::query()->whereKey($item->product_variant_id)->decrement('stock', $item->quantity);
+                // S18 (D279): every deduction is a stock movement on the locked variant row.
+                $variant = $variants->get($item->product_variant_id);
+                $before = $variant->stock;
+                ProductVariant::query()->whereKey($variant->id)->decrement('stock', $item->quantity);
+                $variant->refresh();
+                app(StockAdjustments::class)->record($variant, $before, StockMovementSource::Order, null, null, null, $order->id);
             }
 
             // Her cart lines for what she bought are done (cart lines before the promo row: lock order).
@@ -149,9 +156,14 @@ class StoreOrderLifecycle
             }
 
             $items = $order->items()->get();
-            $this->lockVariants($items->pluck('product_variant_id'));
+            $locked = $this->lockVariants($items->pluck('product_variant_id'));
             foreach ($items as $item) {
-                ProductVariant::query()->whereKey($item->product_variant_id)->increment('stock', $item->quantity);
+                // S18 (D279): every restoration is a stock movement on the locked variant row.
+                $variant = $locked->get($item->product_variant_id);
+                $before = $variant->stock;
+                ProductVariant::query()->whereKey($variant->id)->increment('stock', $item->quantity);
+                $variant->refresh();
+                app(StockAdjustments::class)->record($variant, $before, StockMovementSource::OrderCancelled, $staff, null, null, $order->id);
             }
 
             $from = $order->status;

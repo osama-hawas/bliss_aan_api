@@ -34,7 +34,7 @@ class ProductRequest extends FormRequest
         return $rules;
     }
 
-    public function data(): array
+    public function fields(): array
     {
         $data = $this->validated();
         if (isset($data['name'])) {
