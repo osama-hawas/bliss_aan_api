@@ -27,5 +27,10 @@ return [
         'application_suspended' => ['title' => 'Account suspended', 'body' => 'Your provider account was suspended. Open it for details.'],
         'application_reactivated' => ['title' => 'Account reactivated', 'body' => 'Your provider account is active again.'],
         'application_document_rejected' => ['title' => 'Document not accepted', 'body' => 'A document in your application was not accepted. Open it to upload a new one.'],
+        // Slice 9b — store orders (E26–E29). Placeholder :reference only.
+        'store_order_confirmed' => ['title' => 'Order confirmed', 'body' => 'Your order :reference is confirmed. We are preparing it.'],
+        'store_order_shipped' => ['title' => 'Order on the way', 'body' => 'Your order :reference is on its way.'],
+        'store_order_delivered' => ['title' => 'Order delivered', 'body' => 'Your order :reference was delivered.'],
+        'store_order_cancelled' => ['title' => 'Order cancelled', 'body' => 'Your order :reference was cancelled. Open it for details.'],
     ],
 ];

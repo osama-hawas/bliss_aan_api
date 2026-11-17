@@ -8,14 +8,19 @@ use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\ProductVariant;
 use App\Models\User;
+use App\Services\Settings\AppSettings;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Server-side cart CRUD (Slice 9, `slice-9-contract.md` §5). Her own cart only; created on the first item.
- * A quantity is checked against the variant's current stock when it is set. Nothing is reserved or deducted,
- * and lines that later become unavailable or exceed stock are kept and flagged, never changed (open: Q-S9-1/2).
+ * A quantity is checked against the variant's current stock (and `store.max_qty_per_line`, D208) when it is set.
+ * Nothing is reserved (D207); lines that later become unavailable or exceed stock are kept and flagged, and checkout
+ * is refused until she fixes them (D205).
  */
 class CartService
 {
+    public function __construct(private readonly AppSettings $settings) {}
+
     /**
      * Her cart with its lines, or null when she has none yet.
      */
@@ -34,6 +39,12 @@ class CartService
         $variant = ProductVariant::query()->available()->find($variantId)
             ?? throw new ApiException(ErrorCode::NotFound);
 
+        // D208: an optional per-line maximum; a limit, not a stock number, so it may be shown.
+        $max = $this->settings->get('store.max_qty_per_line');
+        if ($max !== null && $quantity > (int) $max) {
+            throw ValidationException::withMessages(['quantity' => __('store.max_quantity', ['max' => (int) $max])]);
+        }
+
         if ($quantity > $variant->stock) {
             throw new ApiException(ErrorCode::OutOfStock, __('store.out_of_stock'), ['quantity' => [__('store.out_of_stock')]]);
         }
@@ -42,9 +53,10 @@ class CartService
 
         // One statement on unique(cart_id, product_variant_id): concurrent calls cannot create two lines.
         CartItem::query()->upsert(
-            [['cart_id' => $cart->id, 'product_variant_id' => $variant->id, 'quantity' => $quantity, 'created_at' => now(), 'updated_at' => now()]],
+            // added_unit_price: the price she sees now, for the "price changed" notice (D210).
+            [['cart_id' => $cart->id, 'product_variant_id' => $variant->id, 'quantity' => $quantity, 'added_unit_price' => $variant->price, 'created_at' => now(), 'updated_at' => now()]],
             ['cart_id', 'product_variant_id'],
-            ['quantity', 'updated_at'],
+            ['quantity', 'added_unit_price', 'updated_at'],
         );
 
         return $this->find($user);
@@ -73,7 +85,7 @@ class CartService
         return $this->find($user);
     }
 
-    private function cartOf(User $user): Cart
+    public function cartOf(User $user): Cart
     {
         // insertOrIgnore on unique(user_id): two first adds at once still give one cart.
         Cart::query()->insertOrIgnore(['user_id' => $user->id, 'created_at' => now(), 'updated_at' => now()]);

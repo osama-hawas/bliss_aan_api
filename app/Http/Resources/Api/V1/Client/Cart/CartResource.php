@@ -11,7 +11,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * Her cart (an empty one when she has none yet). Prices are live variant prices; `subtotal` sums the available lines
- * only. No discount, shipping fee or VAT: those are outside this scope (`slice-9-contract.md` §5).
+ * only. Discount, shipping fee and VAT are in the checkout preview (`slice-9b-contract.md` §6.1), not here.
  *
  * @property-read Cart|null $resource
  */
@@ -29,6 +29,8 @@ class CartResource extends JsonResource
             $product = $variant->product;
             $available = $variant->isAvailable();
             $lineCents = self::cents($variant->price) * $item->quantity;
+            // D210: the price moved since she set this line (null for lines from before Slice 9b).
+            $priceChanged = $item->added_unit_price !== null && self::cents($item->added_unit_price) !== self::cents($variant->price);
             if ($available) {
                 $subtotalCents += $lineCents;
             }
@@ -47,6 +49,8 @@ class CartResource extends JsonResource
                 'available' => $available,
                 'in_stock' => $variant->inStock(),
                 'exceeds_stock' => $item->quantity > $variant->stock,
+                'price_changed' => $priceChanged,
+                'previous_unit_price' => $priceChanged ? $this->money($item->added_unit_price) : null,
             ];
         })->values();
 
@@ -55,6 +59,7 @@ class CartResource extends JsonResource
             'count' => (int) $items->sum('quantity'),
             'subtotal' => $this->money(self::amount($subtotalCents)),
             'has_issues' => $lines->contains(fn (array $line) => ! $line['available'] || $line['exceeds_stock']),
+            'price_changed' => $lines->contains(fn (array $line) => $line['price_changed']),
         ];
     }
 

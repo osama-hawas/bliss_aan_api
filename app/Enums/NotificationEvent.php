@@ -30,6 +30,11 @@ enum NotificationEvent: string
     case ApplicationSuspended = 'application_suspended';
     case ApplicationReactivated = 'application_reactivated';
     case ApplicationDocumentRejected = 'application_document_rejected';
+    // Slice 9b — store orders (D213, E26–E29), client, transactional.
+    case StoreOrderConfirmed = 'store_order_confirmed';       // E26
+    case StoreOrderShipped = 'store_order_shipped';           // E27
+    case StoreOrderDelivered = 'store_order_delivered';       // E28
+    case StoreOrderCancelled = 'store_order_cancelled';       // E29
 
     /**
      * The D26 key that can switch off the push (D135). Null = transactional, always pushed.

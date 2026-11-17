@@ -48,4 +48,10 @@ return [
     'staff_escalation' => 'You cannot grant permissions you do not hold, or manage super admins.',
     // Slice 12a (S12a).
     'DELETION_PENDING' => 'You already have an account deletion request under review.',
+    // Slice 9b — store checkout and orders.
+    'CART_EMPTY' => 'Your cart is empty.',
+    'CART_HAS_ISSUES' => 'Some items in your cart are unavailable or exceed the available stock. Update your cart to continue.',
+    'PROMO_CODE_INVALID' => 'This promo code cannot be used.',
+    'PRICE_CHANGED' => 'The order total changed. Review the new total and confirm again.',
+    'CARRIER_FAILED' => 'The carrier could not create the shipment. Try again or choose internal delivery.',
 ];

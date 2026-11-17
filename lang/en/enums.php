@@ -85,4 +85,10 @@ return [
     // Slice 12b (support tickets)
     'ticket_status' => ['open' => 'Open', 'in_progress' => 'In progress', 'waiting' => 'Waiting for your reply', 'resolved' => 'Resolved', 'closed' => 'Closed'],
     'ticket_topic' => ['service_quality' => 'Service quality', 'late_arrival' => 'Late arrival', 'payment' => 'Payment', 'cancellation' => 'Cancellation', 'account' => 'Account', 'other' => 'Other'],
+    // Slice 9b (store orders)
+    'store_order_status' => ['pending_payment' => 'Awaiting payment', 'confirmed' => 'Confirmed', 'preparing' => 'Preparing', 'shipped' => 'On the way', 'delivered' => 'Delivered', 'cancelled' => 'Cancelled', 'expired' => 'Payment not completed'],
+    'shipment_status' => ['pending' => 'Creating shipment', 'in_transit' => 'In transit', 'delivered' => 'Delivered', 'failed' => 'Delivery failed'],
+    'shipment_method' => ['carrier' => 'Shipping company', 'internal' => 'Internal delivery'],
+    'promo_code_type' => ['percent' => 'Percentage', 'fixed' => 'Fixed amount'],
+    'promo_code_usage_status' => ['held' => 'Held by an open checkout', 'used' => 'Used', 'released' => 'Released'],
 ];

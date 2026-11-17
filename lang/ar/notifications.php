@@ -26,5 +26,10 @@ return [
         'application_suspended' => ['title' => 'تم إيقاف حسابكِ', 'body' => 'أُوقف حسابكِ كمقدمة خدمة. افتحيه لمعرفة التفاصيل.'],
         'application_reactivated' => ['title' => 'أُعيد تفعيل حسابكِ', 'body' => 'أصبح حسابكِ مفعّلًا من جديد.'],
         'application_document_rejected' => ['title' => 'لم يُقبل أحد المستندات', 'body' => 'لم يُقبل أحد مستندات طلبكِ. افتحيه لرفع مستند جديد.'],
+        // Slice 9b — store orders (E26–E29). Placeholder :reference only.
+        'store_order_confirmed' => ['title' => 'تم تأكيد طلبكِ', 'body' => 'تم تأكيد طلبكِ :reference وجارٍ تجهيزه.'],
+        'store_order_shipped' => ['title' => 'طلبكِ في الطريق', 'body' => 'طلبكِ :reference في الطريق إليكِ.'],
+        'store_order_delivered' => ['title' => 'تم توصيل طلبكِ', 'body' => 'تم توصيل طلبكِ :reference.'],
+        'store_order_cancelled' => ['title' => 'تم إلغاء طلبكِ', 'body' => 'تم إلغاء طلبكِ :reference. افتحيه لمعرفة التفاصيل.'],
     ],
 ];

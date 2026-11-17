@@ -3,10 +3,14 @@
 namespace Database\Seeders;
 
 use App\Enums\MediaVisibility;
+use App\Enums\PromoCodeType;
+use App\Models\AppSetting;
 use App\Models\Media;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\ProductVariant;
+use App\Models\PromoCode;
+use App\Services\Settings\AppSettings;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
 
@@ -58,7 +62,7 @@ class StoreDemoSeeder extends Seeder
             $category = ProductCategory::query()->where('name->en', $en)->first()
                 ?? ProductCategory::query()->create(['name' => ['en' => $en, 'ar' => $ar], 'is_active' => true, 'sort' => $sort + 1]);
 
-            foreach ($products as [$pEn, $pAr, $base, $image, $variants]) {
+            foreach ($products as $productSort => [$pEn, $pAr, $base, $image, $variants]) {
                 $product = Product::query()->where('category_id', $category->id)->where('name->en', "[DEMO] {$pEn}")->first()
                     ?? Product::query()->create([
                         'category_id' => $category->id,
@@ -67,6 +71,7 @@ class StoreDemoSeeder extends Seeder
                         'base_price' => $base,
                         'is_active' => true,
                     ]);
+                $product->forceFill(['sort' => $productSort + 1])->save(); // S9b: admin sort (D209)
                 $this->image($product, $image);
 
                 foreach ($variants as [$sku, $attributes, $price, $stock]) {
@@ -77,6 +82,21 @@ class StoreDemoSeeder extends Seeder
                 }
             }
         }
+
+        $this->checkoutDemo();
+    }
+
+    /**
+     * S9b: a [DEMO] shipping fee and promo code so local checkout works. Not real business values (D201); only set
+     * when the fee is still unset, so a local edit survives re-seeding.
+     */
+    private function checkoutDemo(): void
+    {
+        if (AppSetting::query()->where('key', 'store.shipping_fee')->value('value') === null) {
+            app(AppSettings::class)->set('store.shipping_fee', '25.00'); // [DEMO]
+        }
+
+        PromoCode::query()->firstOrCreate(['code' => 'DEMO10'], ['type' => PromoCodeType::Percent, 'value' => '10.00', 'is_active' => true]);
     }
 
     private function image(Product $product, string $file): void

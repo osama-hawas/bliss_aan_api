@@ -13,3 +13,7 @@ Schedule::command('offers:expire')->everyFiveMinutes()->withoutOverlapping();
 
 // Slice 8 (D136): delete read notifications older than 180 days.
 Schedule::command('notifications:prune')->daily()->withoutOverlapping();
+
+// S9b (Slice 9b store orders): expire unpaid orders; poll the carrier for in-transit shipments.
+Schedule::command('store-orders:expire')->everyFiveMinutes()->withoutOverlapping();
+Schedule::command('shipments:sync')->everyThirtyMinutes()->withoutOverlapping();

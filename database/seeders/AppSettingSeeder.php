@@ -24,6 +24,10 @@ class AppSettingSeeder extends Seeder
             'bookings.buffer_minutes' => 0, // D108
             'bookings.start_early_minutes' => 60, // D126
             'support.auto_close_days' => null, // D160 (S12b): no auto-close until decided
+            // S9b (Slice 9b store orders): business numbers stay unset until decided.
+            'store.shipping_fee' => null,      // D201: flat fee; null → checkout 409 NOT_CONFIGURED
+            'store.max_qty_per_line' => null,  // D208: null = current stock only
+            'tax.vat_percent' => null,         // D202: prices include VAT; null = no VAT line
         ];
 
         foreach (UploadContext::cases() as $context) {

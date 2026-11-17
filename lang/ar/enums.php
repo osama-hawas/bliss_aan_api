@@ -85,4 +85,10 @@ return [
     // Slice 12b (support tickets)
     'ticket_status' => ['open' => 'مفتوحة', 'in_progress' => 'قيد المعالجة', 'waiting' => 'بانتظار ردّك', 'resolved' => 'تم الحل', 'closed' => 'مغلقة'],
     'ticket_topic' => ['service_quality' => 'جودة الخدمة', 'late_arrival' => 'تأخر الوصول', 'payment' => 'الدفع', 'cancellation' => 'الإلغاء', 'account' => 'الحساب', 'other' => 'أخرى'],
+    // Slice 9b (store orders)
+    'store_order_status' => ['pending_payment' => 'بانتظار الدفع', 'confirmed' => 'مؤكَّد', 'preparing' => 'قيد التجهيز', 'shipped' => 'في الطريق', 'delivered' => 'تم التوصيل', 'cancelled' => 'ملغى', 'expired' => 'لم يكتمل الدفع'],
+    'shipment_status' => ['pending' => 'جارٍ إنشاء الشحنة', 'in_transit' => 'قيد الشحن', 'delivered' => 'تم التوصيل', 'failed' => 'تعذّر التوصيل'],
+    'shipment_method' => ['carrier' => 'شركة شحن', 'internal' => 'توصيل داخلي'],
+    'promo_code_type' => ['percent' => 'نسبة مئوية', 'fixed' => 'مبلغ ثابت'],
+    'promo_code_usage_status' => ['held' => 'محجوز لطلب قيد الدفع', 'used' => 'مستخدم', 'released' => 'محرَّر'],
 ];

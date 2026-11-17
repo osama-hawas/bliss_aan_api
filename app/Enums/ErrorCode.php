@@ -43,6 +43,13 @@ enum ErrorCode: string
     case RoleInUse = 'ROLE_IN_USE';
     case PermissionRestricted = 'PERMISSION_RESTRICTED';
 
+    // Slice 9b — store checkout and orders (slice-9b-contract.md §9).
+    case CartEmpty = 'CART_EMPTY';
+    case CartHasIssues = 'CART_HAS_ISSUES';
+    case PromoCodeInvalid = 'PROMO_CODE_INVALID';
+    case PriceChanged = 'PRICE_CHANGED';
+    case CarrierFailed = 'CARRIER_FAILED';
+
     public function status(): int
     {
         return match ($this) {
@@ -56,6 +63,8 @@ enum ErrorCode: string
             self::ServerError => 500,
             self::LastSuperAdmin, self::OwnAccount, self::RoleInUse => 409, // Slice 14b
             self::PermissionRestricted => 422, // Slice 14b
+            self::CartEmpty, self::PromoCodeInvalid => 422, // Slice 9b
+            self::CartHasIssues, self::PriceChanged, self::CarrierFailed => 409, // Slice 9b
         };
     }
 

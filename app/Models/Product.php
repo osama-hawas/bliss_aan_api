@@ -23,11 +23,11 @@ class Product extends Model
 
     public array $translatable = ['name', 'description'];
 
-    protected $fillable = ['category_id', 'name', 'description', 'base_price', 'is_active'];
+    protected $fillable = ['category_id', 'name', 'description', 'base_price', 'is_active', 'sort'];
 
     protected function casts(): array
     {
-        return ['base_price' => 'decimal:2', 'is_active' => 'boolean'];
+        return ['base_price' => 'decimal:2', 'is_active' => 'boolean', 'sort' => 'integer'];
     }
 
     public function category(): BelongsTo

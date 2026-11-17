@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Bliss aan — store (Slice 9, independent part)",
-    "description": "Slice 9 store catalogue (public, read-only) and the client's server cart. Kept as its own collection until the Slice 8 merge (`docs/slice-9-contract.md`). No checkout, orders, promo codes, payments or shipping here. Uses the shared environment (`base_url`, `lang`, `client_token`).",
+    "name": "Bliss aan — store (Slice 9 + 9b)",
+    "description": "Slice 9 catalogue and cart, Slice 9b checkout, orders, promo codes and shipments (`docs/slice-9-contract.md`, `docs/slice-9b-contract.md`). Uses the shared environment (`base_url`, `lang`, `client_token`, `admin_token`). Payments use the Slice 10 fake tokens (`tok_fake_visa_4242_1230`).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -161,6 +161,617 @@
             ],
             "url": "{{base_url}}/client/cart",
             "description": "Empties her cart (idempotent)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Checkout & orders (client, S9b)",
+      "item": [
+        {
+          "name": "Checkout preview",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/client/store-orders/preview",
+            "description": "Totals with live prices; promo on the products subtotal; VAT line only when `tax.vat_percent` is set. Errors CART_EMPTY, CART_HAS_ISSUES, NOT_CONFIGURED, PROMO_CODE_INVALID.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address_id\": 1,\n  \"promo_code\": \"DEMO10\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Place order (checkout)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/client/store-orders",
+            "description": "Creates the unpaid snapshot (`pending_payment`). `expected_total` = preview total; else 409 PRICE_CHANGED with the new preview in data.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address_id\": 1,\n  \"promo_code\": \"DEMO10\",\n  \"expected_total\": \"115.00\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Pay order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/client/store-orders/{{store_order_id}}/payments",
+            "description": "Slice 10 payment for payable `store_order`; data = payment, meta.order = the order after the call.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"method\": \"card\",\n  \"token\": \"tok_fake_visa_4242_1230\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List my orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/client/store-orders?filter[status]=active",
+            "description": "Placed orders only (active | done)."
+          }
+        },
+        {
+          "name": "Show my order",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/client/store-orders/{{store_order_id}}",
+            "description": "Any of hers, including pending_payment / expired; timeline + shipment tracking."
+          }
+        },
+        {
+          "name": "Reorder",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/client/store-orders/{{store_order_id}}/reorder",
+            "description": "Copies the lines into the cart at current stock and prices; `skipped` lists what could not be added."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Promo codes (admin, S9b)",
+      "item": [
+        {
+          "name": "List promo codes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/promo-codes?filter[state]=active",
+            "description": "products.manage"
+          }
+        },
+        {
+          "name": "Create promo code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/promo-codes",
+            "description": "products.manage",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"EID25\",\n  \"type\": \"percent\",\n  \"value\": \"25\",\n  \"min_amount\": \"100\",\n  \"usage_limit\": 100,\n  \"per_user_limit\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Show promo code",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/promo-codes/{{promo_code_id}}",
+            "description": "With recent uses."
+          }
+        },
+        {
+          "name": "Update promo code",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/promo-codes/{{promo_code_id}}",
+            "description": "Type / value locked once used.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usage_limit\": 200\n}"
+            }
+          }
+        },
+        {
+          "name": "Stop promo code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/promo-codes/{{promo_code_id}}/stop",
+            "description": "Reason required; audited.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Campaign ended\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Activate promo code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/promo-codes/{{promo_code_id}}/activate",
+            "description": "Reason required; audited.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Extended\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Store orders & shipments (admin, S9b)",
+      "item": [
+        {
+          "name": "List store orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/store-orders?filter[status]=all&sort=-created_at",
+            "description": "orders.view; default hides pending_payment / expired."
+          }
+        },
+        {
+          "name": "Show store order",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/store-orders/{{store_order_id}}",
+            "description": "orders.view; payment summary links to the Slice 10 payment."
+          }
+        },
+        {
+          "name": "Prepare",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/store-orders/{{store_order_id}}/prepare",
+            "description": "orders.update_status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Packed\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Cancel",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/store-orders/{{store_order_id}}/cancel",
+            "description": "Restores stock; refund separately via admin/payments/{id}/refunds. meta.refundable.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Client asked\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delivery officers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/store-orders/delivery-officers",
+            "description": "Staff with delivery.assigned."
+          }
+        },
+        {
+          "name": "Ship (carrier)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/store-orders/{{store_order_id}}/shipments",
+            "description": "Idempotency-Key = carrier request key. 409 CARRIER_FAILED.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"method\": \"carrier\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Ship (internal)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/store-orders/{{store_order_id}}/shipments",
+            "description": "Assigned officer required.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"method\": \"internal\",\n  \"assigned_admin_id\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Retry carrier shipment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/shipments/{{shipment_id}}/retry",
+            "description": "Pending carrier shipment only, same key."
+          }
+        },
+        {
+          "name": "Shipment delivered / failed",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/shipments/{{shipment_id}}/status",
+            "description": "orders.update_status or the assigned officer.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"failed\",\n  \"reason\": \"Nobody home\"\n}"
+            }
+          }
+        },
+        {
+          "name": "My deliveries",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/deliveries?filter[status]=in_transit",
+            "description": "delivery.assigned"
           }
         }
       ]
