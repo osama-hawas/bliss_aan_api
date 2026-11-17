@@ -16,6 +16,7 @@ use App\Models\Banner;
 use App\Models\City;
 use App\Models\Faq;
 use App\Models\Media;
+use App\Models\Package;
 use App\Models\Page;
 use App\Models\Provider;
 use App\Models\Service;
@@ -43,6 +44,7 @@ class DemoSeeder extends Seeder
         $this->catalog();
         $this->providers();
         $this->content();
+        $this->packages();
         $this->uploadLimits();
         $this->otpSettings();
     }
@@ -356,6 +358,32 @@ class DemoSeeder extends Seeder
 
         foreach ($values as $key => $value) {
             AppSetting::query()->where('key', $key)->whereNull('value')->update(['value' => json_encode($value)]);
+        }
+    }
+
+    /**
+     * Slice 24: two [DEMO] packages so testers see the Home block and "Request this package" (no price, D350).
+     */
+    private function packages(): void
+    {
+        $bundles = [
+            ['[DEMO] Wedding essentials', '[DEMO] أساسيات الزفاف', 'Hall, photography and coffee service in one request.', 'القاعة والتصوير والقهوة في طلب واحد.', ['Wedding hall', 'Event photography', 'Coffee service']],
+            ['[DEMO] Bride day', '[DEMO] يوم العروس', 'Makeup, bridesmaids and flowers for the big day.', 'المكياج والوصيفات والورد ليوم العمر.', ['Bridal makeup', 'Bridesmaids service', 'Flower arrangements']],
+        ];
+        foreach ($bundles as $sort => [$en, $ar, $descEn, $descAr, $services]) {
+            if (Package::query()->where('name->en', $en)->exists()) {
+                continue;
+            }
+            $package = Package::query()->create([
+                'name' => ['ar' => $ar, 'en' => $en],
+                'description' => ['ar' => $descAr, 'en' => $descEn],
+                'is_active' => true,
+                'sort' => $sort,
+            ]);
+            $ids = Service::query()->whereIn('name->en', array_map(fn ($n) => "[DEMO] {$n}", $services))->pluck('id');
+            foreach ($ids->values() as $i => $id) {
+                $package->services()->attach($id, ['sort' => $i]);
+            }
         }
     }
 }
