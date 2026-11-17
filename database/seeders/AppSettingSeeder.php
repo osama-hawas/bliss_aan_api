@@ -24,6 +24,9 @@ class AppSettingSeeder extends Seeder
             'bookings.buffer_minutes' => 0, // D108
             'bookings.start_early_minutes' => 60, // D126
             'support.auto_close_days' => null, // D160 (S12b): no auto-close until decided
+            // S21 — reports (D320): the overview's low-stock item stays hidden until a threshold is decided.
+            'store.low_stock_threshold' => null,
+            // S21 end.
         ];
 
         foreach (UploadContext::cases() as $context) {

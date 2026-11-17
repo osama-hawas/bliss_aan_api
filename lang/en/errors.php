@@ -48,4 +48,6 @@ return [
     'staff_escalation' => 'You cannot grant permissions you do not hold, or manage super admins.',
     // Slice 12a (S12a).
     'DELETION_PENDING' => 'You already have an account deletion request under review.',
+    // S21 (D322).
+    'EXPORT_TOO_LARGE' => 'This export has more rows than one file can hold. Narrow the period or filters and try again.',
 ];

@@ -43,6 +43,9 @@ enum ErrorCode: string
     case RoleInUse = 'ROLE_IN_USE';
     case PermissionRestricted = 'PERMISSION_RESTRICTED';
 
+    // S21 — reports (D322).
+    case ExportTooLarge = 'EXPORT_TOO_LARGE';
+
     public function status(): int
     {
         return match ($this) {
@@ -56,6 +59,7 @@ enum ErrorCode: string
             self::ServerError => 500,
             self::LastSuperAdmin, self::OwnAccount, self::RoleInUse => 409, // Slice 14b
             self::PermissionRestricted => 422, // Slice 14b
+            self::ExportTooLarge => 422, // S21 (D322)
         };
     }
 
