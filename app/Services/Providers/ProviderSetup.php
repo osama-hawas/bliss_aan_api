@@ -71,7 +71,10 @@ class ProviderSetup
      */
     public function addService(Provider $provider, int $serviceId, array $places = []): ProviderService
     {
-        $service = Service::query()->where('is_active', true)->find($serviceId)
+        // A stopped service or one in a stopped category can't be picked (D34, Slice 16 review L2).
+        $service = Service::query()->where('is_active', true)
+            ->whereHas('category', fn ($category) => $category->where('is_active', true))
+            ->find($serviceId)
             ?? throw ValidationException::withMessages(['service_id' => __('validation.exists', ['attribute' => __('validation.attributes.service_ids')])]);
 
         return DB::transaction(function () use ($provider, $service, $places) {
@@ -200,7 +203,9 @@ class ProviderSetup
         }
 
         DB::transaction(function () use ($offered, $valid, $disabledIds) {
-            $offered->inclusionSettings()->delete();
+            // Only the currently active inclusions are rewritten: her choice for one the admin switched off is kept, so
+            // it still applies if the admin switches it on again (D179/D180, Slice 16 review M1).
+            $offered->inclusionSettings()->whereIn('service_inclusion_id', $valid)->delete();
             foreach (array_intersect($valid, $disabledIds) as $id) {
                 $offered->inclusionSettings()->create(['service_inclusion_id' => $id, 'enabled' => false]);
             }

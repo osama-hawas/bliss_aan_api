@@ -1,6 +1,6 @@
 # Slice 16 — Catalog management (admin): categories, services, inclusions, add-ons, guide price impact
 
-> **Status: contract rev 3 (2026-11-17) — implemented on branch `slice-16-catalog-admin` (API base `937ecf6`, app base
+> **Status: contract rev 4 (2026-11-17; review fixes in §12) — rev 3 — implemented on branch `slice-16-catalog-admin` (API base `937ecf6`, app base
 > `ef01a8d`), not committed, NOT yet tested: per the owner's instruction tests are written but run only at the end by the
 > orchestrator. Implementation notes and deviations: §11.**
 > Session S16, branch `slice-16-catalog-admin` in `wt-s16/bliss_aan_api` (base `master` @ `ff371ba`) and
@@ -178,8 +178,8 @@ add-ons (providers price them, Slice 3).
 }
 ```
 
-- Counts use **active** `provider_services` rows of the services in scope (one service, or a category's active services).
-  `providers_default` = `custom_price IS NULL` (these and only these change price — BRD rule);
+- Counts use **active** `provider_services` rows of the services in scope (one service, or a category's active services),
+  and every provider count is **distinct providers** (review L3). `providers_default` = `custom_price IS NULL` (these and only these change price — BRD rule);
   `providers_default_visible` = those currently shown to clients (D34/D75); `providers_custom` = unaffected.
 - `open_requests` = requests on those services in `awaiting_offers` / `offers_received`; `active_bookings` =
   `confirmed` / `in_progress`. Both are shown as "continue unchanged" (snapshots, D180).
@@ -213,7 +213,7 @@ it from new requests only (existing requests keep their `event_type_id`).
 | Action | Subject | old → new |
 |---|---|---|
 | `catalog_category_created` / `_updated` / `_stopped` / `_activated` / `_moved` | service_category | changed fields |
-| `catalog_service_created` / `_updated` / `_stopped` / `_activated` / `_moved` | service | changed fields |
+| `catalog_service_created` / `_updated` / `_stopped` / `_activated` / `_moved` | service | changed fields (`_created` also lists its `inclusions`, review L4) |
 | `catalog_guide_price_changed` | service | `{guide_price}` → `{guide_price}` + reason + `{providers_default}` at save time |
 | `catalog_inclusions_updated` | service | `{inclusions:[{id,text,is_active}]}` before/after |
 | `catalog_addon_created` / `_updated` / `_stopped` / `_activated` / `_moved` | addon | changed fields incl. `service_ids` |
@@ -296,3 +296,13 @@ Not done here: running any test suite, Playwright or the live run (owner instruc
 run at a time by the orchestrator). Known risk to check then: the `interaction-crawl` stall should disappear because the
 catalog pages are now live; if it stays, it is a crawler/menu issue, not the mock.
 
+## 12. Review fixes (rev 4, 2026-11-17)
+
+| Finding | Behaviour now |
+|---|---|
+| M1 | A provider saving her inclusion choices (`PUT provider/services/{id}/inclusions`) rewrites only the **active** inclusions. Her off-choice for an inclusion the admin switched off is kept, so it still applies when the admin switches it on again (D179/D180) |
+| L2 | A provider can add a catalog service only when the service **and its category** are active (D34, D180) |
+| L3 | Impact preview: `providers_default`, `providers_default_visible` and `providers_custom` are distinct providers, like `providers_total` (§4.4) |
+| L4 | `catalog_service_created` audit also records the created inclusions (§6) |
+| L5 | The dashboard impact dialog refuses a reason shorter than 3 characters (trimmed), matching the API's 3–500 (§4) |
+| L6 | E2E crawlers only swap in a real catalog service id when the placeholder page is in their list |

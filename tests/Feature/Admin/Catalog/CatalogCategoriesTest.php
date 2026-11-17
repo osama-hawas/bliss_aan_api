@@ -80,7 +80,7 @@ class CatalogCategoriesTest extends TestCase
         $this->category('Makeup', 'المكياج', ['sort' => 1, 'is_active' => false]);
 
         $this->catalogGet('/categories')->assertOk()->assertJsonCount(2, 'data')->assertJsonPath('data.0.name.en', 'Makeup');
-        $this->catalogGet('/categories?q=القاع')->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.name.en', 'Venues');
+        $this->catalogGet('/categories?q='.rawurlencode('القاع'))->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.name.en', 'Venues');
         $this->catalogGet('/categories?q=makeup')->assertOk()->assertJsonCount(1, 'data');
         $this->catalogGet('/categories?filter[status]=inactive')->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.status', 'inactive');
         $this->catalogGet('/categories?sort=-sort')->assertOk()->assertJsonPath('data.0.name.en', 'Venues');
@@ -129,10 +129,12 @@ class CatalogCategoriesTest extends TestCase
         $this->offer($noura, $b, '700.00');
         $this->offer($huda, $a);
         $this->offer($huda, $b, attributes: ['is_active' => false]);
+        $c = $this->service($category, 'C');
+        $this->offer($noura, $c); // a second default row of the same provider is still one provider (review L3)
 
         $this->catalogPost("/categories/{$category->id}/impact")
             ->assertOk()
-            ->assertJsonPath('data.services_count', 2)
+            ->assertJsonPath('data.services_count', 3)
             ->assertJsonPath('data.providers_total', 2)
             ->assertJsonPath('data.providers_default', 2)
             ->assertJsonPath('data.providers_custom', 1)
