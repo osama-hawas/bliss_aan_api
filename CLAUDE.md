@@ -466,3 +466,18 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
   batch cell cache, id ceiling, cap `reports.export_max_rows` (10 000). Money cells: `Cell::money()` (numeric). Receipts: `Services\Reports\Receipts\PaymentReceipts` (+ `payment_receipts` VAT snapshot) and `ReceiptPdf`
   (dompdf + `ar-php` shaping, view `resources/views/reports/receipt.blade.php`); listener `Listeners\Reports\IssuePaymentReceipt`.
 - Tests: `tests/Feature/Admin/Reports/*` (money sources in `MoneyKpisTest`, rows by table contract via `BuildsFinance`).
+
+## Account deletion processing (Slice 22 — S22)
+
+- Contract: `docs/slice-22-contract.md` (D330–D338, OD38; answers Q76 except the retention remainder). D338: the name survives only in financial snapshots (store order recipient, receipt `payer_name`/`payer_phone`/`provider_name`, issued before anonymisation). `Services\Account\AccountDeletionProcessor`:
+  `obligations()` (active bookings, open store orders, open S23 returns, pending payouts, open tickets — only keys > 0),
+  `process($id, ?staff, ?reason)` (lock user row → request row; skipped when not pending / already deleted; blocked →
+  `blocked_by` + `checked_at` + E50 once on the scheduled path; else anonymise + `processed`), `processNow()` (staff,
+  `409 DELETION_BLOCKED` / `INVALID_STATE`), `processDue()` for `accounts:process-deletions` (daily 03:00, setting
+  `account.deletion_grace_days`, null = off), `scheduledFor()` (shown as `scheduled_for`).
+- Anonymised = `users.status = deleted` (`UserStatus::Deleted`), name "Deleted user", phone `deleted-{id}` (phone free to
+  register again); history rows stay linked. Guards: `account.active` → 401, login → `ACCOUNT_NOT_FOUND`, refresh → 401,
+  `Provider::listed()` excludes it. New code that checks `UserStatus::Suspended` must think about `Deleted` too.
+- Admin: `routes/api/v1/admin/clients/deletion-requests.php` (`clients.edit`, clients and providers), `AccountDeletionQueries`,
+  `AdminDeletionRequestResource`. Dashboard page `/clients/deletion-requests`.
+- Tests: `tests/Feature/Account/DeletionProcessingTest.php`, `tests/Feature/Database/DeletionProcessingLockingTest.php`.

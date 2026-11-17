@@ -20,6 +20,7 @@ return [
         'client_suspended' => 'إيقاف عميلة',
         'client_reactivated' => 'إعادة تفعيل عميلة',
         'client_updated' => 'تعديل بيانات عميلة',
+        'account_deleted' => 'حذف حساب (إخفاء الهوية)', // S22
         'staff_created' => 'إنشاء حساب موظفة',
         'staff_updated' => 'تعديل بيانات موظفة',
         'staff_role_changed' => 'تغيير دور موظفة',

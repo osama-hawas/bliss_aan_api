@@ -3,7 +3,7 @@
 // Labels for App\Enums (key = enum short name in snake_case).
 return [
     'user_type' => ['client' => 'عميلة', 'provider' => 'مقدمة خدمة', 'admin' => 'الإدارة'],
-    'user_status' => ['active' => 'نشط', 'suspended' => 'موقوف', 'pending_deletion' => 'بانتظار الحذف'],
+    'user_status' => ['active' => 'نشط', 'suspended' => 'موقوف', 'pending_deletion' => 'بانتظار الحذف', 'deleted' => 'محذوف'],
     'otp_purpose' => ['login' => 'تسجيل الدخول', 'register' => 'إنشاء حساب', 'change_phone' => 'تغيير رقم الجوال'],
     'device_app' => ['client' => 'تطبيق العميلة', 'provider' => 'تطبيق مقدمة الخدمة', 'dashboard' => 'لوحة التحكم'],
     'notification_preference_key' => [

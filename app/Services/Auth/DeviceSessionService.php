@@ -66,6 +66,9 @@ class DeviceSessionService
 
                 $user = User::query()->find($device->user_id) ?? throw new ApiException(ErrorCode::Unauthenticated);
 
+                if ($user->status === UserStatus::Deleted) {
+                    throw new ApiException(ErrorCode::Unauthenticated); // S22 (D331)
+                }
                 if ($user->status === UserStatus::Suspended) {
                     throw new ApiException(ErrorCode::AccountSuspended, errors: ['reason' => $user->status_reason]);
                 }

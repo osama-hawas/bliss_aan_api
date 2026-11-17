@@ -2,16 +2,18 @@
 
 namespace App\Http\Resources\Api\V1\Admin\Clients;
 
+use App\Enums\DeletionRequestStatus;
 use App\Models\AccountStatusLog;
 use App\Models\ActivityEvent;
 use App\Models\ServiceRequest;
 use App\Models\User;
+use App\Services\Account\AccountDeletionProcessor;
 use App\Services\Accounts\ClientAccounts;
 use Illuminate\Http\Request;
 
 /**
  * Client detail: her latest requests (reference and status only), open items, open sessions and status history.
- * Deletion requests belong to Slice 12 (Q76): `deletion_request` stays null here.
+ * `deletion_request`: her latest account deletion request (S22).
  *
  * @mixin User
  */
@@ -53,7 +55,14 @@ class AdminClientDetailResource extends AdminClientResource
                     'created_at' => $this->dateTime($r->created_at),
                 ])->values(),
             'status_logs' => $logs,
-            'deletion_request' => null,
+            // S22: her latest deletion request (pending or closed), the queue lives at /clients/deletion-requests.
+            'deletion_request' => ($dr = $this->deletionRequests()->latest('id')->first()) ? [
+                'id' => $dr->id,
+                'status' => $dr->status->value,
+                'status_label' => $dr->status->label(),
+                'requested_at' => $this->dateTime($dr->created_at),
+                'scheduled_for' => $this->dateTime($dr->status === DeletionRequestStatus::Pending ? app(AccountDeletionProcessor::class)->scheduledFor($dr) : null),
+            ] : null,
         ];
     }
 }

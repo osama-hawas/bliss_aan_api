@@ -52,6 +52,8 @@ enum NotificationEvent: string
     case LedgerDebitPosted = 'ledger_debit_posted';           // E36
     // S20 (Slice 20): broadcast campaign, push gated by `promotions` (D305/D306).
     case Broadcast = 'broadcast';                             // E40
+    // S22 (D337): her deletion request is due but open obligations keep the account (once per request).
+    case AccountDeletionBlocked = 'account_deletion_blocked'; // E50
 
     /**
      * The D26 key that can switch off the push (D135). Null = transactional, always pushed.

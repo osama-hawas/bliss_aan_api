@@ -88,6 +88,9 @@ class ClientAccounts
     {
         return DB::transaction(function () use ($client, $admin, $data, $reason) {
             $client = $this->lock($client);
+            if ($client->status === UserStatus::Deleted) {
+                throw new ApiException(ErrorCode::InvalidState); // S22: anonymised, nothing to edit
+            }
             $old = $client->only(array_keys($data));
             $client->update($data);
             $changed = array_keys($client->getChanges());
@@ -108,7 +111,7 @@ class ClientAccounts
     {
         return DB::transaction(function () use ($client, $admin, $reason, $internalNote) {
             $client = $this->lock($client);
-            if ($client->status === UserStatus::Suspended) {
+            if (in_array($client->status, [UserStatus::Suspended, UserStatus::Deleted], true)) {
                 throw new ApiException(ErrorCode::InvalidState);
             }
             $from = $client->status;

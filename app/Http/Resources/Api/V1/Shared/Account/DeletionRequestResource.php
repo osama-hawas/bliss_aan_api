@@ -2,13 +2,15 @@
 
 namespace App\Http\Resources\Api\V1\Shared\Account;
 
+use App\Enums\DeletionRequestStatus;
 use App\Http\Resources\Concerns\FormatsApiValues;
 use App\Models\AccountDeletionRequest;
+use App\Services\Account\AccountDeletionProcessor;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * Her own deletion request. Processing columns are never shown (D155: nothing writes them).
+ * Her own deletion request. Staff processing columns (who, internal note, blocked_by) are never shown (S22).
  *
  * @mixin AccountDeletionRequest
  */
@@ -27,6 +29,9 @@ class DeletionRequestResource extends JsonResource
             'details' => $this->details,
             'requested_at' => $this->dateTime($this->created_at),
             'withdrawn_at' => $this->dateTime($this->withdrawn_at),
+            // S22 (D330): when the scheduled run will delete the account (pending only; null = no automatic processing).
+            'scheduled_for' => $this->dateTime($this->status === DeletionRequestStatus::Pending
+                ? app(AccountDeletionProcessor::class)->scheduledFor($this->resource) : null),
         ];
     }
 }

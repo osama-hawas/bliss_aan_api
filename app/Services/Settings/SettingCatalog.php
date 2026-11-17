@@ -48,6 +48,8 @@ final class SettingCatalog
         'uploads.team_photo' => [SettingKind::UploadLimits, null, 'D235'],
         // Slice 18 (S18).
         'store.low_stock_threshold' => [SettingKind::Integer, 'items', 'D278'],
+        // S22 (D330): days between a deletion request and its automatic processing; null = no automatic processing.
+        'account.deletion_grace_days' => [SettingKind::Integer, 'days', 'D330'],
         // --- later slices: append above this line in a marked block ---
     ];
 

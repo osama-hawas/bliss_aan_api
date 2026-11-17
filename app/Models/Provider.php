@@ -51,7 +51,7 @@ class Provider extends Model
     public function scopeListed(Builder $query): void
     {
         $query->where('providers.status', ProviderStatus::Active)
-            ->whereHas('user', fn (Builder $user) => $user->where('status', '!=', UserStatus::Suspended));
+            ->whereHas('user', fn (Builder $user) => $user->whereNotIn('status', [UserStatus::Suspended, UserStatus::Deleted])); // S22: deleted = unlisted
     }
 
     /**

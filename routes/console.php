@@ -25,3 +25,5 @@ Schedule::command('payouts:record-earnings')->everyFifteenMinutes()->withoutOver
 Schedule::command('support:auto-close')->daily()->withoutOverlapping();
 // Slice 20 (S20, D305): start scheduled broadcast campaigns.
 Schedule::command('broadcasts:dispatch-due')->everyMinute()->withoutOverlapping();
+// S22 (D335): process account deletion requests past account.deletion_grace_days (null = off).
+Schedule::command('accounts:process-deletions')->dailyAt('03:00')->withoutOverlapping();

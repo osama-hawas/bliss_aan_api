@@ -52,8 +52,13 @@ class PaymentReceipts
             }
 
             [$percent, $vat] = $this->vat($payment);
+            $payer = DB::table('users')->where('id', $payment->user_id)->first(['name', 'phone']);
 
             return PaymentReceipt::query()->create([
+                // S22 (D338): the parties' names are kept on the financial document, never read live again.
+                'payer_name' => $payer?->name,
+                'payer_phone' => $payer?->phone,
+                'provider_name' => $this->providerName($payment->id),
                 'payment_id' => $payment->id,
                 'amount' => Money::normalize((string) $payment->amount),
                 'currency' => $payment->currency,
@@ -63,6 +68,14 @@ class PaymentReceipts
                 'issued_at' => now(),
             ]);
         });
+    }
+
+    private function providerName(int $paymentId): ?string
+    {
+        return Schema::hasColumn('bookings', 'payment_id')
+            ? DB::table('bookings')->join('providers', 'providers.id', '=', 'bookings.provider_id')
+                ->where('bookings.payment_id', $paymentId)->value('providers.display_name')
+            : null;
     }
 
     /**
@@ -99,7 +112,10 @@ class PaymentReceipts
     public function document(PaymentReceipt $receipt): array
     {
         $payment = DB::table('payments')->where('id', $receipt->payment_id)->first();
-        $payer = DB::table('users')->where('id', $payment->user_id)->first(['name', 'phone']);
+        // S22 (D338): the snapshot taken at issue; the live row only for receipts issued before it existed.
+        $payer = $receipt->payer_name !== null
+            ? (object) ['name' => $receipt->payer_name, 'phone' => $receipt->payer_phone]
+            : DB::table('users')->where('id', $payment->user_id)->first(['name', 'phone']);
         $card = $payment->card ? json_decode($payment->card, true) : null;
         $locale = app()->getLocale();
         $translate = fn (?string $json) => $json === null ? null : (($values = json_decode($json, true)) && is_array($values) ? ($values[$locale] ?? reset($values)) : $json);
@@ -138,6 +154,7 @@ class PaymentReceipts
                 ->first(['bookings.reference', 'bookings.title', 'bookings.starts_at', 'services.name as service_name', 'providers.display_name as provider_name']);
             if ($booking !== null) {
                 $booking->service_name = $translate($booking->service_name);
+                $booking->provider_name = $receipt->provider_name ?? $booking->provider_name; // S22 (D338)
                 $document['booking'] = $booking;
                 $document['lines'] = [[
                     'name' => $booking->service_name ?? $booking->title,
