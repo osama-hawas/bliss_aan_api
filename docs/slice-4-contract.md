@@ -632,3 +632,15 @@ authorization (Slice 7+) reuses the same Policies.
 9. Laravel tests, Pint, Flutter regular suite, dashboard typecheck/lint and Playwright pass; the §18.6 E2E passes.
 10. No new Flutter audit-matrix failures on Slice 4 screens (the 176 known failures stay reported, not hidden).
 11. `05-…`, `02-…`, `04-…`, `03-…` (upload context, error codes) and Postman collections updated at the end of the slice.
+
+## Revision note (SFIX, 2026-11-17) — §19 items decided
+
+Orchestrator decisions under owner delegation (`slice-close-leftovers-contract.md`):
+
+- Q14 → **D242**: `uploads.request_attachment` = jpg/jpeg/png/heic/pdf, 10 MB; `requests.max_attachments` = 5. Seeded by
+  `AppSettingSeeder` outside `local` (filled only while `null`); local keeps the `DemoSeeder` values. An explicitly
+  `null` value still answers `409 NOT_CONFIGURED`.
+- Q15 → **D243**: final AR/EN wording of the seven reasons (codes unchanged); `DeclineReasonSeeder` replaces a name only
+  while it still holds the earlier proposed text.
+- Q17 → **D244**: an open request whose recipients all declined stays `awaiting_offers`.
+- Q18 → D91 (Slice 5b); Q24 → D172 (Slice 15).

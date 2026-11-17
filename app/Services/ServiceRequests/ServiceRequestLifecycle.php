@@ -68,7 +68,7 @@ class ServiceRequestLifecycle
      * Her decline, with a predefined reason and a written explanation (D51), while she is `new` — or, after an offer,
      * while she is `offer_sent` and no offer is accepted: her active offer is withdrawn and she declines (D91,
      * slice-5b-contract.md §3.4). A direct request becomes `declined` (D68); an open one is unchanged, even when every
-     * recipient declined or no live offer is left (Q17). Open-request entries stay internal (D76).
+     * recipient declined or no live offer is left (D244). Open-request entries stay internal (D76).
      */
     public function decline(Provider $provider, ServiceRequest $request, DeclineReason $reason, string $explanation): ServiceRequestRecipient
     {
@@ -110,7 +110,7 @@ class ServiceRequestLifecycle
             }
 
             // E5/E6 (D133): only on direct requests, where the client sees the decline and the withdrawal (D68, D76).
-            // Open-request withdrawals stay internal until Q63 is answered.
+            // Open-request withdrawals stay internal (D245, keeps D76/D91).
             if ($request->type === ServiceRequestType::Direct) {
                 $this->notifier->send((int) $request->client_id, $wasOfferSent ? NotificationEvent::OfferWithdrawn : NotificationEvent::RequestDeclined,
                     Notifier::requestParams($request, $provider->display_name), NotificationTargetType::Request, $request->id,

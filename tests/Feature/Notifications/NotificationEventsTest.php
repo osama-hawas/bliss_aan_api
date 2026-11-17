@@ -125,7 +125,7 @@ class NotificationEventsTest extends TestCase
         $this->decline($this->noura, $request->fresh());
         $this->decline($this->huda, $request->fresh());
 
-        $this->assertSame(['offer_received'], $this->events($this->client)); // D76/D91, Q63 open
+        $this->assertSame(['offer_received'], $this->events($this->client)); // D76/D91, D245
     }
 
     public function test_offer_expiry_notifies_its_provider_once(): void

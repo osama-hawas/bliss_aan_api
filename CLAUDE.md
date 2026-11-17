@@ -275,3 +275,14 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
   `client_uuid` under the ticket row lock; her reply: `resolved → open`, `waiting → in_progress`, `closed` → 409 (D160).
   Staff are shown only as "Bliss aan support"; internal messages and `assigned_to` never reach mobile (D161).
   No admin endpoints (Slice 17). Tests: `tests/Feature/Support/*`, `tests/Feature/Database/TicketReplyLockingTest.php`.
+
+## Slice-close leftovers (SFIX)
+
+- Contract: `docs/slice-close-leftovers-contract.md` (D240–D254). Chat: `Services\Chat\ContactInfoDetector` (phone / email /
+  URL; Arabic-Indic digits normalised; prices, dates and references not flagged) sets `messages.flagged` in
+  `ChatMessenger::send()`; never blocks (D246). `MessageResource.flagged` = own messages only, `null` for the other
+  party (D253). The Flutter `lib/core/utils/contact_info_detector.dart` mirrors the rules — change both together.
+- `AppSettingSeeder` fills the D242 request attachment limits outside `local` (only where `null`); `DeclineReasonSeeder`
+  holds the D243 wording (`REASONS`, old text in `PREVIOUS`).
+- Tests: `tests/Unit/Chat/ContactInfoDetectorTest.php`, `ChatTest::test_contact_details_…`, `AttachmentConfigurationTest`,
+  `SeederTest::test_decline_…`.

@@ -6,11 +6,13 @@ use App\Enums\AdminRole;
 use App\Enums\Permission as PermissionName;
 use App\Models\AppSetting;
 use App\Models\City;
+use App\Models\DeclineReason;
 use App\Models\DocumentType;
 use App\Models\Provider;
 use App\Models\Service;
 use App\Models\ServiceCategory;
 use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\DeclineReasonSeeder;
 use Database\Seeders\DemoSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
@@ -71,5 +73,37 @@ class SeederTest extends TestCase
         $this->assertSame('الرياض', $city->name);
         app()->setLocale('en');
         $this->assertSame('Riyadh', $city->name);
+    }
+
+    public function test_decline_reasons_carry_the_d243_wording(): void
+    {
+        $this->seed(DeclineReasonSeeder::class);
+
+        $this->assertSame(7, DeclineReason::query()->count());
+        foreach (DeclineReasonSeeder::REASONS as $code => $name) {
+            $this->assertEquals($name, DeclineReason::query()->where('code', $code)->sole()->getTranslations('name'), $code);
+        }
+        $reason = DeclineReason::query()->where('code', 'fully_booked')->sole();
+        app()->setLocale('ar');
+        $this->assertSame('لدي حجز آخر في هذا الموعد', $reason->name);
+        app()->setLocale('en');
+        $this->assertSame('Already booked at this time', $reason->name);
+    }
+
+    public function test_decline_wording_replaces_only_the_old_proposed_text(): void
+    {
+        DeclineReason::query()->create(['code' => 'fully_booked', 'name' => DeclineReasonSeeder::PREVIOUS['fully_booked'], 'is_active' => false, 'sort' => 9]);
+        $custom = ['ar' => 'نص مخصص', 'en' => 'Custom text'];
+        DeclineReason::query()->create(['code' => 'short_notice', 'name' => $custom, 'is_active' => true, 'sort' => 6]);
+
+        $this->seed(DeclineReasonSeeder::class);
+        $this->seed(DeclineReasonSeeder::class);
+
+        $old = DeclineReason::query()->where('code', 'fully_booked')->sole();
+        $this->assertEquals(DeclineReasonSeeder::REASONS['fully_booked'], $old->getTranslations('name'));
+        $this->assertFalse($old->is_active); // flag and sort untouched
+        $this->assertSame(9, $old->sort);
+        $this->assertEquals($custom, DeclineReason::query()->where('code', 'short_notice')->sole()->getTranslations('name'));
+        $this->assertSame(7, DeclineReason::query()->count());
     }
 }

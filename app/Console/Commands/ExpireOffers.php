@@ -11,7 +11,7 @@ use Illuminate\Console\Command;
 
 /**
  * Stores `expired` on active offers past `valid_until` (slice-5b-contract.md §2). Reads never depend on it:
- * Offer::effectiveStatus() already presents them as expired. The request status is not changed (Q17 rule).
+ * Offer::effectiveStatus() already presents them as expired. The request status is not changed (D244).
  * Slice 8: each offer this run actually moves to `expired` notifies its provider once (E7, D134).
  */
 class ExpireOffers extends Command

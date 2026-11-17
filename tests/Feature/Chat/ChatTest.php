@@ -173,7 +173,7 @@ class ChatTest extends TestCase
             ->assertJsonPath('data.0.sender_side', 'client')
             ->assertJsonPath('data.0.client_uuid', null)
             ->assertJsonPath('data.0.read', null);
-        $this->assertFalse(Message::query()->sole()->flagged); // S5 deferred
+        $this->assertFalse(Message::query()->sole()->flagged); // D246: no contact details
     }
 
     public function test_cursor_pagination(): void
@@ -361,5 +361,38 @@ class ChatTest extends TestCase
     {
         $this->openAsProvider($this->noura);
         $this->as($this->noura->user, 'ar')->getJson('/api/v1/provider/conversations')->assertJsonPath('data.0.status_label', 'نشطة');
+    }
+
+    // ── Contact-info warning (S5 → D246, D253) ─────────────────────────────────────────────
+
+    public function test_contact_details_are_flagged_for_the_sender_only_and_never_blocked(): void
+    {
+        $this->sendOffer($this->noura);
+        $id = $this->openAsClient($this->noura)->json('data.id');
+        $uuid = (string) Str::uuid();
+
+        $flagged = $this->say($this->client, $id, ['type' => 'text', 'body' => 'Call me on 055 123 4567'], $uuid)->assertCreated()
+            ->assertJsonPath('data.flagged', true)
+            ->json('data.id');
+        $this->assertTrue(Message::query()->findOrFail($flagged)->flagged);
+        // A replay returns the stored row with its stored flag.
+        $this->say($this->client, $id, ['type' => 'text', 'body' => 'Call me on 055 123 4567'], $uuid)->assertOk()
+            ->assertJsonPath('data.id', $flagged)->assertJsonPath('data.flagged', true);
+
+        $clean = $this->say($this->client, $id, ['type' => 'text', 'body' => 'Is 2026-12-05 18:00 fine for 100 guests?'])->assertCreated()
+            ->assertJsonPath('data.flagged', false)
+            ->json('data.id');
+        $this->assertFalse(Message::query()->findOrFail($clean)->flagged);
+
+        $this->say($this->noura->user, $id, ['type' => 'text', 'body' => 'See instagram.com/noura'])->assertCreated()->assertJsonPath('data.flagged', true);
+
+        // The other party never sees the flag; the sender sees it on her own messages in the list too.
+        $other = collect($this->messages($this->noura->user, $id)->assertOk()->json('data'))->keyBy('id');
+        $this->assertNull($other[$flagged]['flagged']);
+        $this->assertNull($other[$clean]['flagged']);
+        $mine = collect($this->messages($this->client, $id)->assertOk()->json('data'))->keyBy('id');
+        $this->assertTrue($mine[$flagged]['flagged']);
+        $this->assertFalse($mine[$clean]['flagged']);
+        $this->assertSame(3, Message::query()->count());
     }
 }

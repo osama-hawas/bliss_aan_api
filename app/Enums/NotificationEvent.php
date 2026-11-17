@@ -12,7 +12,7 @@ enum NotificationEvent: string
     case OpenRequestReceived = 'open_request_received';       // E2
     case RequestCancelled = 'request_cancelled';              // E3
     case OfferReceived = 'offer_received';                    // E4
-    case OfferWithdrawn = 'offer_withdrawn';                  // E5 (direct requests only, Q63)
+    case OfferWithdrawn = 'offer_withdrawn';                  // E5 (direct requests only, D245)
     case RequestDeclined = 'request_declined';                // E6
     case OfferExpired = 'offer_expired';                      // E7
     case OfferAccepted = 'offer_accepted';                    // E8

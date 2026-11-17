@@ -23,11 +23,12 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Sending and reading (slice-7-contract.md §4, §7). A send is deduplicated by (sender, client_uuid) and serialized per
- * conversation by its row lock; the conversation's last message moves in the same transaction.
+ * conversation by its row lock; the conversation's last message moves in the same transaction. A body with contact
+ * details (phone, email, URL) is stored `flagged` (D246) and still sent.
  */
 class ChatMessenger
 {
-    public function __construct(private readonly ChatAccess $access, private readonly MediaService $media, private readonly Notifier $notifier) {}
+    public function __construct(private readonly ChatAccess $access, private readonly MediaService $media, private readonly Notifier $notifier, private readonly ContactInfoDetector $detector) {}
 
     /**
      * @param  array{client_uuid: string, type: string, body?: ?string, media_id?: ?int, offer_id?: ?int}  $data
@@ -70,6 +71,8 @@ class ChatMessenger
                     'offer_id' => $type === MessageType::OfferCard ? $offerId : null,
                     'client_uuid' => $data['client_uuid'],
                     'fingerprint' => $fingerprint,
+                    // D246 (S5): contact details are flagged, never blocked.
+                    'flagged' => $this->detector->flags($body),
                 ]);
                 if ($media) {
                     $this->media->attach($media, $message);
