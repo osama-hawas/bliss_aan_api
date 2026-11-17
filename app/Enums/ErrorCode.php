@@ -43,6 +43,11 @@ enum ErrorCode: string
     case RoleInUse = 'ROLE_IN_USE';
     case PermissionRestricted = 'PERMISSION_RESTRICTED';
 
+    // Slice 20 (S20) — content & config (D312).
+    case TranslationMissing = 'TRANSLATION_MISSING';
+    case AudienceChanged = 'AUDIENCE_CHANGED';
+    case NoRecipients = 'NO_RECIPIENTS';
+
     public function status(): int
     {
         return match ($this) {
@@ -56,6 +61,7 @@ enum ErrorCode: string
             self::ServerError => 500,
             self::LastSuperAdmin, self::OwnAccount, self::RoleInUse => 409, // Slice 14b
             self::PermissionRestricted => 422, // Slice 14b
+            self::TranslationMissing, self::AudienceChanged, self::NoRecipients => 409, // Slice 20
         };
     }
 

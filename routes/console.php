@@ -13,3 +13,6 @@ Schedule::command('offers:expire')->everyFiveMinutes()->withoutOverlapping();
 
 // Slice 8 (D136): delete read notifications older than 180 days.
 Schedule::command('notifications:prune')->daily()->withoutOverlapping();
+
+// Slice 20 (S20, D305): start scheduled broadcast campaigns.
+Schedule::command('broadcasts:dispatch-due')->everyMinute()->withoutOverlapping();

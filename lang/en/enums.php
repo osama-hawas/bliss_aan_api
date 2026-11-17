@@ -85,4 +85,8 @@ return [
     // Slice 12b (support tickets)
     'ticket_status' => ['open' => 'Open', 'in_progress' => 'In progress', 'waiting' => 'Waiting for your reply', 'resolved' => 'Resolved', 'closed' => 'Closed'],
     'ticket_topic' => ['service_quality' => 'Service quality', 'late_arrival' => 'Late arrival', 'payment' => 'Payment', 'cancellation' => 'Cancellation', 'account' => 'Account', 'other' => 'Other'],
+    // Slice 20 (S20)
+    'broadcast_status' => ['draft' => 'Draft', 'scheduled' => 'Scheduled', 'sending' => 'Sending', 'sent' => 'Sent', 'cancelled' => 'Cancelled'],
+    'content_status' => ['visible' => 'Visible', 'hidden' => 'Hidden'],
+    'setting_kind' => ['integer' => 'Whole number', 'decimal' => 'Number', 'money' => 'Amount (SAR)', 'boolean' => 'On / off', 'integer_list' => 'List of numbers', 'upload_limits' => 'File limits', 'json' => 'Value'],
 ];

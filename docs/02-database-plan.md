@@ -142,7 +142,7 @@ Labels: **[C]** confirmed · **[R]** recommendation · **[?]** open question.
 | `pages` | slug, title, body (ar/en), audience (client/provider), is_active, unique(slug, audience) | F (demo seed only) |
 | `app_settings` | key, value JSON, **null = not specified** (OTP length/expiry, offer validity options, upload limits `uploads.<context>` incl. `uploads.request_attachment`, `requests.max_attachments` — not approved and left `null`, D53/Q14: upload → `409 NOT_CONFIGURED`, create with files → `409 NOT_CONFIGURED`…) | F |
 | `notifications` | Laravel built-in database notifications (uuid v7 id, `type` = event code, `data` = event/params/target) + `dedupe_key`, unique(notifiable_type, notifiable_id, dedupe_key); read rows pruned after 180 days (D136, D139). Migration `2026_11_21_100000_create_notifications_table` | M (8) |
-| `broadcast_campaigns` | title, body (ar/en), audience filter JSON, destination, status, scheduled_at, sent_at, created_by | D |
+| `broadcast_campaigns` | title, body (ar/en), audience = `app` (client/provider) + `city_id` nullable (plain columns, D305), status (draft/scheduled/sending/sent/cancelled), scheduled_at, sent_at, finished_at, recipients_count (frozen at send), cancel_reason, created_by / sent_by / cancelled_by. No destination column: campaigns have no deep link in the MVP (D306). Migration `2026_11_29_200000_create_broadcast_campaigns_table` | M (Slice 20) |
 | `audit_logs` | actor_id, subject_type/id, action, reason, old JSON, new JSON (spatie/laravel-activitylog or custom) | F |
 
 ## 10. Roles & permissions (admins) [C roles, R names]

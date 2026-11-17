@@ -85,4 +85,8 @@ return [
     // Slice 12b (support tickets)
     'ticket_status' => ['open' => 'مفتوحة', 'in_progress' => 'قيد المعالجة', 'waiting' => 'بانتظار ردّك', 'resolved' => 'تم الحل', 'closed' => 'مغلقة'],
     'ticket_topic' => ['service_quality' => 'جودة الخدمة', 'late_arrival' => 'تأخر الوصول', 'payment' => 'الدفع', 'cancellation' => 'الإلغاء', 'account' => 'الحساب', 'other' => 'أخرى'],
+    // Slice 20 (S20)
+    'broadcast_status' => ['draft' => 'مسودة', 'scheduled' => 'مجدولة', 'sending' => 'قيد الإرسال', 'sent' => 'أُرسلت', 'cancelled' => 'ملغاة'],
+    'content_status' => ['visible' => 'ظاهر', 'hidden' => 'مخفي'],
+    'setting_kind' => ['integer' => 'عدد صحيح', 'decimal' => 'رقم', 'money' => 'مبلغ (ريال)', 'boolean' => 'تشغيل / إيقاف', 'integer_list' => 'قائمة أرقام', 'upload_limits' => 'حدود الملفات', 'json' => 'قيمة'],
 ];

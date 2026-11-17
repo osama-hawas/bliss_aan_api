@@ -1,0 +1,23 @@
+<?php
+
+namespace App\Http\Controllers\Api\V1\Admin\Content;
+
+use App\Http\Controllers\Controller;
+use App\Http\Resources\Api\V1\Admin\Content\AdminPageResource;
+use App\Services\Content\PageManagement;
+use App\Traits\ApiResponse;
+
+/**
+ * `content.manage`: one page.
+ */
+class ShowPageController extends Controller
+{
+    use ApiResponse;
+
+    public function __construct(private readonly PageManagement $pages) {}
+
+    public function __invoke(int $page)
+    {
+        return $this->success(new AdminPageResource($this->pages->find($page)));
+    }
+}

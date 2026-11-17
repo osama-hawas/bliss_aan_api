@@ -13,4 +13,5 @@ enum NotificationTargetType: string
     case Conversation = 'conversation';
     case Reviews = 'reviews';
     case ProviderAccount = 'provider_account';
+    case Broadcast = 'broadcast'; // S20 (D306): no deep link, opens the list
 }

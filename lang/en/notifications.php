@@ -27,5 +27,7 @@ return [
         'application_suspended' => ['title' => 'Account suspended', 'body' => 'Your provider account was suspended. Open it for details.'],
         'application_reactivated' => ['title' => 'Account reactivated', 'body' => 'Your provider account is active again.'],
         'application_document_rejected' => ['title' => 'Document not accepted', 'body' => 'A document in your application was not accepted. Open it to upload a new one.'],
+        // S20 (E40): the campaign's own title and text, in the reader's language (D306).
+        'broadcast' => ['title' => ':title', 'body' => ':body'],
     ],
 ];

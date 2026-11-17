@@ -26,5 +26,7 @@ return [
         'application_suspended' => ['title' => 'تم إيقاف حسابكِ', 'body' => 'أُوقف حسابكِ كمقدمة خدمة. افتحيه لمعرفة التفاصيل.'],
         'application_reactivated' => ['title' => 'أُعيد تفعيل حسابكِ', 'body' => 'أصبح حسابكِ مفعّلًا من جديد.'],
         'application_document_rejected' => ['title' => 'لم يُقبل أحد المستندات', 'body' => 'لم يُقبل أحد مستندات طلبكِ. افتحيه لرفع مستند جديد.'],
+        // S20 (E40): the campaign's own title and text, in the reader's language (D306).
+        'broadcast' => ['title' => ':title', 'body' => ':body'],
     ],
 ];
