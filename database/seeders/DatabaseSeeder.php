@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             DeclineReasonSeeder::class,
             AppSettingSeeder::class,
             StoreReturnPolicySeeder::class, // S23 (D348): first store_return policy text, never overwritten
+            OnboardingSlideSeeder::class, // Slice 25 (D368): only when an app has no slides yet
         ]);
 
         if (app()->environment('local')) {

@@ -516,3 +516,14 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
   request per package service.
 - Tests: `Tests\Concerns\BuildsPackages`; `tests/Feature/Admin/Catalog/CatalogPackagesTest.php`, `tests/Feature/Packages/*`,
   `tests/Feature/Database/PackageLockingTest.php`.
+
+## Onboarding slides (Slice 25 — S25)
+
+- Contract: `docs/slice-25-contract.md` (D360–D369). Table `onboarding_slides` (`OnboardingSlide`, image = media collection
+  `image`, upload context `onboarding_image`). `Services\Content\OnboardingSlideManagement`: list (not paginated), create
+  (hidden, last), update (app fixed; `media_id` replaces, `remove_image` detaches), show/hide through `ContentVisibility`
+  (+ `hidden_reason`), `move(position)` renumbering the app's slides under lock. Routes `admin/onboarding-slides.php`
+  (`content.manage`, no delete) and public `shared/onboarding.php` (`?app=client|provider`, `auth.optional`).
+- `OnboardingSlideSeeder` (in `DatabaseSeeder`) seeds 3 client + 3 provider visible slides only when an app has none.
+- The app asks `shared/onboarding` once per opening of its single onboarding screen and falls back to bundled slides.
+  Tests: `tests/Feature/Onboarding/OnboardingSlidesTest.php`.

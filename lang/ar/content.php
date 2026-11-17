@@ -23,6 +23,7 @@ return [
         'broadcast_cancelled' => 'تم إلغاء الحملة.',
         'setting_saved' => 'تم حفظ الإعداد.',
         'policy_published' => 'تم نشر إصدار جديد من السياسة.',
+        'moved' => 'تم حفظ الترتيب.', // Slice 25
     ],
     'settings' => [
         'invalid' => [
@@ -66,6 +67,7 @@ return [
             'uploads__booking_update' => 'الملفات: تحديثات الحجز',
             'uploads__catalog_image' => 'الملفات: صور الكتالوج',
             'uploads__banner' => 'الملفات: البانرات',
+            'uploads__onboarding_image' => 'الملفات: صور الشاشات التعريفية', // Slice 25
             'uploads__avatar' => 'الملفات: الصور الشخصية',
             'uploads__request_attachment' => 'الملفات: مرفقات الطلب',
             'uploads__team_photo' => 'الملفات: صور الفريق',

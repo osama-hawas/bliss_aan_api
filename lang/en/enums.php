@@ -40,6 +40,7 @@ return [
         'booking_update' => 'Booking update attachment',
         'catalog_image' => 'Catalog image',
         'banner' => 'Banner',
+        'onboarding_image' => 'Onboarding image', // Slice 25
         'avatar' => 'Profile photo',
         'request_attachment' => 'Request attachment',
         'team_photo' => 'Team member photo',

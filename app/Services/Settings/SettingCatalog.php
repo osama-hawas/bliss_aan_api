@@ -52,6 +52,8 @@ final class SettingCatalog
         'account.deletion_grace_days' => [SettingKind::Integer, 'days', 'D330'],
         // S23 — store returns (OD37).
         'store.return_window_days' => [SettingKind::Integer, 'days', 'D343'],
+        // Slice 25 (S25).
+        'uploads.onboarding_image' => [SettingKind::UploadLimits, null, 'D361'],
         // --- later slices: append above this line in a marked block ---
     ];
 

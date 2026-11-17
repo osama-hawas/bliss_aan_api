@@ -24,11 +24,12 @@ enum UploadContext: string
     case RequestAttachment = 'request_attachment';
     case TeamPhoto = 'team_photo'; // Slice 13: private, provider only (D235)
     case StoreReturnPhoto = 'store_return_photo'; // S23: private, client only (D342)
+    case OnboardingImage = 'onboarding_image'; // Slice 25: public, staff only (D361)
 
     public function visibility(): MediaVisibility
     {
         return match ($this) {
-            self::Portfolio, self::CatalogImage, self::Banner, self::Avatar => MediaVisibility::Public,
+            self::Portfolio, self::CatalogImage, self::Banner, self::Avatar, self::OnboardingImage => MediaVisibility::Public,
             default => MediaVisibility::Private,
         };
     }
@@ -47,6 +48,7 @@ enum UploadContext: string
             self::RequestAttachment => [UserType::Client],
             self::TeamPhoto => [UserType::Provider],
             self::StoreReturnPhoto => [UserType::Client],
+            self::OnboardingImage => [UserType::Admin], // Slice 25
         };
     }
 

@@ -40,6 +40,7 @@ return [
         'booking_update' => 'مرفق تحديث الحجز',
         'catalog_image' => 'صورة الكتالوج',
         'banner' => 'بانر',
+        'onboarding_image' => 'صورة شاشة تعريفية', // Slice 25
         'avatar' => 'الصورة الشخصية',
         'request_attachment' => 'مرفق الطلب',
         'team_photo' => 'صورة عضوة الفريق',
