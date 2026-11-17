@@ -23,7 +23,7 @@ class ServiceRequest extends Model
     use HasMedia;
 
     protected $fillable = [
-        'reference', 'client_id', 'type', 'target_provider_id', 'provider_service_id', 'service_id', 'event_type_id',
+        'reference', 'client_id', 'type', 'target_provider_id', 'provider_service_id', 'service_id', 'package_id', 'event_type_id',
         'execution_place', 'event_date', 'start_time', 'duration_minutes', 'starts_at', 'ends_at', 'city_id',
         'address_id', 'address', 'guests_count', 'notes', 'status', 'cancelled_at', 'cancel_reason',
         'idempotency_key', 'idempotency_fingerprint',
@@ -81,6 +81,14 @@ class ServiceRequest extends Model
     public function service(): BelongsTo
     {
         return $this->belongsTo(Service::class);
+    }
+
+    /**
+     * The package the request came from (Slice 24, D353); null for any other request.
+     */
+    public function package(): BelongsTo
+    {
+        return $this->belongsTo(Package::class);
     }
 
     public function eventType(): BelongsTo

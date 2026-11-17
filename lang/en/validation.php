@@ -231,6 +231,11 @@ return [
             'not_offered' => 'This provider does not offer one of the selected add-ons with this service.',
         ],
         'media_ids' => ['unavailable' => 'This file cannot be attached. Upload it again.'],
+        // Slice 24 (S24): requests from a package.
+        'package_id' => [
+            'unavailable' => 'This package is not available any more.',
+            'service' => 'This service is not part of the package.',
+        ],
         'execution_places' => [
             'required' => 'Choose at least one place where you deliver this service: at the client\'s event location or at your location.',
             'last' => 'At least one place to deliver this service must stay on. Turn on the other place first.',

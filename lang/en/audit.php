@@ -73,6 +73,12 @@ return [
         'catalog_inclusions_updated' => 'Inclusions updated',
         'catalog_event_type_created' => 'Event type created',
         'catalog_event_type_updated' => 'Event type updated',
+        // Slice 24 (S24).
+        'catalog_package_created' => 'Package created',
+        'catalog_package_updated' => 'Package updated',
+        'catalog_package_stopped' => 'Package stopped',
+        'catalog_package_activated' => 'Package activated',
+        'catalog_package_moved' => 'Package moved',
         'banner_created' => 'Banner created',
         'banner_updated' => 'Banner updated',
         'page_created' => 'Page created',
@@ -119,6 +125,7 @@ return [
         'service_category' => 'Category',
         'addon' => 'Add-on',
         'event_type' => 'Event type',
+        'package' => 'Package', // Slice 24
         'banner' => 'Banner',
         'page' => 'Page',
         'faq' => 'Question',

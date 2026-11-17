@@ -46,5 +46,6 @@ final class RequestDraft
         public readonly ?string $notes,
         public readonly array $addonIds,
         public readonly array $mediaIds,
+        public readonly ?int $packageId = null, // Slice 24 (D353)
     ) {}
 }

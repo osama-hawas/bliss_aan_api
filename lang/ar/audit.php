@@ -73,6 +73,12 @@ return [
         'catalog_inclusions_updated' => 'تعديل المشمولات',
         'catalog_event_type_created' => 'إنشاء نوع مناسبة',
         'catalog_event_type_updated' => 'تعديل نوع مناسبة',
+        // Slice 24 (S24).
+        'catalog_package_created' => 'إنشاء باقة',
+        'catalog_package_updated' => 'تعديل باقة',
+        'catalog_package_stopped' => 'إيقاف باقة',
+        'catalog_package_activated' => 'تفعيل باقة',
+        'catalog_package_moved' => 'تغيير ترتيب باقة',
         'banner_created' => 'إنشاء بنر',
         'banner_updated' => 'تعديل بنر',
         'page_created' => 'إنشاء صفحة',
@@ -119,6 +125,7 @@ return [
         'service_category' => 'تصنيف',
         'addon' => 'إضافة',
         'event_type' => 'نوع مناسبة',
+        'package' => 'باقة', // Slice 24
         'banner' => 'بنر',
         'page' => 'صفحة',
         'faq' => 'سؤال شائع',

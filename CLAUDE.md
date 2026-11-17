@@ -466,3 +466,19 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
   batch cell cache, id ceiling, cap `reports.export_max_rows` (10 000). Money cells: `Cell::money()` (numeric). Receipts: `Services\Reports\Receipts\PaymentReceipts` (+ `payment_receipts` VAT snapshot) and `ReceiptPdf`
   (dompdf + `ar-php` shaping, view `resources/views/reports/receipt.blade.php`); listener `Listeners\Reports\IssuePaymentReceipt`.
 - Tests: `tests/Feature/Admin/Reports/*` (money sources in `MoneyKpisTest`, rows by table contract via `BuildsFinance`).
+
+## Service packages (Slice 24 — S24)
+
+- Contract: `docs/slice-24-contract.md` (D350–D359, OD39). A package is an admin-curated bundle of catalog services with
+  **no price, ever** (D350). Tables `packages` (stop_reason, sort), `package_items`, `event_type_package` (none = every
+  occasion, D351); `service_requests.package_id` (open requests only, D353).
+- Admin: `routes/api/v1/admin/catalog/packages.php` (`catalog.manage`), `Services\Catalog\Admin\CatalogPackages` (CatalogRows
+  for text/image/move; own locked stop/activate writing `stop_reason`; audit `catalog_package_*`; never deleted).
+- Public: `shared/packages`, `shared/packages/{id}`, `shared/home.packages` via `Services\Catalog\PackageBrowser`
+  (`Package::visibleToClients()` = active + ≥1 visible service, D352; per-service market `starting_price`, never the bare
+  guide price, D355).
+- Requests: `ServiceRequestCreator` checks `package_id` (visible package containing `service_id`); the fingerprint adds it
+  only when sent; `DescribesServiceRequest` returns `package`. One service per request (D354): the app sends one open
+  request per package service.
+- Tests: `Tests\Concerns\BuildsPackages`; `tests/Feature/Admin/Catalog/CatalogPackagesTest.php`, `tests/Feature/Packages/*`,
+  `tests/Feature/Database/PackageLockingTest.php`.

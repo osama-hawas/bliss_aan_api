@@ -27,6 +27,8 @@ class StoreServiceRequestRequest extends FormRequest
             'type' => ['required', Rule::enum(ServiceRequestType::class)],
             'provider_id' => ['required_if:type,direct', 'prohibited_if:type,open', 'nullable', 'integer'],
             'service_id' => ['required', 'integer'],
+            // Slice 24 (D353): an open request made from a package; checked by ServiceRequestCreator.
+            'package_id' => ['nullable', 'prohibited_if:type,direct', 'integer'],
             'event_type_id' => ['required', 'integer', Rule::exists('event_types', 'id')->where('is_active', true)],
             'execution_place' => ['required', Rule::enum(ExecutionPlace::class)],
             'event_date' => ['required', 'date_format:Y-m-d'],

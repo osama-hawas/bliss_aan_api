@@ -16,6 +16,10 @@ return [
         'event_type_stopped' => 'Event type stopped. It is hidden from new requests.',
         'event_type_activated' => 'Event type activated.',
         'moved' => 'Order saved.',
+        // Slice 24 (S24): packages.
+        'package_saved' => 'Package saved.',
+        'package_stopped' => 'Package stopped. It is hidden from clients; requests made from it continue unchanged.',
+        'package_activated' => 'Package activated.',
     ],
     'validation' => [
         'image' => 'Choose an image you uploaded for the catalog that is not used yet.',
