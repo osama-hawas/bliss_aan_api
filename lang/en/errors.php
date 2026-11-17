@@ -33,4 +33,7 @@ return [
     // Messages for specific INVALID_STATE cases.
     'application_documents_open' => 'Accept every attached document before activating the account.',
     'application_documents_missing' => 'A required document is missing.',
+
+    // Slice 12a (S12a).
+    'DELETION_PENDING' => 'You already have an account deletion request under review.',
 ];

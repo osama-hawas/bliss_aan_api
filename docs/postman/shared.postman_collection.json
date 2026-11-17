@@ -548,6 +548,153 @@
           }
         }
       ]
+    },
+    {
+      "name": "Account (Slice 12a)",
+      "item": [
+        {
+          "name": "Update my profile (client)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/shared/account/profile",
+            "description": "D152. Partial update; returns the `auth/me` shape. Client: `name`, `email`, `city_id`, `birth_date` (YYYY-MM-DD, at least 18 years ago), `locale` (ar/en).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sara\",\n  \"email\": \"sara@example.com\",\n  \"city_id\": 1,\n  \"birth_date\": \"1995-04-01\",\n  \"locale\": \"ar\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update my profile (provider)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": "{{base_url}}/shared/account/profile",
+            "description": "D152. Providers may send `email`, `birth_date`, `locale` only; `name` / `city_id` → 422 (changed through support).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"noura@example.com\",\n  \"locale\": \"en\"\n}"
+            }
+          }
+        },
+        {
+          "name": "My deletion request + obligations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/shared/account/deletion-request",
+            "description": "Req 06. `request` = latest (pending or closed) or null; `obligations` = live counts (client: open_requests, active_bookings; provider: active_bookings, open_inbox). Shown, never blocking."
+          }
+        },
+        {
+          "name": "Request account deletion",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/shared/account/deletion-request",
+            "description": "D151. `reason`: not_using / privacy / experience / other_account / other; `details` optional ≤ 1000. Already pending → 409 DELETION_PENDING. Does not change the account status (D150); nobody processes it yet (D155).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"privacy\",\n  \"details\": \"Optional text\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Withdraw deletion request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/shared/account/deletion-request/withdraw",
+            "description": "Pending → withdrawn. None pending → 409 INVALID_STATE. She may ask again afterwards."
+          }
+        }
+      ]
     }
   ]
 }

@@ -34,6 +34,7 @@ enum ErrorCode: string
     case AlreadyReviewed = 'ALREADY_REVIEWED';
     case AlreadyReported = 'ALREADY_REPORTED';
     case OutOfStock = 'OUT_OF_STOCK'; // Slice 9 cart: quantity above the variant's current stock (03-api-conventions: 422)
+    case DeletionPending = 'DELETION_PENDING'; // Slice 12a: she already has a pending account deletion request (409)
     case ServerError = 'SERVER_ERROR';
 
     public function status(): int
@@ -44,7 +45,7 @@ enum ErrorCode: string
             self::Forbidden, self::AccountSuspended => 403,
             self::NotFound, self::AccountNotFound => 404,
             self::MethodNotAllowed => 405,
-            self::InvalidState, self::NotConfigured, self::DuplicateRequest, self::SlotUnavailable, self::BlockOverlap, self::OfferExpired, self::AlreadyBooked, self::WalletExists, self::CancellationPending, self::StartTooEarly, self::AlreadyReviewed, self::AlreadyReported => 409,
+            self::InvalidState, self::NotConfigured, self::DuplicateRequest, self::SlotUnavailable, self::BlockOverlap, self::OfferExpired, self::AlreadyBooked, self::WalletExists, self::CancellationPending, self::StartTooEarly, self::AlreadyReviewed, self::AlreadyReported, self::DeletionPending => 409,
             self::TooManyAttempts => 429,
             self::ServerError => 500,
         };

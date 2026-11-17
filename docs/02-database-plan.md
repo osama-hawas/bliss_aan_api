@@ -28,7 +28,7 @@ Labels: **[C]** confirmed · **[R]** recommendation · **[?]** open question.
 | `user_devices` | user_id, jti, app (client/provider/dashboard), platform, device_name, fcm_token, last_seen_at, revoked_at | n–1 users | F |
 | `roles`, `permissions`, `model_has_roles`, `model_has_permissions`, `role_has_permissions` | spatie/laravel-permission structure (admins only) | users ↔ roles | F |
 | `account_status_logs` | user_id, action, reason (user-visible), internal_note, actor_id | n–1 users | F |
-| `account_deletion_requests` | user_id, reason, status, processed_by, processed_at | n–1 users | M |
+| `account_deletion_requests` | user_id, **open_user_id** (unique nullable: = user_id while pending → one pending request per account), reason_code (D151), details, status (pending/withdrawn; processed/rejected defined but never written until Q76, D155), user_type, withdrawn_at, processed_by, processed_at, internal_note (all null until Q76). Never changes `users.status` (D150). Migration `2026_11_22_120000_create_account_deletion_requests_table` | n–1 users | M (Slice 12a) |
 | `notification_preferences` | user_id, key (offers/messages/promotions/reminders/new_requests), enabled, unique(user_id, key). Missing row = enabled (D26) | n–1 users | M (Slice 1) |
 
 ## 2. Locations

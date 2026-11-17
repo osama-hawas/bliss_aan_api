@@ -1012,6 +1012,41 @@
           }
         }
       ]
+    },
+    {
+      "name": "Account (Slice 12a)",
+      "item": [
+        {
+          "name": "Set my profile photo",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/client/account/avatar",
+            "description": "D153. `media_id` from `shared/uploads` (context `avatar`, not attached yet) or `null` to remove. Returns the `auth/me` shape with `avatar_url`.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"media_id\": 1\n}"
+            }
+          }
+        }
+      ]
     }
   ]
 }

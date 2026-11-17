@@ -33,4 +33,7 @@ return [
     // رسائل حالات INVALID_STATE المحددة.
     'application_documents_open' => 'اقبلي كل المستندات المرفقة قبل تفعيل الحساب.',
     'application_documents_missing' => 'مستند مطلوب غير مرفق.',
+
+    // Slice 12a (S12a).
+    'DELETION_PENDING' => 'لديكِ طلب حذف حساب قيد المراجعة بالفعل.',
 ];

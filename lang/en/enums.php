@@ -79,4 +79,7 @@ return [
     'message_type' => ['text' => 'Text', 'image' => 'Image', 'file' => 'File', 'voice' => 'Voice note', 'offer_card' => 'Offer', 'system' => 'System'],
     'execution_place' => ['event_location' => 'At the event location', 'provider_location' => "At the provider's location"],
     'guest_count_mode' => ['hidden' => 'Not asked', 'optional' => 'Optional', 'required' => 'Required'],
+    // Slice 12a (S12a).
+    'deletion_reason' => ['not_using' => 'I no longer use the app', 'privacy' => 'Privacy concerns', 'experience' => "My experience wasn't good", 'other_account' => 'I have another account', 'other' => 'Another reason'],
+    'deletion_request_status' => ['pending' => 'Under review', 'withdrawn' => 'Withdrawn', 'processed' => 'Processed', 'rejected' => 'Rejected'],
 ];
