@@ -82,4 +82,7 @@ return [
     // Slice 12a (S12a).
     'deletion_reason' => ['not_using' => 'I no longer use the app', 'privacy' => 'Privacy concerns', 'experience' => "My experience wasn't good", 'other_account' => 'I have another account', 'other' => 'Another reason'],
     'deletion_request_status' => ['pending' => 'Under review', 'withdrawn' => 'Withdrawn', 'processed' => 'Processed', 'rejected' => 'Rejected'],
+    // Slice 12b (support tickets)
+    'ticket_status' => ['open' => 'Open', 'in_progress' => 'In progress', 'waiting' => 'Waiting for your reply', 'resolved' => 'Resolved', 'closed' => 'Closed'],
+    'ticket_topic' => ['service_quality' => 'Service quality', 'late_arrival' => 'Late arrival', 'payment' => 'Payment', 'cancellation' => 'Cancellation', 'account' => 'Account', 'other' => 'Other'],
 ];

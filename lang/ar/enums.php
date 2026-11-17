@@ -82,4 +82,7 @@ return [
     // Slice 12a (S12a).
     'deletion_reason' => ['not_using' => 'لم أعد أستخدم التطبيق', 'privacy' => 'مخاوف تتعلق بالخصوصية', 'experience' => 'لم تكن تجربتي جيدة', 'other_account' => 'لدي حساب آخر', 'other' => 'سبب آخر'],
     'deletion_request_status' => ['pending' => 'قيد المراجعة', 'withdrawn' => 'مسحوب', 'processed' => 'تمت معالجته', 'rejected' => 'مرفوض'],
+    // Slice 12b (support tickets)
+    'ticket_status' => ['open' => 'مفتوحة', 'in_progress' => 'قيد المعالجة', 'waiting' => 'بانتظار ردّك', 'resolved' => 'تم الحل', 'closed' => 'مغلقة'],
+    'ticket_topic' => ['service_quality' => 'جودة الخدمة', 'late_arrival' => 'تأخر الوصول', 'payment' => 'الدفع', 'cancellation' => 'الإلغاء', 'account' => 'الحساب', 'other' => 'أخرى'],
 ];

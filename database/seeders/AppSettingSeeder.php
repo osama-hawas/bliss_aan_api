@@ -23,6 +23,7 @@ class AppSettingSeeder extends Seeder
             'requests.max_attachments' => null, // D53, Q14: not approved
             'bookings.buffer_minutes' => 0, // D108
             'bookings.start_early_minutes' => 60, // D126
+            'support.auto_close_days' => null, // D160 (S12b): no auto-close until decided
         ];
 
         foreach (UploadContext::cases() as $context) {

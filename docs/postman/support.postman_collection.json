@@ -1,0 +1,224 @@
+{
+  "info": {
+    "name": "Bliss aan — support (Slice 12b)",
+    "description": "Slice 12b: public FAQs and pages, and her own support tickets (client and provider) (`docs/slice-12b-contract.md`, D157–D163). No admin ticket handling (Slice 17). Uses the shared environment (`base_url`, `lang`, `client_token`, `provider_token`).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Content (shared, public)",
+      "item": [
+        {
+          "name": "List FAQs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              }
+            ],
+            "url": "{{base_url}}/shared/faqs?app=client",
+            "description": "Active FAQs of one app (`app` = client | provider, required), by `sort` then id: `[{id, question, answer}]`. Public; a token never chooses the app (D158)."
+          }
+        },
+        {
+          "name": "Show page",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              }
+            ],
+            "url": "{{base_url}}/shared/pages/terms?app=client",
+            "description": "One active page (`terms`, `privacy`…) of one app: `{slug, title, body, updated_at}`. Body = plain text with `## ` headings, `- ` bullets, blank-line paragraphs (D163). Unknown/inactive → 404."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Support tickets (client)",
+      "item": [
+        {
+          "name": "List my tickets",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/shared/support-tickets?filter[status]=&page=1&per_page=15",
+            "description": "Her tickets, newest activity first. `filter[status]` = open | in_progress | waiting | resolved | closed."
+          }
+        },
+        {
+          "name": "Open a ticket",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/shared/support-tickets",
+            "description": "Requires `Idempotency-Key` (same key + body → same ticket, 200; other body → 409 DUPLICATE_REQUEST). `topic`: service_quality | late_arrival | payment | cancellation | account | other. Optional `related_type` (service_request | booking) + `related_id` — must be hers (D159). Subject ≤ 80, message ≤ 1000.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"topic\": \"payment\",\n  \"subject\": \"Charged twice\",\n  \"message\": \"I was charged twice for my booking.\",\n  \"related_type\": null,\n  \"related_id\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "Show ticket",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": "{{base_url}}/shared/support-tickets/1",
+            "description": "Ticket + `messages [{id, from_staff, author_name, body, created_at}]` (staff shown as the support team, internal notes never shown, D161) + `can_reply`. Another user's ticket → 404."
+          }
+        },
+        {
+          "name": "Reply",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/shared/support-tickets/1/messages",
+            "description": "`body` ≤ 1000, `client_uuid` (uuid; a repeat returns the ticket without a second message). Closed → 409 INVALID_STATE; resolved → open, waiting → in_progress (D160). Answers with the updated ticket.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"Any update?\",\n  \"client_uuid\": \"{{$guid}}\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Support tickets (provider)",
+      "item": [
+        {
+          "name": "List my tickets",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": "{{base_url}}/shared/support-tickets",
+            "description": "Same endpoints with a provider token. Links: her bookings and requests she received."
+          }
+        },
+        {
+          "name": "Open a ticket",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/shared/support-tickets",
+            "description": "Provider ticket linked to one of her bookings.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"topic\": \"other\",\n  \"subject\": \"Client did not show up\",\n  \"message\": \"Details…\",\n  \"related_type\": \"booking\",\n  \"related_id\": 1\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

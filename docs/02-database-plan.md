@@ -113,8 +113,8 @@ Labels: **[C]** confirmed · **[R]** recommendation · **[?]** open question.
 | `conversation_reads` | conversation_id, user_id, last_read_message_id (moves forward only), unique(conversation_id, user_id) | M (7) |
 | `quick_replies` | user_id, text, sort | M |
 | `content_reports` | reportable_type/id (review/message/user), reporter_id, reason_code, details, status (open/handled), handled_by, handled_at; unique(reportable, reporter). Slice 6 writes review reports only | M (6) |
-| `support_tickets` | reference, user_id, topic, related_type/related_id (booking/request/store_order), status, assigned_to | M (handling D) |
-| `ticket_messages` | ticket_id, author_id, body, **is_internal** | M/D |
+| `support_tickets` | reference (`TK-` + 7 random digits, D159), user_id, topic, **subject** (≤ 80), related_type/related_id (`service_request`/`booking` API keys, no FK; store_order later), status, assigned_to, **last_message_at**, **idempotency_key + fingerprint**, unique(user_id, idempotency_key) (Slice 12b, `slice-12b-contract.md`). Migration `2026_11_16_231200_create_support_ticket_tables` | M (handling D) |
+| `ticket_messages` | ticket_id, author_id, body, **is_internal** (never returned to mobile, D161), **client_uuid + fingerprint**, unique(author_id, client_uuid) (Slice 12b) | M/D |
 | `conversation_access_logs` | admin_id, conversation_id, ticket_id, reason (Req 42) | D |
 | `faqs` | question, answer (ar/en), audience (client/provider), is_active, sort | F (demo seed only) |
 
