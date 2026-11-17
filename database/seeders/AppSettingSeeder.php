@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Enums\UploadContext;
 use App\Models\AppSetting;
+use App\Services\Settings\AppSettings;
 use Illuminate\Database\Seeder;
 
 /**
@@ -50,29 +51,32 @@ class AppSettingSeeder extends Seeder
             $settings[$context->settingKey()] = null; // file limits undecided (BRD M8)
         }
 
+        $settings = [...$settings, ...$this->requestAttachmentLimits()];
+
         foreach ($settings as $key => $value) {
             AppSetting::query()->firstOrCreate(['key' => $key], ['value' => $value]);
         }
 
-        $this->requestAttachmentLimits();
+        // Settings are cached forever: drop the cache so a deploy's seed is read at once.
+        app(AppSettings::class)->flush();
     }
 
     /**
      * D242 (Q14, SFIX): request attachment limits outside `local` — 10 MB per file, 5 files, jpg/jpeg/png/heic/pdf.
-     * Filled only where the value is still `null`; an admin value is never overwritten. Local keeps `DemoSeeder`'s values.
+     * They are the values a key gets when it is **created**; an existing row is never touched, so an admin's value —
+     * including a deliberate `null` — survives re-seeding. Local keeps `null` here and `DemoSeeder`'s values.
+     *
+     * @return array<string, mixed>
      */
-    private function requestAttachmentLimits(): void
+    private function requestAttachmentLimits(): array
     {
         if (app()->environment('local')) {
-            return;
+            return [];
         }
 
-        $values = [
+        return [
             UploadContext::RequestAttachment->settingKey() => ['mimes' => ['jpg', 'jpeg', 'png', 'heic', 'pdf'], 'max_kb' => 10240],
             'requests.max_attachments' => 5,
         ];
-        foreach ($values as $key => $value) {
-            AppSetting::query()->where('key', $key)->whereNull('value')->update(['value' => json_encode($value)]);
-        }
     }
 }

@@ -401,7 +401,8 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
   URL; Arabic-Indic digits normalised; prices, dates and references not flagged) sets `messages.flagged` in
   `ChatMessenger::send()`; never blocks (D246). `MessageResource.flagged` = own messages only, `null` for the other
   party (D253). The Flutter `lib/core/utils/contact_info_detector.dart` mirrors the rules — change both together.
-- `AppSettingSeeder` fills the D242 request attachment limits outside `local` (only where `null`); `DeclineReasonSeeder`
+- `AppSettingSeeder` gives the D242 request attachment limits to newly created keys outside `local` (an existing row, even
+  `null`, is never touched) and flushes the `AppSettings` cache at the end of `run()`; `DeclineReasonSeeder`
   holds the D243 wording (`REASONS`, old text in `PREVIOUS`).
 - Tests: `tests/Unit/Chat/ContactInfoDetectorTest.php`, `ChatTest::test_contact_details_…`, `AttachmentConfigurationTest`,
   `SeederTest::test_decline_…`.

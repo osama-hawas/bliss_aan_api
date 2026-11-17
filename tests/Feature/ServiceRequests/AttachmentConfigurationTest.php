@@ -5,6 +5,7 @@ namespace Tests\Feature\ServiceRequests;
 use App\Models\AppSetting;
 use App\Models\Provider;
 use App\Services\Settings\AppSettings;
+use Database\Seeders\AppSettingSeeder;
 use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\DemoSeeder;
 use Illuminate\Database\Eloquent\Model;
@@ -17,7 +18,8 @@ use Tests\TestCase;
 
 /**
  * D242 (Q14 → SFIX): outside `local` the seeders fill the request attachment limits — 10 MB per file, 5 files,
- * jpg/jpeg/png/heic/pdf — only where the value is still unset; an admin value is never overwritten. An explicitly unset
+ * jpg/jpeg/png/heic/pdf — as the values of newly created keys only; an existing row (an admin value or a deliberate
+ * null) is never touched, and the settings cache is flushed. An explicitly unset
  * value still answers 409 NOT_CONFIGURED.
  */
 class AttachmentConfigurationTest extends TestCase
@@ -31,7 +33,12 @@ class AttachmentConfigurationTest extends TestCase
         $this->app->detectEnvironment(fn () => $environment);
         // Run the seeder directly (`db:seed` asks for confirmation in production), unguarded as `db:seed` does.
         Model::unguarded(fn () => $this->app->make(DatabaseSeeder::class)->setContainer($this->app)->__invoke());
-        app(AppSettings::class)->flush();
+    }
+
+    /** Fills the forever settings cache, as a running app has, so a seeder that forgets to flush it fails the test. */
+    private function warmSettingsCache(): void
+    {
+        app(AppSettings::class)->get('requests.max_attachments');
     }
 
     private function setting(string $key): mixed
@@ -41,10 +48,14 @@ class AttachmentConfigurationTest extends TestCase
 
     public function test_production_seeding_sets_the_d242_limits(): void
     {
+        $this->warmSettingsCache();
         $this->seedAs('production');
 
         $this->assertSame(self::LIMITS, $this->setting('uploads.request_attachment'));
         $this->assertSame(5, $this->setting('requests.max_attachments'));
+        // Read through the cached service: the seeder flushed the cache (M2).
+        $this->assertSame(self::LIMITS, app(AppSettings::class)->get('uploads.request_attachment'));
+        $this->assertSame(5, app(AppSettings::class)->get('requests.max_attachments'));
         $this->assertSame(0, Provider::query()->count(), 'DemoSeeder ran outside local.');
     }
 
@@ -61,10 +72,32 @@ class AttachmentConfigurationTest extends TestCase
         $this->assertSame(['mimes' => ['pdf'], 'max_kb' => 100], $this->setting('uploads.request_attachment'));
     }
 
+    public function test_an_admin_null_survives_reseeding(): void
+    {
+        $this->seedAs('production');
+        $settings = app(AppSettings::class);
+        $settings->set('requests.max_attachments', null);
+        $settings->set('uploads.request_attachment', null);
+
+        $this->seedAs('production');
+
+        $this->assertNull($this->setting('requests.max_attachments'));
+        $this->assertNull($this->setting('uploads.request_attachment'));
+    }
+
+    public function test_local_seeding_leaves_the_keys_to_the_demo_seeder(): void
+    {
+        $this->app->detectEnvironment(fn () => 'local');
+        $this->seed(AppSettingSeeder::class);
+
+        $this->assertNull($this->setting('requests.max_attachments'));
+        $this->assertNull($this->setting('uploads.request_attachment'));
+    }
+
     public function test_seeded_limits_are_enforced_end_to_end(): void
     {
+        $this->warmSettingsCache();
         $this->seed(DatabaseSeeder::class); // testing environment = not local → D242 values
-        app(AppSettings::class)->flush();
         $this->setUpMarket();
         $this->matchingProvider();
         Storage::fake('local');
