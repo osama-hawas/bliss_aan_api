@@ -125,6 +125,6 @@ class AdminPaymentsTest extends TestCase
         $this->asAdmin($refunder)->getJson('/api/v1/admin/refunds')->assertOk();
         $this->asAdmin($this->member(AdminRole::StoreContentOfficer))->getJson('/api/v1/admin/refunds')->assertStatus(403);
         $this->asAdmin($this->client)->getJson(self::URL)->assertStatus(403);
-        $this->getJson(self::URL)->assertStatus(401);
+        $this->asGuest()->getJson(self::URL)->assertStatus(401);
     }
 }

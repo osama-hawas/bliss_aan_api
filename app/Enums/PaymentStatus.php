@@ -6,7 +6,7 @@ use App\Enums\Concerns\HasLabel;
 
 /**
  * Slice 10 (slice-10-contract.md §6). Only PaymentStateMachine::apply writes it. Terminal states never move, except a
- * late `succeeded` on a `cancelled` attempt, which is recorded and then refunded automatically (§6.4).
+ * late `succeeded` on a `cancelled` or `failed` attempt, which is recorded and then refunded automatically (§6.4).
  */
 enum PaymentStatus: string
 {
@@ -42,8 +42,9 @@ enum PaymentStatus: string
             self::Pending => true,
             self::RequiresAction => in_array($to, [self::Succeeded, self::Failed, self::Cancelled, self::Unknown], true),
             self::Unknown => in_array($to, [self::Succeeded, self::Failed, self::Cancelled, self::RequiresAction], true),
-            self::Cancelled => $to === self::Succeeded,
-            self::Succeeded, self::Failed => false,
+            // A late success on an abandoned or failed attempt is recorded, then refunded in full (§6.4, review L1).
+            self::Cancelled, self::Failed => $to === self::Succeeded,
+            self::Succeeded => false,
         };
     }
 }

@@ -280,9 +280,11 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
 
 - Contract: `docs/slice-10-contract.md` rev 2 (D185–D194). Services in `app/Services/Payments/`: `PaymentIntents::create(payer,
   PayableType, payable, PaymentInstrument, key)` (replay → handler `quote()` pre-check → insert `pending` under the payer lock,
-  older open attempts on the same payable cancelled → gateway charge **outside** any transaction, key `payment:{id}` →
-  `PaymentStateMachine::apply` → `settle()` = fulfil or refund a late success), `refresh()` / `expire()`; `PaymentStateMachine` is
-  the only writer of `payments.status` (forward-only); `PaymentFulfilment` (handler `fulfil()`; ApiException ⇒ full automatic refund);
+  older open attempts asked first and cancelled only once the gateway answers (`retire()`; never an `unknown` one blind) → gateway
+  charge **outside** any transaction, key `payment:{id}` → `PaymentStateMachine::apply` → `settle()` = fulfil, or refund an
+  undelivered / late success, retrying failed automatic refunds up to 3×), `refresh()` / `expire()` / `recheckCancelled()`;
+  `PaymentStateMachine` is the only writer of `payments.status` (forward-only; a late success after cancelled/failed is recorded and
+  refunded); `PaymentFulfilment` (handler `fulfil()`; a 4xx ApiException ⇒ full automatic refund, 5xx stays `pending`);
   `PaymentRefunds` (reserve under handler locks → payment lock, gateway outside, `RefundStateMachine` settles);
   `SavedPaymentMethods` (tokens only, encrypted); `PaymentWebhooks` (signature, `(gateway, event_id)` unique); `PaymentQueries`.
 - One `PayableHandler` per `PayableType`, registered in `AppServiceProvider` (`PayableRegistry`): `Handlers\OfferPaymentHandler`

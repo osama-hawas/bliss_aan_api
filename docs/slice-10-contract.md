@@ -106,7 +106,7 @@ Money: columns `decimal(12,2)`; every calculation in the services is integer cen
 | `PaymentIntents::create(User $payer, PayableType $type, Model $payable, PaymentInstrument $instrument, string $idempotencyKey): array{0: Payment, 1: bool}` | The one entry point for paying anything. Replay first (same key + same payable → the original payment, `false`; same key + other payable/instrument → `409 DUPLICATE_REQUEST`). Then `handler->quote()` (pre-check, may throw), resolve the instrument (saved method of hers / token via `describeToken`), insert `pending` under the payer row lock, supersede her open attempts on the same payable (§6.4), commit, **charge outside any transaction**, `apply()`, then `fulfil()` when succeeded. Returns the payment as it stands. |
 | `PaymentIntents::refresh(Payment $p): Payment` | Ask the gateway (`status()`) when the payment is non-terminal and was last checked ≥ 5 s ago; `apply()` the answer; retry a `pending` fulfilment. Used by `GET client/payments/{id}` and the reconcile command. |
 | `PaymentStateMachine::apply(Payment $p, GatewayOutcome $o, string $source): Payment` | The **only** writer of `payments.status`. Locks the payment row, ignores stale/backward moves (terminal stays terminal; a late `succeeded` on a `cancelled`/`failed` attempt is recorded as succeeded and then refunded, §6.4), writes `activity_events` (`payment_*`), dispatches events after commit. `$source` = `charge` / `webhook` / `reconcile`. |
-| `PaymentFulfilment::run(Payment $p): void` | After commit of a `succeeded` apply: `handler->fulfil($p)` once (`fulfilment_status` pending → fulfilled). An `ApiException` from the handler → `fulfilment_status = failed`, `fulfilment_error = <code>`, automatic full refund (`RefundKind::AcceptanceFailed`). Any other exception (deadlock retries exhausted, server error) leaves it `pending` for the reconcile command; handlers must be idempotent on the payment id. |
+| `PaymentFulfilment::run(Payment $p): void` | After commit of a `succeeded` apply: `handler->fulfil($p)` once (`fulfilment_status` pending → fulfilled). An `ApiException` with a **4xx** status from the handler (a refusal: `ALREADY_BOOKED`, `INVALID_STATE`, `OFFER_EXPIRED`, `SLOT_UNAVAILABLE`, `NOT_FOUND`, `OUT_OF_STOCK`, …) → `fulfilment_status = failed`, `fulfilment_error = <code>`, automatic full refund (`RefundKind::AcceptanceFailed`). A 5xx `ApiException` (deadlock retries exhausted, server error) or any other exception leaves it `pending` for the reconcile command; handlers must be idempotent on the payment id. A failed automatic refund is retried by the reconcile command with keys `auto:{kind}:2`, `auto:{kind}:3`; after three attempts staff refund it by hand. |
 | `PaymentRefunds::refund(Payment $p, string $amount, RefundKind $kind, ?User $staff, ?string $reason, string $idempotencyKey): array{0: Refund, 1: bool}` | Locks `handler->lockForRefund($p)` rows first, then the payment row; only `succeeded` payments (`409 INVALID_STATE`); `amount` ≤ refundable remainder (`422 REFUND_AMOUNT_EXCEEDED`); inserts `in_progress` (reserves the amount), commits, calls `gateway->refund()` outside the transaction, settles via `RefundStateMachine::apply` (also reached by `refund.*` webhooks). Settled → `handler->onRefunded()` inside the settling transaction. Staff refunds write `audit_logs` (`payment_refunded`, reason). |
 | `SavedPaymentMethods` | `list(User)`, `add(User, token)`, `makeDefault(User, id)`, `delete(User, id)` (§7). |
 | `PaymentWebhooks::handle(string $gateway, Request $r): WebhookResult` | §8. |
@@ -222,7 +222,8 @@ token_hash)** among non-deleted rows via `active_token_hash` nullable unique pat
 ### 6.1 Transitions (`PaymentStatus::canMoveTo`)
 `pending → requires_action | succeeded | failed | cancelled | unknown`; `requires_action → succeeded | failed |
 cancelled | unknown`; `unknown → succeeded | failed | cancelled | requires_action`; terminal states never move, except
-`cancelled → succeeded` (late success, §6.4) which is accepted and immediately refunded.
+`cancelled → succeeded` and `failed → succeeded` (late success, §6.4), which are recorded and then refunded in full
+(fulfilment `not_applicable`).
 
 ### 6.2 Charge outcome
 Gateway call throws / times out → `unknown`; the reconcile command settles it with `status()`. A declined card →
@@ -231,13 +232,17 @@ same failed payment. A new attempt needs a new key.
 
 ### 6.3 Expiry
 `payments:reconcile` (every minute, `withoutOverlapping`): non-terminal payments older than `payments.intent_ttl_minutes`
-→ `gateway->cancel()` best effort, then `cancelled`; non-terminal ones checked ≥ 1 min ago → `refresh()`; `succeeded`
+→ asked first, then `gateway->cancel()` best effort and `cancelled` (not when the gateway cannot be asked, §6.4);
+cancelled attempts of the last 24 h without a gateway reference → asked by key once a minute; non-terminal ones checked ≥ 1 min ago → `refresh()`; `succeeded`
 with `fulfilment_status = pending` → `PaymentFulfilment::run`; refunds `in_progress` → gateway status. Nothing is
 reserved by an open attempt (no slot, no stock).
 
 ### 6.4 Several attempts
-A new attempt by the same payer on the same payable marks her older non-terminal attempts `cancelled` (gateway
-`cancel()` best effort). If an older attempt still succeeds later (webhook), it is recorded as `succeeded` and refunded in
+A new attempt by the same payer on the same payable first asks the gateway about her older non-terminal attempts (by
+reference, or `statusByKey('payment:{id}')` when the charge call gave none) and applies the answer; a still-open one is
+then `cancelled` (gateway `cancel()` best effort). An attempt the gateway cannot be asked about stays `unknown` (never
+cancelled blind); expiry follows the same rule. The quote runs after this, so an older attempt that just confirmed the
+booking makes the new attempt answer `409 ALREADY_BOOKED` without charging. If an older attempt still succeeds later (webhook), it is recorded as `succeeded` and refunded in
 full automatically (`RefundKind::SupersededAttempt`, `fulfilment_status = not_applicable`). The same applies to a
 success arriving after expiry.
 
@@ -264,6 +269,9 @@ Lookups are scoped to her own methods (another client's id → 404). Shape:
 - `insertOrIgnore` into `payment_webhook_events` on `(gateway, event_id)`: a duplicate → `200` `result: duplicate`, no
   effect. Types: `payment.succeeded`, `payment.failed`, `payment.cancelled`, `refund.succeeded`, `refund.failed`; others
   → `ignored`. Unknown `gateway_reference` → `unmatched` (stored, `200`, logged).
+- A payment event is matched on `gateway_reference`; when nothing matches it falls back to our own payment reference
+  (`data.payment_reference` in the fake, the merchant reference of a real gateway) for a payment with no gateway reference
+  yet (a timed-out charge).
 - Matched events go through `PaymentStateMachine::apply` / `RefundStateMachine::apply` (forward-only, so out-of-order
   events are harmless), then fulfilment after commit. Always `200` once stored, so the gateway does not retry an event we
   have; a processing exception → `500` and the row stays `processed_at = null` (the gateway retries; the next delivery
@@ -325,7 +333,7 @@ the slot was lost — refunded" (`fulfilment_error` picks the text); `failed` �
 |---|---|---|---|
 | `GET admin/payments` | `finance.view` | `q` (PY/BK reference, client phone), `filter[status]`, `filter[payable_type]`, `filter[refund]` (`none/partial/full`), `sort` (`created_at`, `amount`, `-…`, default `-created_at`), `page`, `per_page` | paginated `AdminPaymentResource` |
 | `GET admin/payments/{id}` | `finance.view` | — | + `refunds[]`, `history` (activity events), `client` {id, name, phone}, `payable` link (booking/request reference), `gateway_reference`, `raw_response` omitted |
-| `POST admin/payments/{id}/refunds` | `refunds.process` | `Idempotency-Key`; `amount` (decimal string, > 0, ≤ refundable), `reason` (3–500), `cancellation_request_id` (optional, must belong to the payment's booking) | `201` / `200` replay `AdminRefundResource`; not `succeeded` → `409 INVALID_STATE`; over the remainder → `422 REFUND_AMOUNT_EXCEEDED` |
+| `POST admin/payments/{id}/refunds` | `refunds.process` | `Idempotency-Key`; `amount` (decimal string, > 0, ≤ refundable), `reason` (3–500), `cancellation_request_id` (optional, must belong to the payment's booking) | `201` / `200` replay `AdminRefundResource`; not `succeeded`, or its booking still being confirmed (fulfilment `pending`) → `409 INVALID_STATE`; over the remainder → `422 REFUND_AMOUNT_EXCEEDED` |
 | `GET admin/refunds` | `finance.view` or `refunds.process` | `filter[status]`, `filter[kind]`, `q`, `sort`, `page` | paginated `AdminRefundResource` |
 | `GET admin/bookings/…` / `admin/service-requests/{id}` | as today | — | booking gains `payment` summary |
 
@@ -466,3 +474,17 @@ Files: migrations `2026_11_23_100000_create_payment_tables`, `2026_11_23_100100_
 Tests written (not run): `tests/Feature/Payments/{OfferPayment,SavedPaymentMethods,PaymentWebhook,Refund,AdminPayments,
 ReconcileCommand,FakePaymentGateway}Test.php`, `tests/Feature/Database/PaymentLockingTest.php`, helper
 `tests/Concerns/BuildsPayments.php`.
+
+## 17. Review fixes (2026-11-17)
+
+| Finding | Change |
+|---|---|
+| H1 | Older open attempts and expiring attempts are asked first (`PaymentIntents::retire()`); an `unknown` attempt is never cancelled while the gateway cannot be asked; webhooks fall back to our payment reference; `payments:reconcile` re-asks cancelled attempts without a gateway reference (24 h). §6.3, §6.4, §8 |
+| H2 | Tests seed `payments.intent_ttl_minutes` with the flag (`BuildsPayments::requirePayment()`). |
+| M1 | Only a 4xx `ApiException` from `fulfil()` refunds; 5xx stays `pending`. §4.2 |
+| M2 | The reconcile fulfilment pass selects only rows with work left (pending, or undelivered with money not yet refunded and fewer than three automatic refunds). |
+| M3 | Failed automatic refunds are retried (`auto:{kind}:{n}`, at most 3). §4.2 |
+| L1 | `failed → succeeded` is recorded and refunded like `cancelled → succeeded`. §6.1 |
+| L2 | Staff refunds are refused (`409 INVALID_STATE`) while the booking is still being confirmed. §10.2 |
+
+Tests: `tests/Feature/Payments/PaymentRecoveryTest.php` (new) covers H1, M1, M2/M3, L1, L2.

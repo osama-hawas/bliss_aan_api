@@ -43,7 +43,7 @@ class FakePaymentWebhook extends Command
         $approve = $outcome === 'succeeded';
         $gateway->settle($payment->gateway_reference, $approve);
         [$body, $headers] = FakePaymentGateway::webhook($approve ? WebhookEvent::PAYMENT_SUCCEEDED : WebhookEvent::PAYMENT_FAILED,
-            $payment->gateway_reference, $approve ? null : 'authentication_failed');
+            $payment->gateway_reference, $approve ? null : 'authentication_failed', null, null, $payment->reference);
         $request = Request::create('/webhooks/payments/fake', 'POST', [], [], [], [], $body);
         $request->headers->add($headers);
 

@@ -4,6 +4,7 @@ namespace App\Services\Payments;
 
 use App\Enums\ActivityVisibility;
 use App\Enums\ErrorCode;
+use App\Enums\FulfilmentStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\RefundKind;
 use App\Enums\RefundStatus;
@@ -96,6 +97,9 @@ class PaymentRefunds
         }
         if ($locked->status !== PaymentStatus::Succeeded || ! $locked->gateway_reference) {
             throw new ApiException(ErrorCode::InvalidState, __('errors.payment_not_refundable'));
+        }
+        if ($kind === RefundKind::Staff && $locked->fulfilment_status === FulfilmentStatus::Pending) {
+            throw new ApiException(ErrorCode::InvalidState, __('errors.payment_fulfilment_pending')); // review L2
         }
         if ($cents > $locked->refundableCents()) {
             throw new ApiException(ErrorCode::RefundAmountExceeded);

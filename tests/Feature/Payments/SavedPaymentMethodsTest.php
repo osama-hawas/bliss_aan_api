@@ -85,7 +85,7 @@ class SavedPaymentMethodsTest extends TestCase
         $this->asClient()->getJson(self::URL)->assertJsonCount(0, 'data');
         $this->asClient()->postJson(self::URL."/{$id}/default")->assertStatus(404);
         $this->asClient()->deleteJson(self::URL."/{$id}")->assertStatus(404);
-        $this->getJson(self::URL)->assertStatus(401);
+        $this->asGuest()->getJson(self::URL)->assertStatus(401);
         $provider = $this->matchingProvider();
         $this->actingAsApi($provider->user)->getJson(self::URL)->assertStatus(403);
     }

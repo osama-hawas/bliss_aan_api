@@ -23,6 +23,7 @@ final readonly class WebhookEvent
         public ?string $gatewayReference,
         public ?string $failureCode,
         public array $raw,
+        public ?string $merchantReference = null, // our PY-… reference, when the gateway echoes it (review H1)
     ) {}
 
     public function isPaymentEvent(): bool

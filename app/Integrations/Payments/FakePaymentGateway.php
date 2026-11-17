@@ -157,7 +157,7 @@ class FakePaymentGateway implements PaymentGateway
         }
 
         return new WebhookEvent($payload['id'], $payload['type'], $payload['data']['reference'] ?? null,
-            $payload['data']['failure_code'] ?? null, $payload);
+            $payload['data']['failure_code'] ?? null, $payload, $payload['data']['payment_reference'] ?? null);
     }
 
     // ---- Test helpers (fake checkout page, payments:fake-webhook, tests) ----
@@ -172,12 +172,12 @@ class FakePaymentGateway implements PaymentGateway
      *
      * @return array{0: string, 1: array<string, string>}
      */
-    public static function webhook(string $type, string $gatewayReference, ?string $failureCode = null, ?string $eventId = null, ?Carbon $at = null): array
+    public static function webhook(string $type, ?string $gatewayReference, ?string $failureCode = null, ?string $eventId = null, ?Carbon $at = null, ?string $paymentReference = null): array
     {
         $body = json_encode([
             'id' => $eventId ?? 'evt_'.Str::lower(Str::random(24)),
             'type' => $type,
-            'data' => array_filter(['reference' => $gatewayReference, 'failure_code' => $failureCode]),
+            'data' => array_filter(['reference' => $gatewayReference, 'payment_reference' => $paymentReference, 'failure_code' => $failureCode]),
         ], JSON_THROW_ON_ERROR);
         $t = (string) ($at ?? now())->getTimestamp();
 

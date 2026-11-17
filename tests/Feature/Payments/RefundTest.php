@@ -114,7 +114,7 @@ class RefundTest extends TestCase
 
     public function test_validation_and_cancellation_link(): void
     {
-        $this->actingAsApi($this->admin)->postJson("/api/v1/admin/payments/{$this->payment->id}/refunds", ['amount' => '1', 'reason' => 'abc'])
+        $this->asGuest()->actingAsApi($this->admin)->postJson("/api/v1/admin/payments/{$this->payment->id}/refunds", ['amount' => '1', 'reason' => 'abc'])
             ->assertStatus(422)->assertJsonValidationErrors('idempotency_key');
         $this->refund(['amount' => '0', 'reason' => 'Zero'])->assertStatus(422)->assertJsonValidationErrors('amount');
         $this->refund(['amount' => '1.234', 'reason' => 'Too precise'])->assertStatus(422)->assertJsonValidationErrors('amount');
