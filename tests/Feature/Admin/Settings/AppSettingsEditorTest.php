@@ -28,7 +28,8 @@ class AppSettingsEditorTest extends TestCase
 
         $rows = collect($this->actingAsApi($admin)->getJson(self::URL)->assertOk()->json('data'))->keyBy('key');
 
-        $this->assertFalse($rows['payouts.commission_percent']['is_configured']); // a later slice's key, not stored here
+        $this->assertFalse($rows['payouts.min_amount']['is_configured']); // still null after seeding
+        $this->assertTrue($rows['payouts.commission_percent']['is_configured']); // initial value, editable (2026-11-17)
         $this->assertSame('decimal', $rows['payouts.commission_percent']['kind']);
         $this->assertSame('money', $rows['store.shipping_fee']['kind']);
         $this->assertTrue($rows['otp.length']['fixed']);
