@@ -42,5 +42,8 @@ return [
         'booking_cancelled_by_staff' => ['title' => 'Booking cancelled', 'body' => 'Bliss aan support cancelled booking :reference.'],
         'booking_completed_by_staff' => ['title' => 'Booking completed', 'body' => 'Bliss aan support marked booking :reference as completed.'],
         'refund_issued' => ['title' => 'Refund issued', 'body' => 'A refund of :amount was issued for :reference.'],
+        // Slice 19 (S19).
+        'ledger_credit_posted' => ['title' => 'Balance credited', 'body' => ':amount :currency was added to your balance (:reference).'],
+        'ledger_debit_posted' => ['title' => 'Balance adjusted', 'body' => ':amount :currency was deducted from your balance (:reference).'],
     ],
 ];

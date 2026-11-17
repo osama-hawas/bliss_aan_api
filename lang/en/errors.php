@@ -67,4 +67,7 @@ return [
     'INSUFFICIENT_BALANCE' => 'The amount is more than your available balance.',
     // Slice 18 (S18).
     'STOCK_CHANGED' => 'The stock changed since you opened it. Check the current count and try again.',
+    // Slice 19 (S19).
+    'ADJUSTMENT_LIMIT_EXCEEDED' => 'The amount is above the largest adjustment allowed.',
+    'SELF_APPROVAL' => 'Another staff member must approve an adjustment you requested.',
 ];

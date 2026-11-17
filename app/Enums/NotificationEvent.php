@@ -46,6 +46,10 @@ enum NotificationEvent: string
     case BookingCompletedByStaff = 'booking_completed_by_staff'; // E24
     case RefundIssued = 'refund_issued';                      // E25
 
+    // Slice 19 (S19, D293): a staff adjustment of her ledger was posted.
+    case LedgerCreditPosted = 'ledger_credit_posted';         // E35
+    case LedgerDebitPosted = 'ledger_debit_posted';           // E36
+
     /**
      * The D26 key that can switch off the push (D135). Null = transactional, always pushed.
      */

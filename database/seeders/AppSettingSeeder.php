@@ -39,6 +39,9 @@ class AppSettingSeeder extends Seeder
             'support.chat_access_minutes' => 30,
             // S18 (Slice 18) — low-stock level for the dashboard; null = no low-stock flag (D278).
             'store.low_stock_threshold' => null,
+            // Slice 19 (S19, D288): adjustments are NOT_CONFIGURED until a maximum is set; null approval amount = always four-eyes.
+            'finance.adjustment_max_amount' => null,
+            'finance.adjustment_approval_amount' => null,
         ];
 
         foreach (UploadContext::cases() as $context) {

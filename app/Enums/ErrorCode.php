@@ -63,6 +63,10 @@ enum ErrorCode: string
     // Slice 18 (S18) — stock adjustments (D274).
     case StockChanged = 'STOCK_CHANGED';
 
+    // Slice 19 (S19) — ledger adjustments (D288, D289).
+    case AdjustmentLimitExceeded = 'ADJUSTMENT_LIMIT_EXCEEDED';
+    case SelfApproval = 'SELF_APPROVAL';
+
     public function status(): int
     {
         return match ($this) {
@@ -83,6 +87,8 @@ enum ErrorCode: string
             self::CartHasIssues, self::PriceChanged, self::CarrierFailed => 409, // Slice 9b
             self::PayoutAccountRequired, self::PayoutRequestOpen, self::InsufficientBalance => 409, // Slice 11
             self::StockChanged => 409, // Slice 18 (S18)
+            self::AdjustmentLimitExceeded => 422, // Slice 19
+            self::SelfApproval => 409, // Slice 19
         };
     }
 

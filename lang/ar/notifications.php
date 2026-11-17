@@ -41,5 +41,8 @@ return [
         'booking_cancelled_by_staff' => ['title' => 'تم إلغاء الحجز', 'body' => 'ألغى دعم Bliss aan الحجز :reference.'],
         'booking_completed_by_staff' => ['title' => 'اكتمل الحجز', 'body' => 'حدّد دعم Bliss aan الحجز :reference كمكتمل.'],
         'refund_issued' => ['title' => 'تم إصدار استرداد', 'body' => 'تم إصدار استرداد بمبلغ :amount عن :reference.'],
+        // Slice 19 (S19).
+        'ledger_credit_posted' => ['title' => 'أُضيف مبلغ إلى رصيدكِ', 'body' => 'أُضيف :amount :currency إلى رصيدكِ (:reference).'],
+        'ledger_debit_posted' => ['title' => 'تعديل على رصيدكِ', 'body' => 'خُصم :amount :currency من رصيدكِ (:reference).'],
     ],
 ];

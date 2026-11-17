@@ -114,4 +114,14 @@ return [
     // Slice 18 (S18) — store management.
     'stock_movement_source' => ['initial' => 'المخزون الأولي', 'adjustment' => 'تعديل من الفريق', 'order' => 'طلب', 'order_cancelled' => 'إلغاء طلب'],
     'stock_adjustment_reason' => ['restock' => 'استلام مخزون جديد', 'stocktake' => 'جرد', 'damaged' => 'تالف أو مفقود', 'correction' => 'تصحيح', 'other' => 'سبب آخر'],
+    // Slice 19 (S19) — المالية.
+    'ledger_adjustment_direction' => ['credit' => 'إضافة', 'debit' => 'خصم'],
+    'ledger_adjustment_status' => ['pending_approval' => 'بانتظار الاعتماد', 'posted' => 'مُرحّلة', 'rejected' => 'مرفوضة', 'cancelled' => 'ملغاة'],
+    'ledger_adjustment_reason' => ['payout_returned' => 'ارتداد تحويل الصرف', 'booking_correction' => 'تصحيح حجز', 'goodwill' => 'تعويض ودّي', 'penalty' => 'غرامة', 'other' => 'أخرى'],
+    'reconciliation_check' => [
+        'stale_payments' => 'مدفوعات عالقة', 'fulfilment_pending' => 'مدفوعة ولم تُنفّذ بعد', 'fulfilment_failed_unrefunded' => 'فشل التنفيذ دون استرداد',
+        'refunds_in_progress' => 'استردادات قيد التنفيذ', 'refunds_failed' => 'استردادات متعذرة', 'payment_refund_mismatch' => 'عدم تطابق المبلغ المسترد',
+        'webhooks_unprocessed' => 'أحداث بوابة غير معالجة', 'missing_earnings' => 'أرباح غير مسجلة', 'refund_not_in_ledger' => 'استردادات غير مسجلة في الحساب',
+        'negative_balances' => 'أرصدة سالبة لمقدمات الخدمة', 'pending_adjustments' => 'تسويات بانتظار الاعتماد',
+    ],
 ];

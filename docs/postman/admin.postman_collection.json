@@ -2901,6 +2901,317 @@
           }
         }
       ]
+    },
+    {
+      "name": "Finance — adjustments, overview, balances, reconciliation (Slice 19: finance.view / finance.process)",
+      "item": [
+        {
+          "name": "Finance overview",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/finance/overview?from=2026-12-01&to=2026-12-31",
+            "description": "finance.view. Riyadh days, default current month, ≤ 366 days (D294)."
+          }
+        },
+        {
+          "name": "Provider balances",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/finance/provider-balances?q=&filter[balance]=&sort=-available&page=1&per_page=15",
+            "description": "finance.view. balance ∈ negative|positive|zero; sort ∈ available, pending, in_payout, name (±)."
+          }
+        },
+        {
+          "name": "Provider balance detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/finance/provider-balances/1",
+            "description": "finance.view. + recent_adjustments."
+          }
+        },
+        {
+          "name": "Ledger entries (all providers)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/finance/ledger-entries?q=&filter[provider_id]=&filter[type]=&filter[from]=&filter[to]=&sort=-created_at",
+            "description": "finance.view. type ∈ earning, refund_adjustment, payout, payout_reversal, adjustment; q = BK / PO / LA reference."
+          }
+        },
+        {
+          "name": "Adjustment limits",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/finance/adjustment-limits",
+            "description": "finance.view or finance.process. Settings finance.adjustment_max_amount / finance.adjustment_approval_amount (D288)."
+          }
+        },
+        {
+          "name": "List adjustments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/finance/adjustments?q=&filter[status]=&filter[direction]=&filter[reason_code]=&filter[provider_id]=&sort=-created_at",
+            "description": "finance.view or finance.process."
+          }
+        },
+        {
+          "name": "Show adjustment",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/finance/adjustments/1",
+            "description": "finance.view or finance.process. + history, can_approve, can_reject."
+          }
+        },
+        {
+          "name": "Create adjustment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/finance/adjustments",
+            "description": "finance.process. 201 new / 200 replay. NOT_CONFIGURED while no maximum; ADJUSTMENT_LIMIT_EXCEEDED over it. Below the approval amount it posts at once, else pending_approval.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"provider_id\": 1,\n  \"direction\": \"credit\",\n  \"amount\": \"150.00\",\n  \"reason_code\": \"goodwill\",\n  \"reason\": \"Late payout apology\",\n  \"booking_id\": null,\n  \"payout_request_id\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "Approve adjustment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/finance/adjustments/1/approve",
+            "description": "finance.process. Another staff member than the requester (409 SELF_APPROVAL). Posts one ledger row and notifies the provider (E35/E36)."
+          }
+        },
+        {
+          "name": "Reject / cancel adjustment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/finance/adjustments/1/reject",
+            "description": "finance.process. The requester's own → cancelled; anyone else → rejected.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Not justified\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Reconciliation checks",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/finance/reconciliation/checks",
+            "description": "finance.view. 11 read-only checks with count and amount (D296)."
+          }
+        },
+        {
+          "name": "Reconciliation check rows",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/finance/reconciliation/checks/stale_payments?page=1",
+            "description": "finance.view. Oldest first. Unknown key → 404."
+          }
+        },
+        {
+          "name": "Reconciliation daily",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/finance/reconciliation/daily?from=2026-12-01&to=2026-12-31",
+            "description": "finance.view. Per Riyadh day, ≤ 92 days."
+          }
+        }
+      ]
     }
   ]
 }

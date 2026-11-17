@@ -114,4 +114,14 @@ return [
     // Slice 18 (S18) — store management.
     'stock_movement_source' => ['initial' => 'Initial stock', 'adjustment' => 'Staff adjustment', 'order' => 'Order', 'order_cancelled' => 'Order cancelled'],
     'stock_adjustment_reason' => ['restock' => 'New stock received', 'stocktake' => 'Stocktake', 'damaged' => 'Damaged or lost', 'correction' => 'Correction', 'other' => 'Other'],
+    // Slice 19 (S19) — finance.
+    'ledger_adjustment_direction' => ['credit' => 'Credit', 'debit' => 'Debit'],
+    'ledger_adjustment_status' => ['pending_approval' => 'Awaiting approval', 'posted' => 'Posted', 'rejected' => 'Rejected', 'cancelled' => 'Cancelled'],
+    'ledger_adjustment_reason' => ['payout_returned' => 'Payout transfer returned', 'booking_correction' => 'Booking correction', 'goodwill' => 'Goodwill credit', 'penalty' => 'Penalty', 'other' => 'Other'],
+    'reconciliation_check' => [
+        'stale_payments' => 'Stuck payments', 'fulfilment_pending' => 'Paid, not yet fulfilled', 'fulfilment_failed_unrefunded' => 'Fulfilment failed, not refunded',
+        'refunds_in_progress' => 'Refunds in progress', 'refunds_failed' => 'Failed refunds', 'payment_refund_mismatch' => 'Refunded amount mismatch',
+        'webhooks_unprocessed' => 'Unprocessed gateway events', 'missing_earnings' => 'Missing earnings', 'refund_not_in_ledger' => 'Refunds missing from the ledger',
+        'negative_balances' => 'Negative provider balances', 'pending_adjustments' => 'Adjustments awaiting approval',
+    ],
 ];
