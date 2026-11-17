@@ -189,8 +189,9 @@ class AttachmentsAndAdminTest extends TestCase
         $request = $this->created($this->openBody());
         $super = $this->staff(AdminRole::SuperAdmin);
 
-        // Write methods are not routed (404 or 405, never a change).
-        $this->assertContains($this->actingAsApi($super)->postJson(self::ADMIN."/{$request->id}/cancel")->status(), [404, 405]);
+        // No edit/delete routes. Slice 17 added the staff intervention `POST …/cancel` (reason required, D255+), so a bare
+        // call is a 422 and changes nothing.
+        $this->actingAsApi($super)->postJson(self::ADMIN."/{$request->id}/cancel")->assertUnprocessable();
         $this->actingAsApi($super)->patchJson(self::ADMIN."/{$request->id}", [])->assertStatus(405);
         $this->actingAsApi($super)->deleteJson(self::ADMIN."/{$request->id}")->assertStatus(405);
         $this->assertSame('awaiting_offers', ServiceRequest::query()->find($request->id)->status->value);

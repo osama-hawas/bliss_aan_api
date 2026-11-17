@@ -6,6 +6,7 @@ use App\Enums\ActivityVisibility;
 use App\Enums\PolicyType;
 use App\Enums\UserStatus;
 use App\Exceptions\ApiException;
+use App\Integrations\Payments\FakePaymentGateway;
 use App\Integrations\Payments\PaymentGateway;
 use App\Integrations\Push\PushMessage;
 use App\Integrations\Push\PushNotifier;
@@ -84,11 +85,9 @@ class PlatformServicesTest extends TestCase
         $sms->send('+966500000000', 'Code: 1234');
         $this->assertSame('+966500000000', app(SmsGateway::class)->sent[0]['phone']);
 
-        $gateway = app(PaymentGateway::class);
-        $first = $gateway->charge('100.00', 'SAR', 'tok_ok', 'key-1');
-        $this->assertSame('succeeded', $first->status);
-        $this->assertSame($first->reference, $gateway->charge('100.00', 'SAR', 'tok_ok', 'key-1')->reference);
-        $this->assertSame('failed', $gateway->charge('100.00', 'SAR', 'tok_fail', 'key-2')->status);
+        // Slice 10 replaced the v1 charge(amount, currency, token, key) seam with ChargeRequest; its behaviour is covered by
+        // tests/Feature/Payments/FakePaymentGatewayTest. Here only the binding is checked.
+        $this->assertInstanceOf(FakePaymentGateway::class, app(PaymentGateway::class));
 
         // Slice 8: one token per call, with a delivery result (D139).
         $this->assertSame(PushResult::Sent, app(PushNotifier::class)->send(new PushMessage('t1', 'Hi', 'Body', [], 'c')));

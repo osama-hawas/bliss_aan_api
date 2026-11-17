@@ -79,11 +79,13 @@ class CatalogTest extends TestCase
         $this->getJson('/api/v1/shared/home')->assertOk()->assertJsonCount(2, 'data.featured_providers')->assertJsonCount(1, 'data.banners');
     }
 
-    public function test_home_rejects_an_unknown_or_inactive_city(): void
+    /** Since S20 (D308, review L9) an unknown or stopped city counts as no city: the home loads instead of a 422. */
+    public function test_home_treats_an_unknown_or_inactive_city_as_no_city(): void
     {
         $inactive = $this->city('Old', 'قديمة', active: false);
 
-        $this->getJson('/api/v1/shared/home?city_id=999')->assertUnprocessable();
-        $this->getJson("/api/v1/shared/home?city_id={$inactive->id}")->assertUnprocessable();
+        $this->getJson('/api/v1/shared/home?city_id=999')->assertOk();
+        $this->getJson("/api/v1/shared/home?city_id={$inactive->id}")->assertOk();
+        $this->getJson('/api/v1/shared/home?city_id=abc')->assertUnprocessable();
     }
 }
