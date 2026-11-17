@@ -7,6 +7,7 @@ use App\Models\PromoCode;
 use App\Models\User;
 use App\Services\Audit\AuditLogger;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -52,7 +53,12 @@ class PromoCodeAdmin
             throw ValidationException::withMessages(['code' => __('store.promo.code_taken')]);
         }
 
-        $promo = PromoCode::query()->create([...$this->fields($data), 'code' => $code, 'is_active' => true, 'created_by' => $staff->id]);
+        try {
+            $promo = PromoCode::query()->create([...$this->fields($data), 'code' => $code, 'is_active' => true, 'created_by' => $staff->id]);
+        } catch (UniqueConstraintViolationException) {
+            // Two staff creating the same code at once: the unique index decides, the loser gets the normal message.
+            throw ValidationException::withMessages(['code' => __('store.promo.code_taken')]);
+        }
         $this->audit->log('promo_code_created', $staff, $promo, null, null, $promo->only(['code', 'type', 'value']));
 
         return $this->find($promo->id);
@@ -99,7 +105,9 @@ class PromoCodeAdmin
     {
         $keys = ['type', 'value', 'min_amount', 'usage_limit', 'per_user_limit', 'starts_at', 'ends_at'];
         $fields = array_intersect_key($data, array_flip($keys));
-        if (($fields['type'] ?? $current?->type?->value) === 'percent' && isset($fields['value']) && StoreMoney::cents((string) $fields['value']) > 10000) {
+        // The resulting code must stay valid: a fixed code switched to percent keeps its value unless one is sent.
+        $value = $fields['value'] ?? $current?->value;
+        if (($fields['type'] ?? $current?->type?->value) === 'percent' && $value !== null && StoreMoney::cents((string) $value) > 10000) {
             throw ValidationException::withMessages(['value' => __('validation.max.numeric', ['attribute' => 'value', 'max' => 100])]);
         }
         $starts = $fields['starts_at'] ?? $current?->starts_at;

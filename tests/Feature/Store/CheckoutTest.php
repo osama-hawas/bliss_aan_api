@@ -69,6 +69,7 @@ class CheckoutTest extends TestCase
         $this->checkout($client, $address, '36.00', key: $key)->assertStatus(409)->assertJsonPath('code', 'DUPLICATE_REQUEST');
         $this->assertDatabaseCount('store_orders', 1);
 
+        $this->flushHeaders(); // drop the Idempotency-Key the calls above set on this test client
         $this->actingAsApi($client)->postJson(self::ORDERS_URL, ['address_id' => $address->id, 'expected_total' => '35.00'])
             ->assertStatus(422)->assertJsonValidationErrors('idempotency_key');
     }

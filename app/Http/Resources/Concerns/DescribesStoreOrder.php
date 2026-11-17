@@ -71,8 +71,8 @@ trait DescribesStoreOrder
             return null;
         }
 
-        $amount = StoreMoney::cents((string) $payment->amount);
-        $refunded = StoreMoney::cents((string) ($payment->refunded_amount ?? '0'));
+        // Settled refunds only (Slice 10 `refunded_amount` also reserves refunds still in progress).
+        $refunded = $payment->settledRefundCents();
         $card = $payment->card;
 
         return [
@@ -85,7 +85,7 @@ trait DescribesStoreOrder
             'amount' => $this->money($payment->amount),
             'refunded_amount' => $this->money(StoreMoney::amount($refunded)),
             'refund' => [
-                'status' => $refunded === 0 ? 'none' : ($refunded >= $amount ? 'full' : 'partial'),
+                'status' => $payment->refundState()->value, // none | in_progress | partial | full
                 'refunded_amount' => $this->money(StoreMoney::amount($refunded)),
             ],
         ];

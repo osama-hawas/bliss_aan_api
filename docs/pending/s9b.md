@@ -90,6 +90,14 @@ S3 → D200 · S4 → D203 · S7 → D202 · C6 → D201 (option chosen: staff c
 2. Add `PayableType::StoreOrder` and the `PayableRegistry` line (table above). The S9b morph alias line in
    `AppServiceProvider::boot` can move into S10's morph map block.
 3. On a database migrated before S10 (dev DB `bliss_aan_s9b`), `store_orders.payment_id` has no FK: `migrate:fresh`.
-4. Flutter: replace the S9b payment seam (`app/lib/core/services/store_order_payment.dart` + its sheet) with S10's payment
-   sheet pointed at `client/store-orders/{id}/payments`.
+4. Flutter: done in the review round — the pay screen uses S10's sheet and `PaymentFlowBloc` (`PaymentTarget.storeOrder`).
 5. Run the tests listed in contract §14 (not run yet).
+
+## Review fix round (2026-11-17)
+
+H1 shared S10 payment sheet for store orders (new card works in release); M2 test reference length; M3 no expiry while a
+payment may still confirm the order (re-checked under the order lock); M4 shipment key replay keeps `CARRIER_FAILED`,
+body fingerprint → `DUPLICATE_REQUEST`, dashboard new key after an answered error; M5 delivery officers get their
+delivery back; M6 a stuck `pending` carrier shipment can be marked failed; L7 percent ≤ 100 after a type switch; L8 promo
+create race → 422; L9 refunded stock cancellation shows the payment; L10 recipient snapshot truncated; L11 refund history
+on settled refunds only (the order's refund summary also uses Slice 10's `refundState()`).

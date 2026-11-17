@@ -49,7 +49,7 @@ class ShipmentService
     public function create(StoreOrder $order, User $staff, ShipmentMethod $method, ?int $assignedAdminId, string $key): StoreOrder
     {
         if ($existing = Shipment::query()->where('request_key', $key)->first()) {
-            return $this->replay($existing, $order);
+            return $this->replay($existing, $order, $method, $assignedAdminId);
         }
 
         $assignee = $method === ShipmentMethod::Internal ? $this->officer($assignedAdminId) : null;
@@ -82,7 +82,7 @@ class ShipmentService
             }), 'shipment.create', ['store_order_id' => $order->id]);
         } catch (QueryException $e) {
             if (str_contains($e->getMessage(), 'shipments_request_key_unique')) {
-                return $this->replay(Shipment::query()->where('request_key', $key)->firstOrFail(), $order);
+                return $this->replay(Shipment::query()->where('request_key', $key)->firstOrFail(), $order, $method, $assignedAdminId);
             }
             throw $e;
         }
@@ -107,7 +107,8 @@ class ShipmentService
 
     /**
      * Delivered / failed from in transit, by staff (`orders.update_status`) or the assigned officer
-     * (`delivery.assigned`). Moves the order (§4.1). Repeating the current status is a no-op.
+     * (`delivery.assigned`). Moves the order (§4.1). Repeating the current status is a no-op. A carrier shipment stuck in
+     * `pending` (the carrier never answered) can be marked failed by staff, which frees the order to ship again.
      */
     public function setStatus(Shipment $shipment, User $actor, ShipmentStatus $to, ?string $note, ?string $reason): StoreOrder
     {
@@ -125,7 +126,8 @@ class ShipmentService
             if ($shipment->status === $to) {
                 return $order;
             }
-            if ($shipment->status !== ShipmentStatus::InTransit) {
+            $stuckCarrier = $shipment->status === ShipmentStatus::Pending && $to === ShipmentStatus::Failed;
+            if ($shipment->status !== ShipmentStatus::InTransit && ! $stuckCarrier) {
                 throw new ApiException(ErrorCode::InvalidState);
             }
 
@@ -286,10 +288,21 @@ class ShipmentService
             ?? throw ValidationException::withMessages(['assigned_admin_id' => __('store.officer_invalid')]);
     }
 
-    private function replay(Shipment $existing, StoreOrder $order): StoreOrder
+    /**
+     * The same key again: the same order and body replay the original outcome — a shipment the carrier refused stays
+     * `409 CARRIER_FAILED`, so a retry from the same dialog never reports success. Another order or body → 409
+     * DUPLICATE_REQUEST (the method and officer are the body's fingerprint).
+     */
+    private function replay(Shipment $existing, StoreOrder $order, ShipmentMethod $method, ?int $assignedAdminId): StoreOrder
     {
-        if ($existing->store_order_id !== $order->id) {
+        $sameBody = $existing->method === $method
+            && ($method === ShipmentMethod::Carrier || $existing->assigned_admin_id === $assignedAdminId);
+        if ($existing->store_order_id !== $order->id || ! $sameBody) {
             throw new ApiException(ErrorCode::DuplicateRequest);
+        }
+        // Never accepted by the carrier (no tracking number): the creation itself failed.
+        if ($existing->method === ShipmentMethod::Carrier && $existing->status === ShipmentStatus::Failed && $existing->tracking_number === null) {
+            throw new ApiException(ErrorCode::CarrierFailed);
         }
 
         return $order->refresh();

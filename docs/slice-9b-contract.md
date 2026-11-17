@@ -226,9 +226,11 @@ Lock order everywhere: **order → variants (id asc) → promo code → (S10) pa
 
 ### 7.4 Expiry — `store-orders:expire` (every 5 min, `withoutOverlapping`)
 
-`pending_payment` orders created more than `payments.intent_ttl_minutes` ago (S10, 30) with **no** payment in
-`pending | requires_action | unknown` → lock order → still `pending_payment` → `expired`, `expired_at`, promo use
-`released`. TTL `null` → only a newer checkout expires them. A payment that succeeds later reaches `fulfil` → step 1 →
+`pending_payment` orders created more than `payments.intent_ttl_minutes` ago (S10, 30) with **no live payment** —
+none in `pending | requires_action | unknown`, and none `succeeded` with `fulfilment_status = pending` (paid, the
+handler not run yet) → lock order → re-check status **and** the live payment under the lock → `expired`, `expired_at`,
+promo use `released`. The same locked re-check applies when a newer checkout replaces an older order (§6.2): an order a
+payment may still confirm is left `pending_payment` (review fix M3, 2026-11-17). TTL `null` → only a newer checkout expires them. A payment that succeeds later reaches `fulfil` → step 1 →
 automatic refund. Attempts S10 already cancelled and that later succeed are refunded by S10 itself (§6.4,
 `superseded_attempt`) without calling `fulfil`.
 
@@ -264,8 +266,12 @@ Permissions (D213): promo codes `products.manage`; orders read `orders.view`; or
 | POST | `admin/store-orders/{id}/cancel` | `confirmed` / `preparing`, no live shipment; `{reason}`; lock order → variants, restore stock; promo use stays `used`; audit + notify. Response `meta.refundable` = the payment's remainder (staff refund it in S10) |
 | POST | `admin/store-orders/{id}/shipments` | **Idempotency-Key** (→ `request_key`). `{method: carrier\|internal, assigned_admin_id?}` (internal: required, active staff with `delivery.assigned`). Order `confirmed` / `preparing`, no live shipment. Carrier: `Carrier::createShipment` **outside** any transaction → `accepted` → `in_transit` + tracking, order `shipped`; `unknown` → `pending` (job `RetryShipment`, same key, 3 tries); `failed` → row `failed`, `409 CARRIER_FAILED`. Internal → `in_transit`, order `shipped` |
 | POST | `admin/shipments/{id}/retry` | `pending` carrier shipment, same key |
-| POST | `admin/shipments/{id}/status` | `{status: delivered\|failed, note?, reason?}` (failed: reason required) from `in_transit`. `orders.update_status`, or the assigned officer with `delivery.assigned`. Moves the order (§4.1) |
+| POST | `admin/shipments/{id}/status` | `{status: delivered\|failed, note?, reason?}` (failed: reason required) from `in_transit`; also `failed` from `pending` for a carrier shipment the carrier never answered (frees the order to ship again). `orders.update_status`, or the assigned officer with `delivery.assigned`. Moves the order (§4.1). A caller without `orders.view` (delivery officer) gets her `DeliveryResource` back, not the order |
 | GET | `admin/deliveries?filter[status]=` | `delivery.assigned`: internal shipments assigned to the caller |
+
+Shipment key replay (review fix M4): the same key with the same order and body (method, officer) replays the original
+outcome — a carrier refusal stays `409 CARRIER_FAILED`; another order or body → `409 DUPLICATE_REQUEST`. The dashboard
+makes a new key after any answered error (only a network failure keeps it).
 
 Every action: one service method, transaction, history, `AuditLogger` for staff actions, notifications after commit.
 
@@ -295,9 +301,10 @@ events (D194).
 - **Checkout** (replaces the mock): addresses from `client/addresses` (pick / add); **no delivery-method selector and
   no COD** (D201, D204); summary from preview (items, discount + code, shipping fee, VAT-included line only when set,
   total); `NOT_CONFIGURED` / `CART_HAS_ISSUES` / `PRICE_CHANGED` (shows the new total, asks again) states. "Pay" =
-  create order (Idempotency-Key kept across network retries) → **S10's payment sheet** (saved methods / new card /
-  Apple Pay) posting to `client/store-orders/{id}/payments` → S10's result / polling flow → order confirmed, "paid but
-  refunded" (§7.5) or "choose another method".
+  create order (Idempotency-Key kept across network retries) → **S10's payment sheet and `PaymentFlowBloc`**
+  (`PaymentTarget.storeOrder(id)`; saved methods / new card / Apple Pay, 3-D Secure redirect + polling) posting to
+  `client/store-orders/{id}/payments` → order confirmed, "paid but refunded" (§7.5) or "choose another method"
+  (review fix H1: the S9b stand-in is removed).
 - **Orders**: list (active / done), detail with timeline, shipment (tracking number; carrier tracking URL opened with
   `url_launcher`), payment block, totals, Reorder (shows skipped lines), "Pay now" for her `pending_payment` order.
   `OrderModel` maps API statuses; "review products" and return actions removed (D203). Shop "active orders" card live.

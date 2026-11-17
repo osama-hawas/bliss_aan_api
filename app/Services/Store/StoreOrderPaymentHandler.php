@@ -89,7 +89,8 @@ class StoreOrderPaymentHandler implements PayableHandler
         if ($order === null || $status !== 'refunded') {
             return;
         }
-        $full = StoreMoney::cents((string) $payment->refunded_amount) >= StoreMoney::cents((string) $payment->amount);
+        // Settled refunds only: `refunded_amount` also reserves refunds still in progress.
+        $full = $payment->load('refunds')->settledRefundCents() >= StoreMoney::cents((string) $payment->amount);
         $this->lifecycle->recordRefund($order, (string) $refund->amount, $full);
     }
 }

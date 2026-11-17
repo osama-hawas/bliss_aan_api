@@ -100,17 +100,20 @@ class StoreOrderLifecycle
 
     /**
      * An unpaid order whose attempt is over (expiry command) or that she replaced with a newer checkout (D212/Q115).
-     * Must run inside a transaction that already holds the order lock, or on its own.
+     * Never while a payment may still confirm it (open attempt, or paid with fulfilment pending): checked under the
+     * order lock, so a paid order is never expired and then refunded. Returns whether it expired.
      */
-    public function expire(StoreOrder $order): void
+    public function expire(StoreOrder $order): bool
     {
-        DB::transaction(function () use ($order) {
+        return DB::transaction(function () use ($order) {
             $order = $this->lockOrder($order->id);
-            if ($order->status !== StoreOrderStatus::PendingPayment) {
-                return;
+            if ($order->status !== StoreOrderStatus::PendingPayment || $order->hasLivePayment()) {
+                return false;
             }
             $this->move($order, StoreOrderStatus::Expired, null, 'order_expired', [], ['expired_at' => now()]);
             $this->setPromoUse($order, PromoCodeUsageStatus::Released);
+
+            return true;
         });
     }
 

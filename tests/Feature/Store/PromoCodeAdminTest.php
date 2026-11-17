@@ -83,4 +83,15 @@ class PromoCodeAdminTest extends TestCase
             ->assertJsonPath('data.state', 'active');
         $this->actingAsApi($staff)->getJson(self::URL.'/999999')->assertNotFound();
     }
+
+    public function test_review_switching_a_fixed_code_to_percent_keeps_the_value_within_100(): void
+    {
+        $staff = $this->storeOfficer();
+        $promo = $this->promo(['code' => 'FIXED150', 'type' => 'fixed', 'value' => '150.00']);
+
+        $this->actingAsApi($staff)->patchJson(self::URL."/{$promo->id}", ['type' => 'percent'])
+            ->assertStatus(422)->assertJsonValidationErrors('value');
+        $this->actingAsApi($staff)->patchJson(self::URL."/{$promo->id}", ['type' => 'percent', 'value' => '15'])->assertOk()
+            ->assertJsonPath('data.type', 'percent')->assertJsonPath('data.value', '15.00');
+    }
 }

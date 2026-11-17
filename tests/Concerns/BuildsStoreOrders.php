@@ -50,7 +50,10 @@ trait BuildsStoreOrders
 
             public function next(): string
             {
-                return 'SO-'.str_pad((string) ++$this->n, 6, '0', STR_PAD_LEFT).$this->suffix;
+                // `reference` is varchar(16): shorten the number so the suffix fits (SO-00001-DELIVER).
+                $width = min(6, 13 - strlen($this->suffix));
+
+                return 'SO-'.str_pad((string) ++$this->n, $width, '0', STR_PAD_LEFT).$this->suffix;
             }
         });
     }

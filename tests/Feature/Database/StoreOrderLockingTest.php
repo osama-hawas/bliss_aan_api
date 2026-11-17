@@ -3,8 +3,11 @@
 namespace Tests\Feature\Database;
 
 use App\Enums\ErrorCode;
+use App\Enums\RefundKind;
 use App\Enums\StoreOrderStatus;
 use App\Exceptions\ApiException;
+use App\Models\Payment;
+use App\Services\Payments\PaymentRefunds;
 use App\Services\Store\CheckoutService;
 use App\Services\Store\StoreOrderLifecycle;
 use Illuminate\Support\Facades\DB;
@@ -117,5 +120,28 @@ class StoreOrderLockingTest extends TestCase
 
         $cancel();
         $this->assertSame(StoreOrderStatus::Cancelled, $order->fresh()->status);
+    }
+
+    public function test_review_a_refund_waits_for_a_staff_action_holding_the_order(): void
+    {
+        $order = $this->pendingOrder($this->shopper(), $this->item('10.00'));
+        $this->actingAsApi($order->user)->withHeader('Idempotency-Key', (string) Str::uuid())
+            ->postJson(self::ORDERS_URL."/{$order->id}/payments", ['method' => 'card', 'token' => 'tok_fake_visa_4242_1230'])
+            ->assertCreated()->assertJsonPath('meta.order.status', 'confirmed');
+        $payment = Payment::query()->firstOrFail();
+        $staff = $this->superAdmin();
+
+        // A staff cancel holds the order row (first lock of both paths); the refund's lockForRefund must wait for it.
+        $this->other()->beginTransaction();
+        $this->other()->select('select id from store_orders where id = ? for update', [$order->id]);
+
+        $refund = fn () => app(PaymentRefunds::class)->refund($payment->fresh(), '10.00', RefundKind::Staff, $staff, 'Cancelled order', (string) Str::uuid());
+
+        $this->shortLockWait();
+        $this->assertWaits($refund);
+        $this->other()->commit();
+
+        $refund();
+        $this->assertDatabaseHas('refunds', ['payment_id' => $payment->id, 'amount' => '10.00']);
     }
 }

@@ -87,6 +87,7 @@ class AdminStoreOrderResource extends AdminStoreOrderRowResource
         }
         if ($live?->status === ShipmentStatus::Pending && $live->method === ShipmentMethod::Carrier) {
             $actions[] = 'retry_shipment';
+            $actions[] = 'mark_failed'; // the carrier never answered: staff may give up on it (frees the order)
         }
         if ($live?->status === ShipmentStatus::InTransit) {
             $actions[] = 'mark_delivered';
