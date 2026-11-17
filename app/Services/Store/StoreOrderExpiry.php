@@ -13,9 +13,6 @@ use App\Services\Settings\AppSettings;
  */
 class StoreOrderExpiry
 {
-    /** Payment states that may still succeed (Slice 10 `PaymentStatus`). */
-    private const OPEN_PAYMENT = ['pending', 'requires_action', 'unknown'];
-
     public function __construct(
         private readonly StoreOrderLifecycle $lifecycle,
         private readonly AppSettings $settings,
@@ -32,12 +29,11 @@ class StoreOrderExpiry
         StoreOrder::query()
             ->where('status', StoreOrderStatus::PendingPayment)
             ->where('created_at', '<=', now()->subMinutes((int) $minutes))
-            ->whereDoesntHave('payments', fn ($payment) => $payment->whereIn('status', self::OPEN_PAYMENT))
+            ->withoutLivePayment() // re-checked under the order lock in expire()
             ->orderBy('id')
             ->chunkById(100, function ($orders) use (&$expired) {
                 foreach ($orders as $order) {
-                    $this->lifecycle->expire($order);
-                    $expired++;
+                    $expired += $this->lifecycle->expire($order) ? 1 : 0;
                 }
             });
 

@@ -131,7 +131,8 @@ class StoreOrderPaymentTest extends TestCase
             ->assertJsonPath('data.fulfilment', 'failed')
             ->assertJsonPath('data.fulfilment_error', 'OUT_OF_STOCK')
             ->assertJsonPath('meta.order.status', 'cancelled')
-            ->assertJsonPath('meta.order.cancel_reason', 'stock_unavailable');
+            ->assertJsonPath('meta.order.cancel_reason', 'stock_unavailable')
+            ->assertJsonPath('meta.order.payment.status', 'succeeded'); // L9: the refunded payment stays visible
 
         $this->assertSame(0, $variant->fresh()->stock);
         $this->assertDatabaseHas('refunds', ['payment_id' => Payment::query()->value('id'), 'amount' => '35.00']);
@@ -189,5 +190,45 @@ class StoreOrderPaymentTest extends TestCase
         $this->assertDatabaseHas('activity_events', ['subject_id' => $order->id, 'event' => 'order_partially_refunded']);
         $this->actingAsApi($finance)->getJson(self::ADMIN_ORDERS_URL."/{$order->id}")->assertOk()
             ->assertJsonPath('data.payment.refund.status', 'partial');
+    }
+
+    public function test_review_two_payments_for_the_last_unit_one_confirms_and_one_is_refunded(): void
+    {
+        $variant = $this->item('10.00', 1);
+        $first = $this->pendingOrder($this->shopper(), $variant);
+        $second = $this->pendingOrder($this->shopper(), $variant);
+
+        // Both pass the quote (1 in stock, nothing reserved) and wait for 3-D Secure.
+        $a = $this->pay($first, 'tok_fake_visa_3155_1230')->assertCreated()->json('data.reference');
+        $b = $this->pay($second, 'tok_fake_visa_3155_1230')->assertCreated()->json('data.reference');
+
+        $this->artisan('payments:fake-webhook', ['reference' => $a, 'outcome' => 'succeeded'])->assertSuccessful();
+        $this->artisan('payments:fake-webhook', ['reference' => $b, 'outcome' => 'succeeded'])->assertSuccessful();
+
+        $this->assertSame(StoreOrderStatus::Confirmed, $first->fresh()->status);
+        $this->assertSame(StoreOrderStatus::Cancelled, $second->fresh()->status);
+        $this->assertSame(0, $variant->fresh()->stock);
+        $losing = Payment::query()->where('reference', $b)->firstOrFail();
+        $this->assertSame('failed', $losing->fulfilment_status->value);
+        $this->assertDatabaseHas('refunds', ['payment_id' => $losing->id, 'amount' => '35.00']);
+        $this->assertDatabaseMissing('refunds', ['payment_id' => Payment::query()->where('reference', $a)->value('id')]);
+    }
+
+    public function test_review_a_late_success_on_an_expired_order_is_refunded_in_full(): void
+    {
+        $variant = $this->item('10.00', 5);
+        $order = $this->pendingOrder($this->shopper(), $variant);
+        $reference = $this->pay($order, 'tok_fake_visa_3155_1230')->assertCreated()->json('data.reference');
+
+        // The order ended without this attempt (e.g. a newer checkout before the attempt existed); the success arrives late.
+        $order->forceFill(['status' => StoreOrderStatus::Expired, 'expired_at' => now()])->save();
+        $this->artisan('payments:fake-webhook', ['reference' => $reference, 'outcome' => 'succeeded'])->assertSuccessful();
+
+        $payment = Payment::query()->where('reference', $reference)->firstOrFail();
+        $this->assertSame(StoreOrderStatus::Expired, $order->fresh()->status);
+        $this->assertSame('failed', $payment->fulfilment_status->value);
+        $this->assertSame('INVALID_STATE', $payment->fulfilment_error);
+        $this->assertDatabaseHas('refunds', ['payment_id' => $payment->id, 'amount' => '35.00']);
+        $this->assertSame(5, $variant->fresh()->stock);
     }
 }

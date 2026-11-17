@@ -3,10 +3,13 @@
 namespace Tests\Feature\Store;
 
 use App\Enums\StoreOrderStatus;
+use App\Models\Payment;
 use App\Models\PromoCodeUsage;
 use App\Models\StoreOrder;
 use App\Services\Settings\AppSettings;
+use App\Services\Store\StoreOrderLifecycle;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Tests\Concerns\BuildsStoreOrders;
 use Tests\TestCase;
 
@@ -47,5 +50,28 @@ class StoreOrderExpiryTest extends TestCase
 
         $this->artisan('store-orders:expire')->assertSuccessful();
         $this->assertSame(StoreOrderStatus::PendingPayment, $order->fresh()->status);
+    }
+
+    public function test_review_an_open_attempt_or_a_paid_unfulfilled_payment_blocks_expiry(): void
+    {
+        $this->configureStore('25.00');
+        app(AppSettings::class)->set('payments.intent_ttl_minutes', 30);
+        $open = $this->pendingOrder($this->shopper(), $this->item());
+        $paid = $this->pendingOrder($this->shopper(), $this->item());
+        foreach ([$open, $paid] as $order) {
+            $this->actingAsApi($order->user)->withHeader('Idempotency-Key', (string) Str::uuid())
+                ->postJson(self::ORDERS_URL."/{$order->id}/payments", ['method' => 'card', 'token' => 'tok_fake_visa_3155_1230'])
+                ->assertCreated()->assertJsonPath('data.status', 'requires_action');
+        }
+        // Paid at the gateway, fulfilment not run yet (Slice 10 retries it): must not expire, or it would be refunded.
+        Payment::query()->where('payable_id', $paid->id)->update(['status' => 'succeeded', 'fulfilment_status' => 'pending']);
+
+        $this->travel(31)->minutes();
+        $this->artisan('store-orders:expire')->assertSuccessful();
+
+        $this->assertSame(StoreOrderStatus::PendingPayment, $open->fresh()->status);
+        $this->assertSame(StoreOrderStatus::PendingPayment, $paid->fresh()->status);
+        // The re-check under the lock covers a direct call too (e.g. a newer checkout).
+        $this->assertFalse(app(StoreOrderLifecycle::class)->expire($paid));
     }
 }

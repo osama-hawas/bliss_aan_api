@@ -176,4 +176,61 @@ class AdminStoreOrdersTest extends TestCase
             ->assertJsonPath('data.recipient.name', 'Sara Client');
         $this->actingAsApi($staff)->getJson(self::ADMIN_ORDERS_URL.'/999999')->assertNotFound();
     }
+
+    public function test_review_replaying_a_refused_carrier_shipment_stays_carrier_failed_and_another_body_is_a_duplicate(): void
+    {
+        $this->referencesEnding('-FAIL');
+        $staff = $this->storeOfficer();
+        $order = $this->confirmedOrder();
+        $key = (string) Str::uuid();
+
+        $this->ship($staff, $order->id, ['method' => 'carrier'], $key)->assertStatus(409)->assertJsonPath('code', 'CARRIER_FAILED');
+        $this->ship($staff, $order->id, ['method' => 'carrier'], $key)->assertStatus(409)->assertJsonPath('code', 'CARRIER_FAILED');
+        $this->ship($staff, $order->id, ['method' => 'internal', 'assigned_admin_id' => $this->deliveryOfficer()->id], $key)
+            ->assertStatus(409)->assertJsonPath('code', 'DUPLICATE_REQUEST');
+        $this->assertSame(1, Shipment::query()->count());
+    }
+
+    public function test_review_an_officer_gets_her_delivery_back_not_the_order(): void
+    {
+        $staff = $this->storeOfficer();
+        $officer = $this->deliveryOfficer();
+        $order = $this->confirmedOrder();
+        $shipmentId = $this->ship($staff, $order->id, ['method' => 'internal', 'assigned_admin_id' => $officer->id])->json('data.shipments.0.id');
+
+        $response = $this->actingAsApi($officer)->postJson("/api/v1/admin/shipments/{$shipmentId}/status", ['status' => 'delivered'])->assertOk()
+            ->assertJsonPath('data.id', $shipmentId)
+            ->assertJsonPath('data.status', 'delivered')
+            ->assertJsonPath('data.reference', $order->reference);
+        $this->assertNull($response->json('data.payment'));
+        $this->assertNull($response->json('data.timeline'));
+        $this->assertNull($response->json('data.client'));
+    }
+
+    public function test_review_a_stuck_pending_carrier_shipment_can_be_marked_failed_and_shipped_again(): void
+    {
+        $staff = $this->storeOfficer();
+        $order = $this->confirmedOrder();
+        $stuck = Shipment::query()->create([
+            'store_order_id' => $order->id, 'method' => 'carrier', 'carrier' => 'fake', 'status' => 'pending',
+            'request_key' => (string) Str::uuid(), 'attempts' => 3, 'created_by' => $staff->id,
+        ]);
+
+        $this->actingAsApi($staff)->getJson(self::ADMIN_ORDERS_URL."/{$order->id}")->assertOk()
+            ->assertJsonPath('data.next_actions', ['prepare', 'retry_shipment', 'mark_failed']);
+        $this->actingAsApi($staff)->postJson("/api/v1/admin/shipments/{$stuck->id}/status", ['status' => 'delivered'])->assertStatus(409);
+        $this->actingAsApi($staff)->postJson("/api/v1/admin/shipments/{$stuck->id}/status", ['status' => 'failed', 'reason' => 'Carrier never answered'])->assertOk()
+            ->assertJsonPath('data.status', 'confirmed')
+            ->assertJsonPath('data.shipments.0.status', 'failed');
+
+        $this->ship($staff, $order->id, ['method' => 'carrier'])->assertCreated()->assertJsonPath('data.status', 'shipped');
+    }
+
+    public function test_review_a_long_client_name_fits_the_recipient_snapshot(): void
+    {
+        $client = $this->shopper(['name' => str_repeat('ن', 80)]);
+        $order = $this->pendingOrder($client, $this->item());
+
+        $this->assertSame(60, mb_strlen($order->recipient_name));
+    }
 }

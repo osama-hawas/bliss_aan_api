@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
+use App\Enums\FulfilmentStatus;
+use App\Enums\PaymentStatus;
 use App\Enums\ShipmentStatus;
 use App\Enums\StoreOrderStatus;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -96,6 +99,27 @@ class StoreOrder extends Model
     public function payments(): MorphMany
     {
         return $this->morphMany(Payment::class, 'payable');
+    }
+
+    /**
+     * Payment states that may still confirm this order: an open attempt (pending / requires action / unknown) or a
+     * succeeded payment whose fulfilment has not run yet (Slice 10 retries it). Such an order must never expire.
+     */
+    public function scopeWithoutLivePayment(Builder $query): Builder
+    {
+        return $query->whereDoesntHave('payments', fn (Builder $payment) => self::livePayment($payment));
+    }
+
+    public function hasLivePayment(): bool
+    {
+        return self::livePayment($this->payments()->getQuery())->exists();
+    }
+
+    private static function livePayment(Builder $payment): Builder
+    {
+        return $payment->where(fn (Builder $q) => $q
+            ->whereIn('status', [PaymentStatus::Pending->value, PaymentStatus::RequiresAction->value, PaymentStatus::Unknown->value])
+            ->orWhere(fn (Builder $paid) => $paid->where('status', PaymentStatus::Succeeded->value)->where('fulfilment_status', FulfilmentStatus::Pending->value)));
     }
 
     public function activity(): MorphMany

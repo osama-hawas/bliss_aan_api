@@ -40,7 +40,8 @@ class ClientStoreOrderResource extends JsonResource
             ...$this->orderMoney($order),
             'address' => $this->orderAddress($order),
             'recipient' => ['name' => $order->recipient_name, 'phone' => $order->recipient_phone],
-            'payment' => $this->orderPayment($order, latestAttempt: ! $order->status->isPlaced()),
+            // No confirming payment (unpaid, expired, or cancelled because stock ran out): show her latest attempt and its refund.
+            'payment' => $this->orderPayment($order, latestAttempt: $order->payment_id === null),
             'shipment' => $shipment === null ? null : [
                 'method' => $shipment->method->value,
                 'method_label' => $shipment->method->label(),

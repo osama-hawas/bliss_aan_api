@@ -98,8 +98,8 @@ class CheckoutService
             throw new IdempotencyRace;
         }
 
-        // One open checkout per client (D212/Q115): the newer one replaces her older unpaid orders. Rolled back with the
-        // rest when this checkout is refused.
+        // One open checkout per client (D212/Q115): the newer one replaces her older unpaid orders, except one a payment
+        // may still confirm (expire() re-checks that under the order lock). Rolled back with the rest when refused.
         StoreOrder::query()->where('user_id', $client->id)->where('status', StoreOrderStatus::PendingPayment)
             ->orderBy('id')->get()->each(fn (StoreOrder $old) => $this->lifecycle->expire($old));
 
@@ -120,8 +120,9 @@ class CheckoutService
                 'lat' => $address->lat,
                 'lng' => $address->lng,
             ],
-            'recipient_name' => $address->recipient_name ?: $client->name,
-            'recipient_phone' => $address->recipient_phone ?: $client->phone,
+            // Column widths: recipient_name 60, recipient_phone 20 (users.name may be longer).
+            'recipient_name' => mb_substr($address->recipient_name ?: (string) $client->name, 0, 60),
+            'recipient_phone' => mb_substr($address->recipient_phone ?: (string) $client->phone, 0, 20),
             'subtotal' => StoreMoney::amount($quote->subtotal),
             'discount' => StoreMoney::amount($quote->discount),
             'shipping_fee' => StoreMoney::amount($quote->shippingFee),
