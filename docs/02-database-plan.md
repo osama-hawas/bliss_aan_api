@@ -44,12 +44,12 @@ Labels: **[C]** confirmed · **[R]** recommendation · **[?]** open question.
 | Table | Key columns | Stage |
 |---|---|---|
 | `service_categories` | name, description (ar/en), image (media), is_active, sort | F (seeded) |
-| `services` | category_id, name, description (ar/en), image, **guide_price nullable** (null = not set), is_active, sort, **guest_count_mode** (hidden/optional/required, default optional — D54; added in Slice 4, managed in Slice 16) | F (demo seed only) |
-| `service_inclusions` | service_id, text (ar/en), sort | F |
-| `addons` | name, description (ar/en), image, is_active (+ nullable provider_id if design conflict #3 approved [?]) | F |
+| `services` | category_id, name, description (ar/en), image, **guide_price nullable** (null = not set), is_active, sort, **guest_count_mode** (hidden/optional/required, default optional — D54; added in Slice 4, managed in Slice 16, D184) | F (demo seed only) |
+| `service_inclusions` | service_id, text (ar/en), sort, **is_active** (default true; switched off, never deleted — D179, Slice 16) | F (+ is_active Slice 16) |
+| `addons` | name, description (ar/en), image, is_active, **sort** (D183b, Slice 16) (+ nullable provider_id if design conflict #3 approved [?]) | F (+ sort Slice 16) |
 | `addon_service` | addon_id, service_id | F |
 | `event_types` | name (ar/en), is_active, sort | F |
-| `occasion_tags`, `occasion_tag_service` | Req 15 | M (seeded) |
+| `occasion_tags`, `occasion_tag_service` | Req 15 — not defined yet (D178: not built in Slice 16; question added to S2) | M (seeded) |
 | `packages`, `package_items` [?] | Req 16, scope unclear | M/D |
 
 ## 4. Providers

@@ -1149,6 +1149,803 @@
           }
         }
       ]
+    },
+    {
+      "name": "Catalog (Slice 16: catalog.manage) — S16",
+      "item": [
+        {
+          "name": "List categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/catalog/categories?q=&filter[status]=&sort=sort&page=1&per_page=15",
+            "description": "catalog.manage (D182). sort ∈ sort, created_at, name (± prefix). Rows: name/description {ar,en}, image {id,url}, status, services_count, active_services_count."
+          }
+        },
+        {
+          "name": "Create category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/catalog/categories",
+            "description": "catalog.manage (D182). 201. name {ar,en} 2–60; description {ar,en} or null (≤400); image_media_id = own unattached catalog_image upload.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": {\n    \"ar\": \"تصنيف\",\n    \"en\": \"Category\"\n  },\n  \"description\": null,\n  \"image_media_id\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "Update category",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/catalog/categories/{{category_id}}",
+            "description": "catalog.manage (D182). Any field; absent = unchanged; at least one.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": {\n    \"ar\": \"تصنيف\",\n    \"en\": \"Category\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Category stop impact",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/catalog/categories/{{category_id}}/impact",
+            "description": "catalog.manage (D182). Impact over its active services: providers_total, providers_default, providers_default_visible, providers_custom, open_requests, active_bookings.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          }
+        },
+        {
+          "name": "Stop category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/catalog/categories/{{category_id}}/stop",
+            "description": "catalog.manage (D182). Reason required (3–500). Hides its services from clients/providers; nothing in flight changes (D180). 409 INVALID_STATE when already stopped.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Temporarily unavailable\",\n  \"internal_note\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "Activate category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/catalog/categories/{{category_id}}/activate",
+            "description": "catalog.manage (D182). reason optional. 409 when active.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "Move category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/catalog/categories/{{category_id}}/move",
+            "description": "catalog.manage (D182). direction up|down; 409 INVALID_STATE at the edge.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"direction\": \"up\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List services",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/catalog/services?q=&filter[status]=&filter[category_id]=&filter[guide_price]=&sort=sort&page=1&per_page=15",
+            "description": "catalog.manage (D182). filter[guide_price] ∈ set, not_set. Rows: category, guide_price (money|null), guest_count_mode, is_visible_in_catalog, providers_count."
+          }
+        },
+        {
+          "name": "Show service",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/catalog/services/{{service_id}}",
+            "description": "catalog.manage (D182). Adds inclusions[{id,text,is_active,sort}] (active first), addons[{id,name,is_active}], pricing {providers_default, providers_custom}."
+          }
+        },
+        {
+          "name": "Create service",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/catalog/services",
+            "description": "catalog.manage (D182). 201. Never creates provider rows. guide_price null or >0 (2 decimals, D181).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category_id\": 1,\n  \"name\": {\n    \"ar\": \"خدمة\",\n    \"en\": \"Service\"\n  },\n  \"description\": {\n    \"ar\": \"وصف\",\n    \"en\": \"Description\"\n  },\n  \"guide_price\": \"1500.00\",\n  \"guest_count_mode\": \"optional\",\n  \"inclusions\": [\n    {\n      \"text\": {\n        \"ar\": \"بند\",\n        \"en\": \"Item\"\n      }\n    }\n  ],\n  \"addon_ids\": []\n}"
+            }
+          }
+        },
+        {
+          "name": "Update service (guide price)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/catalog/services/{{service_id}}",
+            "description": "catalog.manage (D182). reason required when guide_price changes (D181). inclusions = full list: listed ids updated + on, new texts created, missing switched off (D179). addon_ids = full list (pivot only).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"guide_price\": \"1800.00\",\n  \"reason\": \"Market update\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Guide price impact",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/catalog/services/{{service_id}}/impact",
+            "description": "catalog.manage (D182). With guide_price (may be null): adds current_guide_price / proposed_guide_price. Without: stop preview.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"guide_price\": \"1800.00\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Stop service",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/catalog/services/{{service_id}}/stop",
+            "description": "catalog.manage (D182). Reason required. Provider rows kept; open requests/offers/bookings continue (D180).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Temporarily unavailable\",\n  \"internal_note\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "Activate service",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/catalog/services/{{service_id}}/activate",
+            "description": "catalog.manage (D182). ",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "Move service",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/catalog/services/{{service_id}}/move",
+            "description": "catalog.manage (D182). Within its category.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"direction\": \"down\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List add-ons",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/catalog/addons?q=&filter[status]=&filter[service_id]=&sort=sort&page=1&per_page=15",
+            "description": "catalog.manage (D182). No price (providers price add-ons). Rows: services[], services_count, providers_count."
+          }
+        },
+        {
+          "name": "Show add-on",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/catalog/addons/{{addon_id}}",
+            "description": "catalog.manage (D182). "
+          }
+        },
+        {
+          "name": "Create add-on",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/catalog/addons",
+            "description": "catalog.manage (D182). 201.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": {\n    \"ar\": \"إضافة\",\n    \"en\": \"Add-on\"\n  },\n  \"description\": null,\n  \"service_ids\": []\n}"
+            }
+          }
+        },
+        {
+          "name": "Update add-on",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/catalog/addons/{{addon_id}}",
+            "description": "catalog.manage (D182). service_ids = full list; unlinking keeps providers' rows (hidden by D36, D179).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"service_ids\": [\n    1\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Stop add-on",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/catalog/addons/{{addon_id}}/stop",
+            "description": "catalog.manage (D182). ",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Temporarily unavailable\",\n  \"internal_note\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "Activate add-on",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/catalog/addons/{{addon_id}}/activate",
+            "description": "catalog.manage (D182). ",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "Move add-on",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/catalog/addons/{{addon_id}}/move",
+            "description": "catalog.manage (D182). D183b.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"direction\": \"up\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List event types",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/catalog/event-types?q=&filter[status]=&sort=sort",
+            "description": "catalog.manage (D182). D183a. Rows: requests_count."
+          }
+        },
+        {
+          "name": "Create event type",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/catalog/event-types",
+            "description": "catalog.manage (D182). 201.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": {\n    \"ar\": \"نوع\",\n    \"en\": \"Type\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Rename event type",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/catalog/event-types/{{event_type_id}}",
+            "description": "catalog.manage (D182). name required.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": {\n    \"ar\": \"نوع\",\n    \"en\": \"Type\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Stop event type",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/catalog/event-types/{{event_type_id}}/stop",
+            "description": "catalog.manage (D182). Hidden from new requests only.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Temporarily unavailable\",\n  \"internal_note\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "Activate event type",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/catalog/event-types/{{event_type_id}}/activate",
+            "description": "catalog.manage (D182). ",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "Move event type",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/catalog/event-types/{{event_type_id}}/move",
+            "description": "catalog.manage (D182). ",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"direction\": \"up\"\n}"
+            }
+          }
+        }
+      ]
     }
   ]
 }

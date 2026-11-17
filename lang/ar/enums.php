@@ -85,4 +85,6 @@ return [
     // Slice 12b (support tickets)
     'ticket_status' => ['open' => 'مفتوحة', 'in_progress' => 'قيد المعالجة', 'waiting' => 'بانتظار ردّك', 'resolved' => 'تم الحل', 'closed' => 'مغلقة'],
     'ticket_topic' => ['service_quality' => 'جودة الخدمة', 'late_arrival' => 'تأخر الوصول', 'payment' => 'الدفع', 'cancellation' => 'الإلغاء', 'account' => 'الحساب', 'other' => 'أخرى'],
+    // Slice 16 (S16): admin catalog rows.
+    'catalog_status' => ['active' => 'نشط', 'inactive' => 'موقوف'],
 ];

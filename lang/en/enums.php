@@ -85,4 +85,6 @@ return [
     // Slice 12b (support tickets)
     'ticket_status' => ['open' => 'Open', 'in_progress' => 'In progress', 'waiting' => 'Waiting for your reply', 'resolved' => 'Resolved', 'closed' => 'Closed'],
     'ticket_topic' => ['service_quality' => 'Service quality', 'late_arrival' => 'Late arrival', 'payment' => 'Payment', 'cancellation' => 'Cancellation', 'account' => 'Account', 'other' => 'Other'],
+    // Slice 16 (S16): admin catalog rows.
+    'catalog_status' => ['active' => 'Active', 'inactive' => 'Stopped'],
 ];
