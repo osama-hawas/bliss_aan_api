@@ -46,4 +46,6 @@ return [
     'staff_already_suspended' => 'This account is already suspended.',
     'staff_not_suspended' => 'This account is not suspended.',
     'staff_escalation' => 'You cannot grant permissions you do not hold, or manage super admins.',
+    // Slice 12a (S12a).
+    'DELETION_PENDING' => 'You already have an account deletion request under review.',
 ];

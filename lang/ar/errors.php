@@ -46,4 +46,6 @@ return [
     'staff_already_suspended' => 'هذا الحساب موقوف بالفعل.',
     'staff_not_suspended' => 'هذا الحساب غير موقوف.',
     'staff_escalation' => 'لا يمكنكِ منح صلاحيات لا تملكينها أو إدارة المشرفات العامات.',
+    // Slice 12a (S12a).
+    'DELETION_PENDING' => 'لديكِ طلب حذف حساب قيد المراجعة بالفعل.',
 ];

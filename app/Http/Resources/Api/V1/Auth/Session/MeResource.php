@@ -5,6 +5,8 @@ namespace App\Http\Resources\Api\V1\Auth\Session;
 use App\Enums\UserType;
 use App\Http\Resources\Concerns\FormatsApiValues;
 use App\Models\User;
+use App\Services\Account\AccountDeletion;
+use App\Services\Media\MediaService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -32,6 +34,12 @@ class MeResource extends JsonResource
             'status_label' => $this->status->label(),
             'last_login_at' => $this->dateTime($this->last_login_at),
             'created_at' => $this->dateTime($this->created_at),
+            // Slice 12a: client photo (D153; a provider's photo is on her provider profile) and her pending deletion request (D150).
+            'avatar_url' => $this->when(! $this->isType(UserType::Admin), fn () => $this->isType(UserType::Client) && $this->avatar
+                ? app(MediaService::class)->url($this->avatar) : null),
+            'deletion_request' => $this->when(! $this->isType(UserType::Admin), fn () => ($pending = app(AccountDeletion::class)->pending($this->resource))
+                ? ['id' => $pending->id, 'status' => $pending->status->value, 'status_label' => $pending->status->label(), 'requested_at' => $this->dateTime($pending->created_at)]
+                : null),
             // Providers only: the account state the app routes on (application under review, sent back,
             // suspended, active). Details come from `GET provider/application`.
             'provider' => $this->when($this->isType(UserType::Provider) && $this->provider !== null, fn () => [

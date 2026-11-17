@@ -79,4 +79,7 @@ return [
     'message_type' => ['text' => 'نص', 'image' => 'صورة', 'file' => 'ملف', 'voice' => 'رسالة صوتية', 'offer_card' => 'عرض', 'system' => 'النظام'],
     'execution_place' => ['event_location' => 'في موقع المناسبة', 'provider_location' => 'في موقع مقدمة الخدمة'],
     'guest_count_mode' => ['hidden' => 'غير مطلوب', 'optional' => 'اختياري', 'required' => 'إلزامي'],
+    // Slice 12a (S12a).
+    'deletion_reason' => ['not_using' => 'لم أعد أستخدم التطبيق', 'privacy' => 'مخاوف تتعلق بالخصوصية', 'experience' => 'لم تكن تجربتي جيدة', 'other_account' => 'لدي حساب آخر', 'other' => 'سبب آخر'],
+    'deletion_request_status' => ['pending' => 'قيد المراجعة', 'withdrawn' => 'مسحوب', 'processed' => 'تمت معالجته', 'rejected' => 'مرفوض'],
 ];

@@ -254,3 +254,13 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
   `providers.review`); routes `routes/api/v1/admin/providers/roster.php`. `OfferSender` re-checks `providers.status` under a shared
   lock (D172). Labels in `lang/{ar,en}/accounts.php`.
 - Tests: `tests/Feature/Admin/{ClientAccounts,ProvidersAdmin}Test.php`, `tests/Feature/Database/ClientSuspensionLockingTest.php`.
+
+## Account (Slice 12a — S12a)
+
+- Contract: `docs/slice-12a-contract.md` (rev 2, D150–D155; Q76 open). `app/Services/Account/ProfileService` (`PATCH shared/account/profile`:
+  client name/email/city/birth date/locale, provider email/birth date/locale — locked fields `prohibited`, 18+ birth date;
+  `PUT client/account/avatar`: own unattached `avatar` media, old photo detached) and `AccountDeletion`
+  (`GET/POST shared/account/deletion-request`, `POST …/withdraw`; one pending per account via `open_user_id` unique + user row
+  lock → `409 DELETION_PENDING`; obligations shown, never blocking; never touches `users.status`, never processed — D155).
+- `auth/me` adds `avatar_url` (client) and `deletion_request` (pending only). Lang: `lang/{ar,en}/account.php`.
+- Tests: `tests/Feature/Account/{Profile,DeletionRequest}Test.php`, `tests/Feature/Database/DeletionRequestLockingTest.php`.
