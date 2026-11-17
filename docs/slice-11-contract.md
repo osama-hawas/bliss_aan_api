@@ -8,7 +8,7 @@ Q124–Q131 as **D218–D225**; this contract as **D226** (§11). Earlier decisi
 D125 (completion), D131, D185–D190 (Slice 10 payments core). Depends on Slice 10: earnings exist only for **paid**
 bookings; §10 maps every touchpoint to S10's real service API (`slice-10-contract.md` §4–§5).
 
-Revision history: rev 2.1 (2026-11-17, implementation) — no rule changed: full IBAN moved to its own audited endpoint, `bank_name_key` / `paid_transfer_reference` columns, block order, history `reason`/`note`; rev 1 (2026-11-17) — draft, S10 touchpoints assumed, Q124–Q131 open; rev 2 (2026-11-17) — Q124–Q131
+Revision history: rev 2.2 (2026-11-17, review fixes) — S19 `adjustment` type listed, back-fill selection narrowed, numeric `amount` accepted; rev 2.1 (2026-11-17, implementation) — no rule changed: full IBAN moved to its own audited endpoint, `bank_name_key` / `paid_transfer_reference` columns, block order, history `reason`/`note`; rev 1 (2026-11-17) — draft, S10 touchpoints assumed, Q124–Q131 open; rev 2 (2026-11-17) — Q124–Q131
 approved as recommended by the orchestrator under owner delegation; §4.1/§4.2/§10 rewritten on S10's contract
 (`bookings.payment_id`, `refunds`, `RefundSettled`); no other rule changed.
 
@@ -45,7 +45,8 @@ after S10's payment tables). All money columns are `bigInteger` **cents** (OD19)
 `03-api-conventions.md` (`{"amount": "1234.50", "currency": "SAR"}`).
 
 - **`provider_ledger_entries`** (append-only; rows are never updated or deleted):
-  `provider_id`, `type` (`earning` · `refund_adjustment` · `payout` · `payout_reversal`), `amount_cents` (signed: earning
+  `provider_id`, `type` (`earning` · `refund_adjustment` · `payout` · `payout_reversal` · `adjustment` — the last written
+  by Slice 19 staff adjustments, no gross/commission, no hold), `amount_cents` (signed: earning
   and reversal positive, payout and refund adjustment negative), `booking_id` (nullable), `payout_request_id` (nullable),
   `gross_cents`, `commission_cents`, `commission_bps` (percent × 100; earning/adjustment only, else null),
   `available_at` (timestamp; payout rows = `created_at`), `entry_key` **unique** (idempotency: `earning:{booking_id}`,
@@ -89,7 +90,8 @@ When it runs:
    setting is `null` or the booking is not paid it simply records nothing.
 2. Scheduled command `payouts:record-earnings` (every 15 min, `withoutOverlapping`): finds eligible bookings without an
    `earning` entry and records them (back-fills bookings completed while the settings were `null`), and writes any
-   missing §4.2 adjustment (safety net if a listener run was lost).
+   missing §4.2 adjustment (safety net if a listener run was lost). It only selects settled refunds on a booking that has an
+   earning, are not in its `netted_refund_ids` and have no `refund:{id}` entry, so the set does not grow with history.
 
 ### 4.2 Refund after the earning exists (D220)
 
@@ -255,7 +257,7 @@ Q132 and Q133 are unused.
   "payout_account": PayoutAccount|null, "open_payout_request": ProviderPayoutRequest|null }
 
 // GET provider/earnings/entries → LedgerEntry[]   (filter[type] optional)
-{ "id": 1, "type": "earning", "type_label": "…", "amount": Money /* signed net */,
+{ "id": 1, "type": "earning" /* · refund_adjustment · payout · payout_reversal · adjustment (S19) */, "type_label": "…", "amount": Money /* signed net */,
   "gross": Money|null, "commission": Money|null, "commission_percent": "15.00"|null,
   "status": "pending"|"available", "status_label": "…", "available_at": "…",
   "booking": {"id": 5, "reference": "BK-1234567", "title": "Photography"}|null,
@@ -284,7 +286,7 @@ Q132 and Q133 are unused.
 ```
 
 Bodies: `PUT provider/payout-account {holder_name, iban}`; `POST provider/payout-requests {amount: "1234.50"}` +
-`Idempotency-Key: <uuid>`; `POST admin/payouts/{id}/mark-paid {transfer_reference, internal_note?}`;
+`Idempotency-Key: <uuid>` (a JSON number such as `100.5` is accepted and read as its decimal text; > 2 decimals → 422); `POST admin/payouts/{id}/mark-paid {transfer_reference, internal_note?}`;
 `POST admin/payouts/{id}/reject {reason, internal_note?}`. Error codes: `NOT_CONFIGURED`, `PAYOUT_ACCOUNT_REQUIRED`,
 `PAYOUT_REQUEST_OPEN`, `INSUFFICIENT_BALANCE`, `INVALID_STATE`, `DUPLICATE_REQUEST` (409); `422` with field errors on
 `amount`, `iban`, `holder_name`, `transfer_reference`, `reason`.

@@ -44,7 +44,9 @@ class S10Payments
     }
 
     /**
-     * Settled refunds on booking payments, for the back-fill command.
+     * Settled refunds the back-fill must still look at (D220): on a booking payment whose booking already has an
+     * `earning`, not netted into that earning (`meta.netted_refund_ids`) and without a `refund:{id}` adjustment yet.
+     * Netted and already-adjusted refunds drop out, so the set does not grow with history.
      *
      * @return Collection<int, int> refund ids
      */
@@ -52,9 +54,12 @@ class S10Payments
     {
         return DB::table('refunds')
             ->join('bookings', 'bookings.payment_id', '=', 'refunds.payment_id')
+            ->join('provider_ledger_entries as earning', fn ($join) => $join->on('earning.booking_id', '=', 'bookings.id')
+                ->where('earning.type', '=', 'earning'))
             ->where('refunds.status', self::REFUND_REFUNDED)
-            ->whereNotExists(fn ($q) => $q->from('provider_ledger_entries')
-                ->whereRaw("provider_ledger_entries.entry_key = CONCAT('refund:', refunds.id)"))
+            ->whereRaw("NOT JSON_CONTAINS(COALESCE(JSON_EXTRACT(earning.meta, '$.netted_refund_ids'), JSON_ARRAY()), CAST(refunds.id AS JSON))")
+            ->whereNotExists(fn ($q) => $q->from('provider_ledger_entries as adjusted')
+                ->whereRaw("adjusted.entry_key = CONCAT('refund:', refunds.id)"))
             ->orderBy('refunds.id')
             ->pluck('refunds.id');
     }

@@ -102,7 +102,7 @@ return [
     'promo_code_type' => ['percent' => 'نسبة مئوية', 'fixed' => 'مبلغ ثابت'],
     'promo_code_usage_status' => ['held' => 'محجوز لطلب قيد الدفع', 'used' => 'مستخدم', 'released' => 'محرَّر'],
     // Slice 11 (payouts)
-    'ledger_entry_type' => ['earning' => 'أرباح حجز', 'refund_adjustment' => 'تسوية استرداد', 'payout' => 'طلب تحويل', 'payout_reversal' => 'إعادة مبلغ تحويل'],
+    'ledger_entry_type' => ['earning' => 'أرباح حجز', 'refund_adjustment' => 'تسوية استرداد', 'payout' => 'طلب تحويل', 'payout_reversal' => 'إعادة مبلغ تحويل', 'adjustment' => 'تسوية رصيد'],
     'ledger_entry_status' => ['pending' => 'قيد الانتظار', 'available' => 'متاح'],
     'payout_request_status' => ['requested' => 'مطلوب', 'paid' => 'تم التحويل', 'rejected' => 'مرفوض'],
     // Slice 17 (operations & support)
