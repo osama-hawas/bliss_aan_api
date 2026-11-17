@@ -1,0 +1,554 @@
+{
+  "info": {
+    "name": "Bliss aan — store management (Slice 18, admin)",
+    "description": "S18 admin endpoints for store categories, products, variants and stock (`docs/slice-18-contract.md`). Orders, shipments and promo codes are S9b's. Needs `products.manage`. Uses the shared environment (`base_url`, `lang`, `admin_token`).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "List categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/product-categories?q=&filter[status]=&page=1",
+            "description": "Admin order (`sort`, id). `products_count`, `active_products_count`, `image {id,url}`."
+          }
+        },
+        {
+          "name": "Show category",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/product-categories/1",
+            "description": ""
+          }
+        },
+        {
+          "name": "Create category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/product-categories",
+            "description": "New category is active, last in the list. `image_media_id` = own unattached `catalog_image` upload (`POST shared/uploads`).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": {\n    \"ar\": \"هدايا\",\n    \"en\": \"Gifts\"\n  },\n  \"image_media_id\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "Update category",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/product-categories/1",
+            "description": "Any field; `image_media_id: null` removes the image (detached, not deleted).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": {\n    \"ar\": \"هدايا\",\n    \"en\": \"Gifts\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Stop category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/product-categories/1/stop",
+            "description": "Reason required. Hides its products from the apps (D276).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Season over\",\n  \"internal_note\": \"\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Activate category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/product-categories/1/activate",
+            "description": "Reason optional.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Move category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/product-categories/1/move",
+            "description": "Swap with the neighbour; at the edge → 409 INVALID_STATE.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"direction\": \"up\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "List products",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/products?q=&filter[category_id]=&filter[status]=&filter[stock]=&filter[low_stock]=&sort=-created_at&page=1",
+            "description": "`q` = name (ar/en) or SKU. `filter[stock]=in_stock|out_of_stock`; `filter[low_stock]=1` needs `store.low_stock_threshold` (else 409 NOT_CONFIGURED). Sort `created_at|sort` (±)."
+          }
+        },
+        {
+          "name": "Show product",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/products/1",
+            "description": "Every variant with exact stock, `low_stock` per variant (null when not configured), latest 30 history rows."
+          }
+        },
+        {
+          "name": "Create product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/products",
+            "description": "At least one variant. Initial stock is recorded as an `initial` stock movement. `base_price` is computed (D275).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category_id\": 1,\n  \"name\": {\n    \"ar\": \"شمعة عود\",\n    \"en\": \"Oud candle\"\n  },\n  \"description\": {\n    \"ar\": \"\",\n    \"en\": \"\"\n  },\n  \"image_media_id\": null,\n  \"variants\": [\n    {\n      \"sku\": \"CAN-S\",\n      \"attributes\": {\n        \"size\": {\n          \"ar\": \"صغير\",\n          \"en\": \"Small\"\n        }\n      },\n      \"price\": \"60.00\",\n      \"stock\": 8\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Update product",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/products/1",
+            "description": "Category, name, description, image, sort. Stock is never edited here.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": {\n    \"ar\": \"شمعة عود\",\n    \"en\": \"Oud candle\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Stop product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/products/1/stop",
+            "description": "Reason required (D276).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Supplier issue\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Activate product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/products/1/activate",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          }
+        },
+        {
+          "name": "Add variant",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/products/1/variants",
+            "description": "SKU unique, options distinct among active variants, price > 0, initial stock.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"CAN-L\",\n  \"attributes\": {\n    \"size\": {\n      \"ar\": \"كبير\",\n      \"en\": \"Large\"\n    }\n  },\n  \"price\": \"85.00\",\n  \"stock\": 3\n}"
+            }
+          }
+        },
+        {
+          "name": "Stock history",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/products/1/stock-movements?filter[variant_id]=&page=1",
+            "description": "Newest first: source, reason, change, before/after, actor."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Variants & stock",
+      "item": [
+        {
+          "name": "Update variant",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/product-variants/1",
+            "description": "SKU, attributes, price (D281). Never stock.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": \"55.00\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Stop variant",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/product-variants/1/stop",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Discontinued\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Activate variant",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/product-variants/1/activate",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          }
+        },
+        {
+          "name": "Adjust stock",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/product-variants/1/stock",
+            "description": "Set the new count with the count you saw. Count moved → 409 STOCK_CHANGED. `note` required for `other`.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"stock\": 12,\n  \"expected_stock\": 8,\n  \"reason_code\": \"restock\",\n  \"note\": \"\"\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

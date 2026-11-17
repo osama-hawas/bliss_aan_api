@@ -402,3 +402,15 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
   holds the D243 wording (`REASONS`, old text in `PREVIOUS`).
 - Tests: `tests/Unit/Chat/ContactInfoDetectorTest.php`, `ChatTest::test_contact_details_…`, `AttachmentConfigurationTest`,
   `SeederTest::test_decline_…`.
+
+## Store management admin (Slice 18 — S18)
+
+- Contract: `docs/slice-18-contract.md` (D270–D284). Orders, shipments, deliveries and promo codes are S9b's; returns out.
+  Routes `routes/api/v1/admin/{product-categories,products,product-variants}/`, all `permission:products.manage`.
+- `app/Services/Store/Admin/`: `ProductCategoryManagement` (CRUD, stop/activate with reason, move), `ProductManagement`
+  (products + variants; never deletes; `base_price` = lowest active variant price, D275; lock product → variants),
+  `StockAdjustments` (`adjust` = new count + `expected_stock` + reason under the variant row lock → `409 STOCK_CHANGED`;
+  public `record()` appends `stock_movements`), `StoreImages` (own unattached `catalog_image` upload via `image_media_id`).
+- Every write is an `audit_logs` row with the product as subject (the product history). `store.low_stock_threshold` null →
+  no low-stock flag, `filter[low_stock]` → `NOT_CONFIGURED`.
+- Tests: `tests/Feature/Store/Admin/*`, `tests/Feature/Database/StockAdjustmentLockingTest.php`.

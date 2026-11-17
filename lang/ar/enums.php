@@ -111,4 +111,7 @@ return [
     'catalog_status' => ['active' => 'نشط', 'inactive' => 'موقوف'],
     // Slice 13 (S13): provider team (D230).
     'team_member_status' => ['active' => 'نشطة', 'disabled' => 'موقوفة'],
+    // Slice 18 (S18) — store management.
+    'stock_movement_source' => ['initial' => 'المخزون الأولي', 'adjustment' => 'تعديل من الفريق', 'order' => 'طلب', 'order_cancelled' => 'إلغاء طلب'],
+    'stock_adjustment_reason' => ['restock' => 'استلام مخزون جديد', 'stocktake' => 'جرد', 'damaged' => 'تالف أو مفقود', 'correction' => 'تصحيح', 'other' => 'سبب آخر'],
 ];

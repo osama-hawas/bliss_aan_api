@@ -37,6 +37,8 @@ class AppSettingSeeder extends Seeder
             'tax.vat_percent' => null,         // D202: prices include VAT; null = no VAT line
             // Slice 17 (D260): technical chat-review window in minutes, not a business number; null = reason on every page
             'support.chat_access_minutes' => 30,
+            // S18 (Slice 18) — low-stock level for the dashboard; null = no low-stock flag (D278).
+            'store.low_stock_threshold' => null,
         ];
 
         foreach (UploadContext::cases() as $context) {

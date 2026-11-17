@@ -65,4 +65,6 @@ return [
     'PAYOUT_ACCOUNT_REQUIRED' => 'Add your bank account before requesting a payout.',
     'PAYOUT_REQUEST_OPEN' => 'You already have a payout request in progress.',
     'INSUFFICIENT_BALANCE' => 'The amount is more than your available balance.',
+    // Slice 18 (S18).
+    'STOCK_CHANGED' => 'The stock changed since you opened it. Check the current count and try again.',
 ];

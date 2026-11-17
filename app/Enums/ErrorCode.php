@@ -60,6 +60,9 @@ enum ErrorCode: string
     case PriceChanged = 'PRICE_CHANGED';
     case CarrierFailed = 'CARRIER_FAILED';
 
+    // Slice 18 (S18) — stock adjustments (D274).
+    case StockChanged = 'STOCK_CHANGED';
+
     public function status(): int
     {
         return match ($this) {
@@ -79,6 +82,7 @@ enum ErrorCode: string
             self::CartEmpty, self::PromoCodeInvalid => 422, // Slice 9b
             self::CartHasIssues, self::PriceChanged, self::CarrierFailed => 409, // Slice 9b
             self::PayoutAccountRequired, self::PayoutRequestOpen, self::InsufficientBalance => 409, // Slice 11
+            self::StockChanged => 409, // Slice 18 (S18)
         };
     }
 
