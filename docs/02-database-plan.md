@@ -51,6 +51,8 @@ Labels: **[C]** confirmed · **[R]** recommendation · **[?]** open question.
 | `event_types` | name (ar/en), is_active, sort | F |
 | `occasion_tags`, `occasion_tag_service` | Req 15 — not defined yet (D178: not built in Slice 16; question added to S2) | M (seeded) |
 | `packages`, `package_items` [?] | Req 16, scope unclear | M/D |
+| `occasion_tags`, `occasion_tag_service` | Req 15 | M (seeded) |
+| `packages`, `package_items` | Req 16 — **not built** (D231): no definition or designs | — |
 
 ## 4. Providers
 
@@ -68,8 +70,8 @@ Labels: **[C]** confirmed · **[R]** recommendation · **[?]** open question.
 | `provider_working_hours` | provider_id, weekday (0 = Sunday … 6), opens_at, closes_at; unique(provider_id, weekday) — a missing weekday = closed | M (Slice 3) |
 | `availability_blocks` | provider_id (restrict on delete), starts_at, ends_at (UTC, half-open), reason nullable (private), created_by, deleted_by, soft delete `deleted_at` (D94); index (provider_id, deleted_at, starts_at, ends_at). Provider-wide, never per service | M (Slice 5a, implemented 2026-11-15) |
 | `portfolio_items` | provider_id, media_id, caption, hidden_by_admin, hidden_reason, sort | M (Slice 2) |
-| `provider_team_members` [?] | provider_id, user_id nullable, name, title, scope, status | M/D |
-| `booking_assignments` [?] | booking_id, team_member_id, task, status, assigned_by | M/D |
+| `provider_team_members` | provider_id (restrict), user_id nullable (kept for a later login, always null: members never log in, D230), name (≤ 100), phone nullable (Saudi mobile, E.164, not unique), title (role label, free text 1–60, D236), status (`active`/`disabled`), disabled_at; index (provider_id, status). Photo = `media` collection `team_photo` (private, D235). Never deleted (disable instead, D233). The planned `scope` column is dropped. Migration `2026_11_26_130000_create_provider_team_tables` | M (Slice 13) |
+| `booking_assignments` | booking_id (restrict), team_member_id (restrict), assigned_by; **unique(booking_id, team_member_id)**. Informational, provider only (D230); changed while the booking is confirmed / in progress (D232); removing an assignment deletes the row, the history stays in `activity_events` on the booking (visibility `provider`). The planned `task` / `status` columns are dropped (D237) | M (Slice 13) |
 | `favorites` | user_id, favoritable_type (`App\Enums\FavoriteType` string: provider / provider_service, not a class name), favoritable_id, unique per user+item (D35) | M (Slice 2) |
 
 ## 5. Requests, offers, bookings

@@ -42,6 +42,7 @@ return [
         'banner' => 'Banner',
         'avatar' => 'Profile photo',
         'request_attachment' => 'Request attachment',
+        'team_photo' => 'Team member photo',
     ],
     'provider_account_type' => ['individual' => 'Individual', 'establishment' => 'Establishment'],
     'provider_status' => [
@@ -108,4 +109,6 @@ return [
     'content_report_decision' => ['actioned' => 'Action taken', 'dismissed' => 'Dismissed'],
     // Slice 16 (S16): admin catalog rows.
     'catalog_status' => ['active' => 'Active', 'inactive' => 'Stopped'],
+    // Slice 13 (S13): provider team (D230).
+    'team_member_status' => ['active' => 'Active', 'disabled' => 'Disabled'],
 ];

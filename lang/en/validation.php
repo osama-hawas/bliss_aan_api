@@ -183,6 +183,8 @@ return [
     'saudi_mobile' => 'The :attribute field must be a valid Saudi mobile number.',
 
     'custom' => [
+        // Slice 13 (S13)
+        'member_ids' => ['disabled' => 'This team member is disabled. Enable her first or choose another member.'],
         'media_id' => ['unavailable' => 'Choose a file you uploaded for this kind of message that is not used yet.'],
         'offer_id' => ['unavailable' => 'Choose one of your own offers on this request that the client can see.'],
         'block' => [
@@ -285,6 +287,11 @@ return [
         'birth_date' => 'birth date',
         'code' => 'verification code',
         'context' => 'attachment type',
+        // Slice 13 (S13)
+        'team_title' => 'role',
+        'team_name' => 'name',
+        'member_ids' => 'team members',
+        'photo_media_id' => 'photo',
     ],
 
 ];

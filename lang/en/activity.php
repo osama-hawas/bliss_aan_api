@@ -56,4 +56,9 @@ return [
     'ticket_auto_closed' => 'Ticket closed automatically',
     'review_hidden' => 'Review hidden by Bliss aan',
     'review_restored' => 'Review restored',
+    // Slice 13 (provider only)
+    'team_member_assigned' => 'Team member assigned',
+    'team_member_unassigned' => 'Team member removed',
+    'team_member_disabled' => 'Team member disabled',
+    'team_member_enabled' => 'Team member enabled',
 ];

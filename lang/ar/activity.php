@@ -56,4 +56,9 @@ return [
     'ticket_auto_closed' => 'أُغلقت التذكرة تلقائيًا',
     'review_hidden' => 'أخفى فريق Bliss aan التقييم',
     'review_restored' => 'أُعيد نشر التقييم',
+    // Slice 13 (provider only)
+    'team_member_assigned' => 'أُسندت عضوة فريق',
+    'team_member_unassigned' => 'أُزيلت عضوة فريق',
+    'team_member_disabled' => 'أُوقفت عضوة فريق',
+    'team_member_enabled' => 'فُعّلت عضوة فريق',
 ];

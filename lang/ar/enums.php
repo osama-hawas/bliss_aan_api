@@ -42,6 +42,7 @@ return [
         'banner' => 'بانر',
         'avatar' => 'الصورة الشخصية',
         'request_attachment' => 'مرفق الطلب',
+        'team_photo' => 'صورة عضوة الفريق',
     ],
     'provider_account_type' => ['individual' => 'فرد', 'establishment' => 'منشأة'],
     'provider_status' => [
@@ -108,4 +109,6 @@ return [
     'content_report_decision' => ['actioned' => 'تم اتخاذ إجراء', 'dismissed' => 'تم الرفض'],
     // Slice 16 (S16): admin catalog rows.
     'catalog_status' => ['active' => 'نشط', 'inactive' => 'موقوف'],
+    // Slice 13 (S13): provider team (D230).
+    'team_member_status' => ['active' => 'نشطة', 'disabled' => 'موقوفة'],
 ];

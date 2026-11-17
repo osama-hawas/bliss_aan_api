@@ -17,7 +17,9 @@ class BookingQueries
 
     public const CLIENT_WITH = ['provider.avatar', 'service', 'offer.items', 'serviceRequest.eventType', 'serviceRequest.city', 'cancellationRequests', 'review', 'payment.refunds'];
 
-    public const PROVIDER_WITH = ['client', 'service', 'offer.items', 'serviceRequest.eventType', 'serviceRequest.city', 'cancellationRequests', 'review'];
+    public const PROVIDER_WITH = ['client', 'service', 'offer.items', 'serviceRequest.eventType', 'serviceRequest.city', 'cancellationRequests', 'review',
+        'team.photo', // Slice 13 (S13), provider only
+    ];
 
     /**
      * @param  list<string>  $statuses

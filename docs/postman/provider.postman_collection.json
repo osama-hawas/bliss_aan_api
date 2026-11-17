@@ -2293,6 +2293,208 @@
           "description": "Same Idempotency-Key + same amount → 200 replay; other amount → 409 DUPLICATE_REQUEST."
         }
       ]
+    },
+    {
+      "name": "Team (Slice 13)",
+      "item": [
+        {
+          "name": "List team members",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/provider/team-members?status=active&page=1&per_page=15",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "provider",
+                "team-members"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "active"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "15"
+                }
+              ]
+            }
+          },
+          "description": "Her team, active first then by name. status=active|disabled optional; per_page max 50. Active provider only (409 INVALID_STATE otherwise)."
+        },
+        {
+          "name": "Add team member",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/provider/team-members",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "provider",
+                "team-members"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"ريم\",\n  \"title\": \"مساعدة تصوير\",\n  \"phone\": \"0551234567\",\n  \"photo_media_id\": null\n}"
+            }
+          },
+          "description": "Records only, never a login (D230). title = role label, free text 1–60 (D236). phone optional Saudi mobile. photo_media_id optional: a shared/uploads file with context team_photo (private, D235). 201."
+        },
+        {
+          "name": "Show team member",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/provider/team-members/{{team_member_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "provider",
+                "team-members",
+                "{{team_member_id}}"
+              ]
+            }
+          },
+          "description": "Her own member or 404."
+        },
+        {
+          "name": "Update / disable / enable team member",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/provider/team-members/{{team_member_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "provider",
+                "team-members",
+                "{{team_member_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"منسقة\",\n  \"status\": \"disabled\"\n}"
+            }
+          },
+          "description": "Partial. phone / photo_media_id null clear them; status active|disabled. No delete route: nothing is deleted, assignments are kept (D233)."
+        },
+        {
+          "name": "Set booking team",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/provider/bookings/{{booking_id}}/team",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "provider",
+                "bookings",
+                "{{booking_id}}",
+                "team"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"member_ids\": [\n    1,\n    2\n  ]\n}"
+            }
+          },
+          "description": "Replaces the booking's team with exactly these ids (may be empty, distinct, ≤ 50). Booking confirmed / in_progress only, else 409 INVALID_STATE (D232). A disabled member can stay but not be newly added (D233). Provider only; never shown to the client or dashboard (D230). 200 with the booking (team + actions.can_assign_team)."
+        }
+      ]
     }
   ]
 }

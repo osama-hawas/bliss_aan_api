@@ -54,5 +54,8 @@
     "Account suspended.": "تم إيقاف الحساب.",
     "Account reactivated.": "تمت إعادة تفعيل الحساب.",
     "Role saved.": "تم حفظ الدور.",
-    "Role created.": "تم إنشاء الدور."
+    "Role created.": "تم إنشاء الدور.",
+    "Team member added.": "تمت إضافة عضوة الفريق.",
+    "Team member updated.": "تم تحديث عضوة الفريق.",
+    "Booking team updated.": "تم تحديث فريق الحجز."
 }

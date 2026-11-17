@@ -134,4 +134,10 @@ class Provider extends Model
     {
         return $this->hasMany(ProviderReviewNote::class)->latest('id');
     }
+
+    // Slice 13 (S13): her team (D230).
+    public function teamMembers(): HasMany
+    {
+        return $this->hasMany(ProviderTeamMember::class);
+    }
 }
