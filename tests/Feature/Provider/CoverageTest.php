@@ -49,6 +49,17 @@ class CoverageTest extends TestCase
             ->assertJsonPath('data.coverage', [['id' => $this->riyadh->id, 'name' => 'Riyadh']]);
     }
 
+    public function test_the_profile_shows_her_city_start_year_and_verification(): void
+    {
+        $this->provider->forceFill(['started_year' => 2019, 'is_verified' => true])->save();
+
+        $this->as()->getJson(self::URL.'/profile')
+            ->assertOk()
+            ->assertJsonPath('data.city', ['id' => $this->riyadh->id, 'name' => 'Riyadh'])
+            ->assertJsonPath('data.started_year', 2019)
+            ->assertJsonPath('data.is_verified', true);
+    }
+
     public function test_she_replaces_her_coverage(): void
     {
         $this->as()->putJson(self::URL.'/coverage', ['coverage_city_ids' => [$this->dammam->id, $this->jeddah->id]])
