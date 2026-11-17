@@ -240,3 +240,17 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
 - `RolesAndPermissionsSeeder` is non-destructive (D164): never `syncPermissions()`; new permissions reach their mapped roles once.
   Later slices append to `App\Enums\Permission` and the mapping only.
 - Tests: `Tests\Concerns\BuildsStaff`; `tests/Feature/Admin/{Staff,Roles}/*`, `tests/Feature/Database/SuperAdminLockingTest.php`.
+
+## Accounts & providers admin (Slice 15)
+
+- Contract: `docs/slice-15-contract.md` rev 2 (D171–D177). Clients: `Services\Accounts\ClientAccounts` (`list`, `find` = client or 404,
+  `update` D174, `suspend` / `reactivate`); routes `routes/api/v1/admin/clients/` (`clients.view|edit|suspend`). Suspension locks the
+  user row, sets `users.status`, revokes every session with `DeviceSessionService::revokeAll()` (same private `revoke()` as logout:
+  `revoked_at` + `fcm_token` null, D173), writes `account_status_logs` (local to this service), `activity_events`
+  `account_suspended` (meta `sessions_revoked`) and an audit row. Reactivation restores the `from` of the last `account_suspended`
+  event and restores no session. Nothing else changes on her requests/bookings (D171).
+- Providers: `Services\Providers\ProviderRoster` (activated providers only, `is_visible` = D75, `openItems`); flags and portfolio
+  moderation in `ProviderReview` (`setVerified`, `setFeatured` — `providers.verify`; `hidePortfolioItem` / `restorePortfolioItem` —
+  `providers.review`); routes `routes/api/v1/admin/providers/roster.php`. `OfferSender` re-checks `providers.status` under a shared
+  lock (D172). Labels in `lang/{ar,en}/accounts.php`.
+- Tests: `tests/Feature/Admin/{ClientAccounts,ProvidersAdmin}Test.php`, `tests/Feature/Database/ClientSuspensionLockingTest.php`.

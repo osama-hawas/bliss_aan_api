@@ -841,6 +841,314 @@
           }
         }
       ]
+    },
+    {
+      "name": "Clients (Slice 15: clients.view / clients.edit / clients.suspend)",
+      "item": [
+        {
+          "name": "List clients",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/clients?q=&filter[status]=&filter[city_id]=&sort=-created_at&page=1&per_page=15",
+            "description": "clients.view. Only users.type=client. q = name, email or phone. filter[status] ∈ active · suspended · pending_deletion. sort ∈ created_at, name, bookings_count (± prefix). orders_count is null until store orders exist. 422 on an unknown filter/sort."
+          }
+        },
+        {
+          "name": "Show client",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/clients/{{client_id}}",
+            "description": "clients.view. Adds open_items {requests, bookings}, active_sessions, linked (latest 20 requests: reference + status only), status_logs (account_status_logs, newest first, sessions_revoked on suspensions), deletion_request (null until Slice 12). Errors: 401 · 403 FORBIDDEN (not staff / missing permission) · 404 NOT_FOUND (not a client)"
+          }
+        },
+        {
+          "name": "Edit client",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/clients/{{client_id}}",
+            "description": "clients.edit (D174): name, email, city only, reason required; phone is never editable here. Logged (status log client_updated + audit old/new). Errors: 401 · 403 FORBIDDEN (not staff / missing permission) · 404 NOT_FOUND (not a client) · 422 VALIDATION_FAILED.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"سارة\",\n  \"email\": null,\n  \"city_id\": 1,\n  \"reason\": \"طلب العميلة عبر الدعم\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Suspend client",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/clients/{{client_id}}/suspend",
+            "description": "clients.suspend (D171, D173): active/pending_deletion → suspended; reason shown to her at login (403 ACCOUNT_SUSPENDED + errors.reason). Revokes ALL her sessions (revoked_at, fcm_token cleared): her tokens answer 401. Nothing else changes on her requests/bookings. Errors: 401 · 403 FORBIDDEN (not staff / missing permission) · 404 NOT_FOUND (not a client) · 409 INVALID_STATE (already suspended) · 422.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"مخالفة شروط الاستخدام\",\n  \"internal_note\": \"\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Reactivate client",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/clients/{{client_id}}/reactivate",
+            "description": "clients.suspend (D173): suspended → the status before the suspension (active or pending_deletion). No session is restored: she signs in again. Errors: 401 · 403 FORBIDDEN (not staff / missing permission) · 404 NOT_FOUND (not a client) · 409 INVALID_STATE (not suspended) · 422.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"تمت معالجة الملاحظة\",\n  \"internal_note\": \"\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Providers (Slice 15: providers.view / providers.verify / providers.review)",
+      "item": [
+        {
+          "name": "List providers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/providers?q=&filter[status]=&filter[account_type]=&filter[city_id]=&filter[is_verified]=&filter[is_featured]=&sort=-activated_at&page=1&per_page=15",
+            "description": "providers.view. Activated providers only (active / suspended). Each row: account_name, is_verified, is_featured, is_visible (D75), rating, reviews_count, services_count. sort ∈ activated_at, created_at, rating, display_name (± prefix)."
+          }
+        },
+        {
+          "name": "Show provider",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/providers/{{provider_id}}",
+            "description": "providers.view. Services (money objects, places), coverage, portfolio incl. hidden items, open_items {recipients_new, offers_active, bookings_open} (D172), logs with reasons. Errors: 401 · 403 FORBIDDEN · 404 NOT_FOUND (not an activated provider)"
+          }
+        },
+        {
+          "name": "Set verification badge",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/providers/{{provider_id}}/verification",
+            "description": "providers.verify (D175): {value, reason, internal_note?}; active or suspended; manual badge; no notification. Errors: 401 · 403 FORBIDDEN · 404 NOT_FOUND (not an activated provider) · 409 INVALID_STATE (already that value) · 422.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"value\": true,\n  \"reason\": \"تم التحقق من الوثائق\",\n  \"internal_note\": \"\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Set featured",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/providers/{{provider_id}}/featured",
+            "description": "providers.verify (D175, D32): {value, reason, internal_note?}; home shows up to 10 featured. Errors: 401 · 403 FORBIDDEN · 404 NOT_FOUND (not an activated provider) · 409 INVALID_STATE · 422.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"value\": true,\n  \"reason\": \"حملة الموسم\",\n  \"internal_note\": \"\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Hide portfolio photo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/providers/{{provider_id}}/portfolio/{{portfolio_item_id}}/hide",
+            "description": "providers.review (D176): reason required; hidden from every public list; the provider sees hidden_by_admin + hidden_reason in GET provider/profile. Errors: 401 · 403 FORBIDDEN · 404 NOT_FOUND (not an activated provider) · 409 INVALID_STATE (already hidden) · 422.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"الصورة تُظهر وجه عميلة\",\n  \"internal_note\": \"\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Restore portfolio photo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/providers/{{provider_id}}/portfolio/{{portfolio_item_id}}/restore",
+            "description": "providers.review (D176). Errors: 401 · 403 FORBIDDEN · 404 NOT_FOUND (not an activated provider) · 409 INVALID_STATE (not hidden).",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          }
+        }
+      ]
     }
   ]
 }

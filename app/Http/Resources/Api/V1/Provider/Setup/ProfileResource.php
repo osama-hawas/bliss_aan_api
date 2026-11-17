@@ -39,6 +39,7 @@ class ProfileResource extends JsonResource
                 'url' => $media->url($p->media),
                 'caption' => $p->caption,
                 'hidden_by_admin' => $p->hidden_by_admin,
+                'hidden_reason' => $p->hidden_by_admin ? $p->hidden_reason : null,
             ])->values(),
         ];
     }
