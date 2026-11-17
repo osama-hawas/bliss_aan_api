@@ -86,7 +86,7 @@ return [
     'ticket_status' => ['open' => 'Open', 'in_progress' => 'In progress', 'waiting' => 'Waiting for your reply', 'resolved' => 'Resolved', 'closed' => 'Closed'],
     'ticket_topic' => ['service_quality' => 'Service quality', 'late_arrival' => 'Late arrival', 'payment' => 'Payment', 'cancellation' => 'Cancellation', 'account' => 'Account', 'other' => 'Other'],
     // Slice 10 (payments).
-    'payable_type' => ['offer' => 'Booking offer'],
+    'payable_type' => ['offer' => 'Booking offer', 'store_order' => 'Store order'],
     'payment_status' => ['pending' => 'Processing', 'requires_action' => 'Waiting for confirmation', 'succeeded' => 'Paid', 'failed' => 'Failed', 'cancelled' => 'Cancelled', 'unknown' => 'Being checked'],
     'payment_method_type' => ['card' => 'Card', 'apple_pay' => 'Apple Pay'],
     'payment_purpose' => ['full' => 'Full payment', 'store' => 'Store order'],
@@ -94,4 +94,10 @@ return [
     'refund_status' => ['in_progress' => 'In progress', 'refunded' => 'Refunded', 'failed' => 'Failed'],
     'refund_kind' => ['acceptance_failed' => 'Booking could not be confirmed', 'superseded_attempt' => 'Replaced payment attempt', 'staff' => 'By staff'],
     'payment_refund_state' => ['none' => 'Not refunded', 'in_progress' => 'Refund in progress', 'partial' => 'Partially refunded', 'full' => 'Fully refunded'],
+    // Slice 9b (store orders)
+    'store_order_status' => ['pending_payment' => 'Awaiting payment', 'confirmed' => 'Confirmed', 'preparing' => 'Preparing', 'shipped' => 'On the way', 'delivered' => 'Delivered', 'cancelled' => 'Cancelled', 'expired' => 'Payment not completed'],
+    'shipment_status' => ['pending' => 'Creating shipment', 'in_transit' => 'In transit', 'delivered' => 'Delivered', 'failed' => 'Delivery failed'],
+    'shipment_method' => ['carrier' => 'Shipping company', 'internal' => 'Internal delivery'],
+    'promo_code_type' => ['percent' => 'Percentage', 'fixed' => 'Fixed amount'],
+    'promo_code_usage_status' => ['held' => 'Held by an open checkout', 'used' => 'Used', 'released' => 'Released'],
 ];

@@ -39,7 +39,11 @@ class ProductCatalog
                     ->orWhereRaw("json_unquote(json_extract(products.name, '$.en')) collate utf8mb4_unicode_ci like ?", [$like]));
             })
             ->with(['image', 'variants' => fn ($variants) => $variants->where('is_active', true)->orderBy('id')])
-            ->orderBy('id')
+            // D209: in-stock first, then admin sort, then newest.
+            ->orderByRaw('case when exists (select 1 from product_variants pv where pv.product_id = products.id and pv.is_active = 1 and pv.stock > 0) then 0 else 1 end')
+            ->orderBy('products.sort')
+            ->orderByDesc('products.created_at')
+            ->orderByDesc('products.id')
             ->paginate($perPage)
             ->withQueryString();
     }

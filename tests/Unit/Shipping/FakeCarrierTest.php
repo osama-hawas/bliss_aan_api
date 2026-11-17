@@ -50,4 +50,16 @@ class FakeCarrierTest extends TestCase
         $this->assertSame('in_transit', $carrier->track($number)->carrierStatus);
         $this->assertSame('unknown', $carrier->track('NOPE')->status);
     }
+
+    public function test_s9b_tracking_maps_the_shipment_status(): void
+    {
+        $carrier = new FakeCarrier;
+        $moving = $carrier->createShipment($this->shipment('SO-1'), 'k1');
+        $done = $carrier->createShipment($this->shipment('SO-2-DELIVER'), 'k2');
+
+        $this->assertSame('in_transit', $moving->shipmentStatus);
+        $this->assertSame('in_transit', $carrier->track($moving->trackingNumber)->shipmentStatus);
+        $this->assertSame('delivered', $carrier->track($done->trackingNumber)->shipmentStatus);
+        $this->assertNull($carrier->track('UNKNOWN')->shipmentStatus);
+    }
 }

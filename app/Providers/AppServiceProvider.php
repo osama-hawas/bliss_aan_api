@@ -12,12 +12,15 @@ use App\Integrations\Shipping\Carrier;
 use App\Integrations\Shipping\FakeCarrier;
 use App\Integrations\Sms\FakeSmsGateway;
 use App\Integrations\Sms\SmsGateway;
+use App\Models\StoreOrder;
 use App\Services\Payments\Handlers\OfferPaymentHandler;
 use App\Services\Payments\PayableRegistry;
 use App\Services\Settings\AppSettings;
+use App\Services\Store\StoreOrderPaymentHandler;
 use App\Support\Phone;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\RateLimiter;
@@ -47,6 +50,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(PayableRegistry::class, function ($app) {
             $registry = new PayableRegistry($app);
             $registry->register(PayableType::Offer, OfferPaymentHandler::class);
+            $registry->register(PayableType::StoreOrder, StoreOrderPaymentHandler::class); // S9b (D214)
 
             return $registry;
         });
@@ -82,6 +86,10 @@ class AppServiceProvider extends ServiceProvider
             Limit::perHour(config('services.sms.rate_limits.request_per_phone_per_hour'))->by('otp-phone:'.$phone($request)),
             Limit::perHour(config('services.sms.rate_limits.request_per_ip_per_hour'))->by('otp-ip:'.$request->ip()),
         ]);
+        // S9b (Slice 9b store orders): the store order is the Slice 10 payable `store_order` (D214); its handler is
+        // registered in the PayableRegistry block above.
+        Relation::morphMap(['store_order' => StoreOrder::class]);
+
         RateLimiter::for('otp-verify', fn (Request $request) => Limit::perMinute(config('services.sms.rate_limits.verify_per_ip_per_minute'))->by('otp-verify:'.$request->ip()));
     }
 }

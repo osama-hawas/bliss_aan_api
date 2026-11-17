@@ -33,4 +33,16 @@ return [
     'refund_requested' => 'Refund started',
     'refund_refunded' => 'Refund completed',
     'refund_failed' => 'Refund failed',
+    // Slice 9b (store orders)
+    'order_placed' => 'Order placed',
+    'order_expired' => 'Payment not completed',
+    'order_confirmed' => 'Order confirmed',
+    'order_preparing' => 'Preparing your order',
+    'order_shipped' => 'On the way',
+    'order_delivered' => 'Delivered',
+    'order_delivery_failed' => 'Delivery attempt failed',
+    'order_cancelled' => 'Order cancelled',
+    'order_refunded' => 'Refunded',
+    'order_partially_refunded' => 'Partially refunded',
+    'order_note' => 'Staff note',
 ];

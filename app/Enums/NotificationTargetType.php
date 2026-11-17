@@ -13,4 +13,5 @@ enum NotificationTargetType: string
     case Conversation = 'conversation';
     case Reviews = 'reviews';
     case ProviderAccount = 'provider_account';
+    case StoreOrder = 'store_order'; // Slice 9b
 }

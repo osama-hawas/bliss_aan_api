@@ -49,6 +49,12 @@ enum ErrorCode: string
     case PaymentMethodInvalid = 'PAYMENT_METHOD_INVALID';
     case RefundAmountExceeded = 'REFUND_AMOUNT_EXCEEDED';
     case InvalidSignature = 'INVALID_SIGNATURE';
+    // Slice 9b — store checkout and orders (slice-9b-contract.md §9).
+    case CartEmpty = 'CART_EMPTY';
+    case CartHasIssues = 'CART_HAS_ISSUES';
+    case PromoCodeInvalid = 'PROMO_CODE_INVALID';
+    case PriceChanged = 'PRICE_CHANGED';
+    case CarrierFailed = 'CARRIER_FAILED';
 
     public function status(): int
     {
@@ -66,6 +72,8 @@ enum ErrorCode: string
             self::PaymentRequired, self::PaymentNotRequired => 409, // Slice 10
             self::PaymentMethodInvalid, self::RefundAmountExceeded => 422, // Slice 10
             self::InvalidSignature => 401, // Slice 10
+            self::CartEmpty, self::PromoCodeInvalid => 422, // Slice 9b
+            self::CartHasIssues, self::PriceChanged, self::CarrierFailed => 409, // Slice 9b
         };
     }
 

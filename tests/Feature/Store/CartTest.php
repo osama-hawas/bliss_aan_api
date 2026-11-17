@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\ProductVariant;
 use App\Models\User;
+use App\Services\Settings\AppSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -165,5 +166,17 @@ class CartTest extends TestCase
         $variant->update(['price' => '11.25']);
 
         $this->actingAsApi($client)->getJson('/api/v1/client/cart')->assertJsonPath('data.subtotal.amount', '22.50');
+    }
+
+    public function test_s9b_a_configured_maximum_per_line_is_a_validation_error(): void
+    {
+        app(AppSettings::class)->set('store.max_qty_per_line', 3);
+        $client = $this->client();
+        $variant = $this->variant(['stock' => 10]);
+
+        $this->actingAsApi($client)->putJson("/api/v1/client/cart/items/{$variant->id}", ['quantity' => 4])
+            ->assertStatus(422)->assertJsonPath('code', 'VALIDATION_FAILED')
+            ->assertJsonPath('errors.quantity.0', __('store.max_quantity', ['max' => 3]));
+        $this->actingAsApi($client)->putJson("/api/v1/client/cart/items/{$variant->id}", ['quantity' => 3])->assertOk();
     }
 }

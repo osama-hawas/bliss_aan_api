@@ -16,3 +16,6 @@ Schedule::command('notifications:prune')->daily()->withoutOverlapping();
 
 // Slice 10: settle open payments, expire unpaid attempts (D191), retry pending fulfilments and refunds.
 Schedule::command('payments:reconcile')->everyMinute()->withoutOverlapping();
+// S9b (Slice 9b store orders): expire unpaid orders; poll the carrier for in-transit shipments.
+Schedule::command('store-orders:expire')->everyFiveMinutes()->withoutOverlapping();
+Schedule::command('shipments:sync')->everyThirtyMinutes()->withoutOverlapping();

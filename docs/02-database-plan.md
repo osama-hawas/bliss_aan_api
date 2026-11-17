@@ -124,16 +124,16 @@ Labels: **[C]** confirmed · **[R]** recommendation · **[?]** open question.
 | Table | Key columns | Stage |
 |---|---|---|
 | `product_categories` | name (ar/en), image, is_active, sort | F (seeded) |
-| `products` | category_id, name, description (ar/en), base_price, is_active, rating_avg (cache) | M |
+| `products` | category_id, name, description (ar/en), base_price, is_active, **sort** (admin order, D209; S9b), rating_avg (cache — not built, D203) | M |
 | `product_variants` | product_id, sku, attributes JSON (size/color), price, **stock**, is_active | M |
-| `carts`, `cart_items` | user_id unique; cart_id, product_variant_id, quantity | M |
-| `promo_codes` | code unique, type (percent/fixed), value, applies_to (products/shipping/services [?]), min_amount, max_discount, usage_limit, per_user_limit, starts_at, ends_at, stackable, is_active | M |
-| `promo_code_usages` | promo_code_id, user_id, store_order_id | M |
-| `store_orders` | reference (SO-…), user_id, status (received/preparing/shipped/delivered/failed/cancelled), delivery_method (carrier/internal) [?], address + recipient snapshot, subtotal, discount, shipping_fee, total, promo snapshot, payment_method, payment_status, idempotency_key unique | M |
-| `store_order_items` | store_order_id, product_variant_id, **name/options/unit_price snapshot**, quantity | M |
-| `shipments` | store_order_id, method (carrier/internal), carrier, tracking_number, tracking_url, status, assigned_admin_id (delivery officer), **request_key unique** | M (status changes D) |
-| `shipment_events` | shipment_id, external_event_id unique, status, occurred_at, raw JSON | M |
-| `returns`, `product_reviews` [?] | Mentioned in BRD but not specified | D |
+| `carts`, `cart_items` | user_id unique; cart_id, product_variant_id, quantity, **added_unit_price** (price when the quantity was last set, for the price-changed notice, D210; S9b) | M |
+| `promo_codes` | code unique (upper-case), type (percent/fixed), value, min_amount, usage_limit, per_user_limit, starts_at, ends_at, is_active, created_by. Store orders only, products subtotal only, one code per order, no cap: `applies_to`, `max_discount`, `stackable` not built (D200, D213; S9b) | M |
+| `promo_code_usages` | promo_code_id, user_id, store_order_id **unique**, status (held/used/released — held + used count against the limits, D212) | M |
+| `store_orders` | reference (SO-…), user_id, status (pending_payment/confirmed/preparing/shipped/delivered/cancelled/expired, D211–D212), address JSON + recipient name/phone snapshot, subtotal, discount, shipping_fee, total, vat_percent, vat_amount (included), promo JSON snapshot, **payment_id unique** (FK Slice 10 `payments`, the confirming payment), unique(user_id, idempotency_key) + fingerprint, confirmed_at, expired_at, cancelled_at, cancel_reason, cancelled_by, delivered_at. Payment method/status read from `payments`; delivery method = the shipment's `method` (S9b) | M |
+| `store_order_items` | store_order_id, product_variant_id, product_id, **name/options/sku/unit_price snapshot**, quantity, line_total | M |
+| `shipments` | store_order_id, method (carrier/internal), carrier, tracking_number, tracking_url, status (pending/in_transit/delivered/failed), assigned_admin_id (delivery officer), **request_key unique**, failure_reason, attempts, created_by, delivered_at (S9b) | M |
+| `shipment_events` | shipment_id, external_event_id unique (`{tracking}:{carrier_status}` or `staff:{uuid}`), status, carrier_status, note, occurred_at, raw JSON, actor_id (S9b) | M |
+| `returns`, `product_reviews` | Out of scope (D203) — not built | — |
 
 ## 9. Content, configuration, notifications, audit
 

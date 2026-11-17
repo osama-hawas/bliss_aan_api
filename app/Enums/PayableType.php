@@ -12,4 +12,5 @@ enum PayableType: string
     use HasLabel;
 
     case Offer = 'offer';
+    case StoreOrder = 'store_order'; // S9b (D214)
 }

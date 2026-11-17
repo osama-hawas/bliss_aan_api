@@ -27,6 +27,10 @@ class AppSettingSeeder extends Seeder
             // Slice 10 (S10).
             'payments.booking_payment_required' => false, // D185: off = D113 (accept confirms at once)
             'payments.intent_ttl_minutes' => 30, // D191: unpaid attempt lifetime (technical timeout)
+            // S9b (Slice 9b store orders): business numbers stay unset until decided.
+            'store.shipping_fee' => null,      // D201: flat fee; null → checkout 409 NOT_CONFIGURED
+            'store.max_qty_per_line' => null,  // D208: null = current stock only
+            'tax.vat_percent' => null,         // D202: prices include VAT; null = no VAT line
         ];
 
         foreach (UploadContext::cases() as $context) {

@@ -295,3 +295,28 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
   `php artisan payments:fake-webhook PY-… succeeded|failed`, `payments:reconcile` every minute.
 - Admin: `admin/payments` (finance.view), `admin/payments/{id}/refunds` (refunds.process), `admin/refunds`.
 - Tests: `Tests\Concerns\BuildsPayments`; `tests/Feature/Payments/*`, `tests/Feature/Database/PaymentLockingTest.php`.
+
+## Store orders (Slice 9b — S9b)
+
+- Contract: `docs/slice-9b-contract.md` rev 2 (D200–D214). Client `routes/api/v1/client/store-orders.php` (preview, checkout,
+  pay, list, show, reorder); admin `routes/api/v1/admin/{promo-codes,store-orders,shipments,deliveries}/` (`products.manage`,
+  `orders.view|update_status`, `delivery.assigned`). Logic in `app/Services/Store/`.
+- Money in integer cents (`StoreMoney`). `CheckoutCalculator` prices her cart with live prices: flagged lines → `409
+  CART_HAS_ISSUES`, `store.shipping_fee` null → `NOT_CONFIGURED`, promo (`PromoCodeCheck`, products subtotal only, one code,
+  `422 PROMO_CODE_INVALID` with one reason), VAT included only when `tax.vat_percent` is set; a 0.00 total is refused.
+- `CheckoutService::create` (Idempotency-Key, fingerprint): lock client → key re-check → expire her other `pending_payment`
+  orders (one open order, promo use released) → cart lines → promo row → `expected_total` check (`PriceChanged` → 409 with
+  the preview in `data`) → snapshot (`SO-` via `StoreOrderReferenceGenerator`) → promo use `held`. Nothing reserved.
+- Paying is the Slice 10 core: `POST client/store-orders/{id}/payments` → `PaymentIntents::create(…, PayableType::StoreOrder, …)`;
+  `StoreOrderPaymentHandler` (quote = unpaid + stock check, fulfil = `StoreOrderLifecycle::confirmPaid`, idempotent on the
+  payment id; stock gone → order cancelled `stock_unavailable` committed, then `OUT_OF_STOCK` → Slice 10 refunds in full;
+  not payable → `INVALID_STATE` → refund). Lock order: order → variants (id asc) → cart lines → promo → payment.
+- `StoreOrderLifecycle`: every order move (history in `activity_events`, client timeline = visibility `all` with `to_status`;
+  staff notes `internal`), notifications E26–E29 (`store_order_*`, target `store_order`), staff cancel restores stock (no live
+  shipment). `ShipmentService`: carrier called outside transactions with `request_key` (= staff Idempotency-Key; `unknown` →
+  `pending` + `RetryShipment` job), internal = assigned officer; delivered / failed (failed → order back to `preparing`);
+  `shipments:sync` polls `Carrier::track()` (`CarrierResult::$shipmentStatus`). `store-orders:expire` uses Slice 10's
+  `payments.intent_ttl_minutes`. `FakeCarrier` keeps its state in the cache store when built by the container.
+- Tests: `Tests\Concerns\BuildsStoreOrders` (`configureStore()`, `referencesEnding('-FAIL'|'-DELIVER')`, `pendingOrder()`,
+  `confirmedOrder()` without the gateway, `bareOrder()`); `tests/Feature/Store/*`, `tests/Feature/Database/StoreOrderLockingTest.php`.
+  `StoreOrderPaymentTest` / `StoreOrderExpiryTest` need the Slice 10 merge.

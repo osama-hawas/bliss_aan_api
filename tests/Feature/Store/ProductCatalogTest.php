@@ -40,6 +40,7 @@ class ProductCatalogTest extends TestCase
     public function test_list_is_public_paginated_and_hides_invisible_products(): void
     {
         $visible = $this->product(['base_price' => '85.50']);
+        $visible->variants()->update(['price' => '70.00']); // S9b (D209): the card shows the variant price
         $this->product(['is_active' => false]);
         $this->product([], ProductCategory::factory()->inactive()->create());
         $noActiveVariant = Product::factory()->create();
@@ -50,7 +51,8 @@ class ProductCatalogTest extends TestCase
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.id', $visible->id)
-            ->assertJsonPath('data.0.price', ['amount' => '85.50', 'currency' => 'SAR'])
+            ->assertJsonPath('data.0.price', ['amount' => '70.00', 'currency' => 'SAR'])
+            ->assertJsonPath('data.0.price_from', false)
             ->assertJsonPath('data.0.in_stock', true)
             ->assertJsonPath('data.0.variants_count', 1)
             ->assertJsonPath('data.0.default_variant_id', $visible->variants()->first()->id)
@@ -141,5 +143,32 @@ class ProductCatalogTest extends TestCase
         foreach (['client', 'provider'] as $type) {
             $this->actingAsApi(User::factory()->{$type}()->create())->getJson('/api/v1/shared/store/products')->assertOk()->assertJsonCount(1, 'data');
         }
+    }
+
+    public function test_s9b_sort_in_stock_first_then_admin_sort_then_newest(): void
+    {
+        $soldOut = Product::factory()->create(['sort' => 0]);
+        ProductVariant::factory()->stock(0)->create(['product_id' => $soldOut->id]);
+        $second = $this->product(['sort' => 2]);
+        $firstOld = $this->product(['sort' => 1, 'created_at' => now()->subDay()]);
+        $firstNew = $this->product(['sort' => 1, 'created_at' => now()]);
+
+        $ids = $this->getJson('/api/v1/shared/store/products')->assertOk()->json('data.*.id');
+        $this->assertSame([$firstNew->id, $firstOld->id, $second->id, $soldOut->id], $ids);
+    }
+
+    public function test_s9b_card_price_is_from_the_lowest_active_variant(): void
+    {
+        $product = Product::factory()->create(['base_price' => '1.00']);
+        ProductVariant::factory()->create(['product_id' => $product->id, 'price' => '30.00']);
+        ProductVariant::factory()->create(['product_id' => $product->id, 'price' => '25.50']);
+        ProductVariant::factory()->inactive()->create(['product_id' => $product->id, 'price' => '5.00']);
+
+        $this->getJson('/api/v1/shared/store/products')->assertOk()
+            ->assertJsonPath('data.0.price.amount', '25.50')
+            ->assertJsonPath('data.0.price_from', true);
+        $this->getJson("/api/v1/shared/store/products/{$product->id}")->assertOk()
+            ->assertJsonPath('data.price.amount', '25.50')
+            ->assertJsonPath('data.price_from', true);
     }
 }
