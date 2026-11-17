@@ -169,14 +169,15 @@ class OtpService
     }
 
     /**
-     * D31: a fixed code for local development only, so testers need not read the SMS log.
-     * Ignored outside APP_ENV=local or when it does not match `otp.length` digits.
+     * D31: a fixed code for local development and the staging test server (orchestrator decision 2026-11-17, owner asked
+     * for 1111 on the test build), so testers need not receive an SMS. Never in production or any other environment, and
+     * ignored when it does not match `otp.length` digits.
      */
     private function fixedCode(int $length): ?string
     {
         $code = (string) config('services.sms.fixed_otp');
 
-        return app()->environment('local') && preg_match('/^\d{'.$length.'}$/', $code) ? $code : null;
+        return app()->environment(['local', 'staging']) && preg_match('/^\d{'.$length.'}$/', $code) ? $code : null;
     }
 
     private function pending(string $phone, OtpPurpose $purpose)

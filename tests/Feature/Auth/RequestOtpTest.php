@@ -35,7 +35,7 @@ class RequestOtpTest extends TestCase
         $this->assertDatabaseHas('otp_codes', ['phone' => '+966512345678', 'purpose' => 'login', 'consumed_at' => null]);
     }
 
-    public function test_fixed_dev_code_applies_only_in_local(): void
+    public function test_fixed_dev_code_applies_only_in_local_and_staging(): void
     {
         config(['services.sms.fixed_otp' => '1111']);
 
@@ -48,6 +48,18 @@ class RequestOtpTest extends TestCase
 
         $this->postJson(self::URL, ['phone' => '+966512345678', 'purpose' => 'register', 'app' => 'client'])->assertOk();
         $this->assertSame('1111', $this->lastSentCode());
+
+        // The staging test server uses it too.
+        $this->app['env'] = 'staging';
+        $this->travel(61)->seconds();
+        $this->postJson(self::URL, ['phone' => '+966512345679', 'purpose' => 'register', 'app' => 'client'])->assertOk();
+        $this->assertSame('1111', $this->lastSentCode());
+
+        // Production never does, even when OTP_FIXED_CODE is set by mistake.
+        $this->app['env'] = 'production';
+        $this->travel(61)->seconds();
+        $this->postJson(self::URL, ['phone' => '+966512345670', 'purpose' => 'register', 'app' => 'client'])->assertOk();
+        $this->assertNotSame('1111', $this->lastSentCode());
     }
 
     public function test_register_code_is_sent_for_a_new_phone_in_the_requested_language(): void
