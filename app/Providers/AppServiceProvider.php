@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Enums\PayableType;
 use App\Integrations\Payments\FakePaymentGateway;
 use App\Integrations\Payments\PaymentGateway;
 use App\Integrations\Push\FakePushNotifier;
@@ -11,6 +12,8 @@ use App\Integrations\Shipping\Carrier;
 use App\Integrations\Shipping\FakeCarrier;
 use App\Integrations\Sms\FakeSmsGateway;
 use App\Integrations\Sms\SmsGateway;
+use App\Services\Payments\Handlers\OfferPaymentHandler;
+use App\Services\Payments\PayableRegistry;
 use App\Services\Settings\AppSettings;
 use App\Support\Phone;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -39,6 +42,14 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(AppSettings::class);
+
+        // Slice 10 (D190): one PayableHandler per payable type. S9b appends its store-order handler in this block.
+        $this->app->singleton(PayableRegistry::class, function ($app) {
+            $registry = new PayableRegistry($app);
+            $registry->register(PayableType::Offer, OfferPaymentHandler::class);
+
+            return $registry;
+        });
 
         foreach (self::DRIVERS as $contract => [$configKey, $drivers]) {
             $this->app->singleton($contract, function ($app) use ($contract, $configKey, $drivers) {

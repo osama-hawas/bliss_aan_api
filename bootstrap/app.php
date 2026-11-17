@@ -12,6 +12,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Routing\Middleware\ValidateSignature;
+use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Middleware\PermissionMiddleware;
 use Spatie\Permission\Middleware\RoleMiddleware;
 
@@ -21,6 +22,10 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
+        // Slice 10 (D189): payment webhooks outside /api/v1, in the stateless api middleware group.
+        then: function () {
+            Route::middleware('api')->group(base_path('routes/webhooks.php'));
+        },
     )
     ->withBroadcasting(
         __DIR__.'/../routes/channels.php',
@@ -53,7 +58,7 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request, Throwable $e) => $request->is('api/*') || $request->expectsJson()
+            fn (Request $request, Throwable $e) => $request->is('api/*') || $request->is('webhooks/payments/*') || $request->expectsJson() // webhooks: Slice 10
         );
 
         $exceptions->render(new ApiExceptionRenderer);

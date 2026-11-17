@@ -35,4 +35,25 @@ final class Money
 
         return ['amount' => self::normalize($amount), 'currency' => config('app.currency')];
     }
+
+    /**
+     * Slice 10: integer cents for calculations ("5500.50" → 550050). Never floats.
+     */
+    public static function toCents(string|int $amount): int
+    {
+        $normalized = self::normalize($amount);
+        $negative = str_starts_with($normalized, '-');
+        [$whole, $fraction] = explode('.', ltrim($normalized, '-'));
+        $cents = ((int) $whole) * 100 + (int) $fraction;
+
+        return $negative ? -$cents : $cents;
+    }
+
+    public static function fromCents(int $cents): string
+    {
+        $sign = $cents < 0 ? '-' : '';
+        $cents = abs($cents);
+
+        return $sign.intdiv($cents, 100).'.'.str_pad((string) ($cents % 100), 2, '0', STR_PAD_LEFT);
+    }
 }

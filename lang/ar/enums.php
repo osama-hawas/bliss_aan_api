@@ -73,7 +73,7 @@ return [
     'review_tag' => ['punctuality' => 'الالتزام بالموعد', 'service_quality' => 'جودة الخدمة', 'friendly' => 'حسن التعامل', 'matches_quote' => 'مطابقة للعرض', 'clean_organized' => 'النظافة والترتيب'],
     'report_reason' => ['abusive' => 'مسيء أو جارح', 'spam' => 'رسائل مزعجة', 'false_info' => 'معلومات غير صحيحة', 'privacy' => 'يكشف تفاصيل خاصة', 'other' => 'سبب آخر'],
     'content_report_status' => ['open' => 'مفتوح', 'handled' => 'تمت المعالجة'],
-    'booking_payment_status' => ['not_required' => 'لا يتطلب دفعًا'],
+    'booking_payment_status' => ['not_required' => 'لا يتطلب دفعًا', 'paid' => 'مدفوع', 'partially_refunded' => 'مسترد جزئيًا', 'refunded' => 'مسترد'],
     'wallet_status' => ['active' => 'نشطة', 'closed' => 'مغلقة'],
     'conversation_status' => ['active' => 'نشطة', 'read_only' => 'للقراءة فقط'],
     'message_type' => ['text' => 'نص', 'image' => 'صورة', 'file' => 'ملف', 'voice' => 'رسالة صوتية', 'offer_card' => 'عرض', 'system' => 'النظام'],
@@ -85,4 +85,13 @@ return [
     // Slice 12b (support tickets)
     'ticket_status' => ['open' => 'مفتوحة', 'in_progress' => 'قيد المعالجة', 'waiting' => 'بانتظار ردّك', 'resolved' => 'تم الحل', 'closed' => 'مغلقة'],
     'ticket_topic' => ['service_quality' => 'جودة الخدمة', 'late_arrival' => 'تأخر الوصول', 'payment' => 'الدفع', 'cancellation' => 'الإلغاء', 'account' => 'الحساب', 'other' => 'أخرى'],
+    // Slice 10 (payments).
+    'payable_type' => ['offer' => 'عرض حجز'],
+    'payment_status' => ['pending' => 'قيد المعالجة', 'requires_action' => 'بانتظار التأكيد', 'succeeded' => 'مدفوع', 'failed' => 'فشل', 'cancelled' => 'ملغى', 'unknown' => 'قيد التحقق'],
+    'payment_method_type' => ['card' => 'بطاقة', 'apple_pay' => 'Apple Pay'],
+    'payment_purpose' => ['full' => 'دفع كامل', 'store' => 'طلب متجر'],
+    'fulfilment_status' => ['not_applicable' => 'لا ينطبق', 'pending' => 'قيد الإتمام', 'fulfilled' => 'تم', 'failed' => 'تعذّر الإتمام'],
+    'refund_status' => ['in_progress' => 'قيد التنفيذ', 'refunded' => 'تم الاسترداد', 'failed' => 'فشل'],
+    'refund_kind' => ['acceptance_failed' => 'تعذّر تأكيد الحجز', 'superseded_attempt' => 'محاولة دفع مستبدلة', 'staff' => 'بواسطة الفريق'],
+    'payment_refund_state' => ['none' => 'لم يُسترد', 'in_progress' => 'الاسترداد قيد التنفيذ', 'partial' => 'مسترد جزئيًا', 'full' => 'مسترد بالكامل'],
 ];

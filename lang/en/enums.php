@@ -73,7 +73,7 @@ return [
     'review_tag' => ['punctuality' => 'Punctuality', 'service_quality' => 'Service quality', 'friendly' => 'Friendly service', 'matches_quote' => 'Matches the quote', 'clean_organized' => 'Clean and organized'],
     'report_reason' => ['abusive' => 'Abusive or offensive', 'spam' => 'Spam', 'false_info' => 'False information', 'privacy' => 'Shares private details', 'other' => 'Something else'],
     'content_report_status' => ['open' => 'Open', 'handled' => 'Handled'],
-    'booking_payment_status' => ['not_required' => 'No payment required'],
+    'booking_payment_status' => ['not_required' => 'No payment required', 'paid' => 'Paid', 'partially_refunded' => 'Partially refunded', 'refunded' => 'Refunded'],
     'wallet_status' => ['active' => 'Active', 'closed' => 'Closed'],
     'conversation_status' => ['active' => 'Active', 'read_only' => 'Read only'],
     'message_type' => ['text' => 'Text', 'image' => 'Image', 'file' => 'File', 'voice' => 'Voice note', 'offer_card' => 'Offer', 'system' => 'System'],
@@ -85,4 +85,13 @@ return [
     // Slice 12b (support tickets)
     'ticket_status' => ['open' => 'Open', 'in_progress' => 'In progress', 'waiting' => 'Waiting for your reply', 'resolved' => 'Resolved', 'closed' => 'Closed'],
     'ticket_topic' => ['service_quality' => 'Service quality', 'late_arrival' => 'Late arrival', 'payment' => 'Payment', 'cancellation' => 'Cancellation', 'account' => 'Account', 'other' => 'Other'],
+    // Slice 10 (payments).
+    'payable_type' => ['offer' => 'Booking offer'],
+    'payment_status' => ['pending' => 'Processing', 'requires_action' => 'Waiting for confirmation', 'succeeded' => 'Paid', 'failed' => 'Failed', 'cancelled' => 'Cancelled', 'unknown' => 'Being checked'],
+    'payment_method_type' => ['card' => 'Card', 'apple_pay' => 'Apple Pay'],
+    'payment_purpose' => ['full' => 'Full payment', 'store' => 'Store order'],
+    'fulfilment_status' => ['not_applicable' => 'Not applicable', 'pending' => 'Pending', 'fulfilled' => 'Completed', 'failed' => 'Could not be completed'],
+    'refund_status' => ['in_progress' => 'In progress', 'refunded' => 'Refunded', 'failed' => 'Failed'],
+    'refund_kind' => ['acceptance_failed' => 'Booking could not be confirmed', 'superseded_attempt' => 'Replaced payment attempt', 'staff' => 'By staff'],
+    'payment_refund_state' => ['none' => 'Not refunded', 'in_progress' => 'Refund in progress', 'partial' => 'Partially refunded', 'full' => 'Fully refunded'],
 ];

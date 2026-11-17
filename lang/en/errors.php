@@ -48,4 +48,11 @@ return [
     'staff_escalation' => 'You cannot grant permissions you do not hold, or manage super admins.',
     // Slice 12a (S12a).
     'DELETION_PENDING' => 'You already have an account deletion request under review.',
+    // Slice 10 (payments).
+    'PAYMENT_REQUIRED' => 'This offer must be paid before the booking is confirmed.',
+    'PAYMENT_NOT_REQUIRED' => 'This offer does not need a payment. Accept it directly.',
+    'PAYMENT_METHOD_INVALID' => 'This payment method cannot be used. Check the card details or use another card.',
+    'REFUND_AMOUNT_EXCEEDED' => 'The refund is more than the amount left to refund on this payment.',
+    'INVALID_SIGNATURE' => 'The webhook signature is not valid.',
+    'payment_not_refundable' => 'Only a successful payment can be refunded.',
 ];

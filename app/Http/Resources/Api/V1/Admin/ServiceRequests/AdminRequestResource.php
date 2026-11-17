@@ -11,6 +11,7 @@ use App\Models\Offer;
 use App\Models\ServiceRequest;
 use App\Models\ServiceRequestRecipient;
 use App\Services\ServiceRequests\RequestAttachments;
+use App\Support\Money;
 use Illuminate\Http\Request;
 
 /**
@@ -76,6 +77,19 @@ class AdminRequestResource extends ClientRequestResource
             'provider' => ['id' => $r->booking->provider_id, 'display_name' => $r->booking->provider?->display_name],
             'client' => ['id' => $r->client_id, 'name' => $r->client?->name],
             'policy_version_id' => $r->booking->policy_version_id,
+            // Slice 10: payment summary with a link to the finance page.
+            'payment' => $r->booking->payment ? [
+                'id' => $r->booking->payment->id,
+                'reference' => $r->booking->payment->reference,
+                'status' => $r->booking->payment->status->value,
+                'status_label' => $r->booking->payment->status->label(),
+                'amount' => $this->money($r->booking->payment->amount),
+                'refund' => [
+                    'status' => $r->booking->payment->refundState()->value,
+                    'status_label' => $r->booking->payment->refundState()->label(),
+                    'refunded_amount' => $this->money(Money::fromCents($r->booking->payment->settledRefundCents())),
+                ],
+            ] : null,
             // Slice 6: execution, every cancellation request with the decision trail, and the review (read-only).
             'started_at' => $this->dateTime($r->booking->started_at),
             'started_by' => $r->booking->startedBy ? ['id' => $r->booking->started_by, 'name' => $r->booking->startedBy->name] : null,

@@ -275,3 +275,23 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
   `client_uuid` under the ticket row lock; her reply: `resolved → open`, `waiting → in_progress`, `closed` → 409 (D160).
   Staff are shown only as "Bliss aan support"; internal messages and `assigned_to` never reach mobile (D161).
   No admin endpoints (Slice 17). Tests: `tests/Feature/Support/*`, `tests/Feature/Database/TicketReplyLockingTest.php`.
+
+## Payments (Slice 10)
+
+- Contract: `docs/slice-10-contract.md` rev 2 (D185–D194). Services in `app/Services/Payments/`: `PaymentIntents::create(payer,
+  PayableType, payable, PaymentInstrument, key)` (replay → handler `quote()` pre-check → insert `pending` under the payer lock,
+  older open attempts on the same payable cancelled → gateway charge **outside** any transaction, key `payment:{id}` →
+  `PaymentStateMachine::apply` → `settle()` = fulfil or refund a late success), `refresh()` / `expire()`; `PaymentStateMachine` is
+  the only writer of `payments.status` (forward-only); `PaymentFulfilment` (handler `fulfil()`; ApiException ⇒ full automatic refund);
+  `PaymentRefunds` (reserve under handler locks → payment lock, gateway outside, `RefundStateMachine` settles);
+  `SavedPaymentMethods` (tokens only, encrypted); `PaymentWebhooks` (signature, `(gateway, event_id)` unique); `PaymentQueries`.
+- One `PayableHandler` per `PayableType`, registered in `AppServiceProvider` (`PayableRegistry`): `Handlers\OfferPaymentHandler`
+  (pay first, then `OfferAcceptor::accept(..., 'payment:{id}', $payment)`; `precheck()` before charging). S9b adds `store_order`.
+- Flag `payments.booking_payment_required` (default false = D113: accept confirms at once; on → accept answers `409
+  PAYMENT_REQUIRED`). `payments.intent_ttl_minutes` = 30 (D191). After-commit events in `App\Events\Payments`.
+- Gateway: `App\Integrations\Payments\PaymentGateway` v2, `FakePaymentGateway` (state in the cache store; test tokens
+  `tok_fake_<brand>_<last4>_<mmyy>`, last4 0002/9995/3155/0119/0051; `tok_fake_applepay`). Webhooks `POST /webhooks/payments/{gateway}`
+  (`routes/webhooks.php`, `PAYMENT_WEBHOOK_SECRET`), fake 3-D Secure page `/webhooks/payments/fake/checkout/{ref}` (local/testing),
+  `php artisan payments:fake-webhook PY-… succeeded|failed`, `payments:reconcile` every minute.
+- Admin: `admin/payments` (finance.view), `admin/payments/{id}/refunds` (refunds.process), `admin/refunds`.
+- Tests: `Tests\Concerns\BuildsPayments`; `tests/Feature/Payments/*`, `tests/Feature/Database/PaymentLockingTest.php`.

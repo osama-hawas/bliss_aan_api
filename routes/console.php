@@ -13,3 +13,6 @@ Schedule::command('offers:expire')->everyFiveMinutes()->withoutOverlapping();
 
 // Slice 8 (D136): delete read notifications older than 180 days.
 Schedule::command('notifications:prune')->daily()->withoutOverlapping();
+
+// Slice 10: settle open payments, expire unpaid attempts (D191), retry pending fulfilments and refunds.
+Schedule::command('payments:reconcile')->everyMinute()->withoutOverlapping();

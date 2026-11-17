@@ -51,6 +51,8 @@ return [
 
     'payments' => [
         'driver' => env('PAYMENT_DRIVER', 'fake'),
+        // Slice 10 (D189): webhook signing secret. Webhooks are refused (401) while it is empty.
+        'webhook_secret' => env('PAYMENT_WEBHOOK_SECRET'),
     ],
 
     'shipping' => [

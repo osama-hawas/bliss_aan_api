@@ -21,4 +21,16 @@ return [
     // Slice 12b
     'ticket_opened' => 'Support ticket opened',
     'ticket_replied' => 'Reply sent to support',
+    // Slice 10 (payments, dashboard history).
+    'payment_pending' => 'Payment processing',
+    'payment_requires_action' => 'Waiting for bank confirmation',
+    'payment_succeeded' => 'Payment succeeded',
+    'payment_failed' => 'Payment failed',
+    'payment_cancelled' => 'Payment attempt cancelled',
+    'payment_unknown' => 'Payment result being checked',
+    'payment_fulfilment_fulfilled' => 'Booking confirmed after payment',
+    'payment_fulfilment_failed' => 'Booking could not be confirmed after payment',
+    'refund_requested' => 'Refund started',
+    'refund_refunded' => 'Refund completed',
+    'refund_failed' => 'Refund failed',
 ];

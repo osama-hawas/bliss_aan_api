@@ -21,4 +21,16 @@ return [
     // Slice 12b
     'ticket_opened' => 'فُتحت تذكرة دعم',
     'ticket_replied' => 'أُرسل رد إلى الدعم',
+    // Slice 10 (payments, dashboard history).
+    'payment_pending' => 'الدفع قيد المعالجة',
+    'payment_requires_action' => 'بانتظار تأكيد البنك',
+    'payment_succeeded' => 'تم الدفع بنجاح',
+    'payment_failed' => 'فشل الدفع',
+    'payment_cancelled' => 'أُلغيت محاولة الدفع',
+    'payment_unknown' => 'جارٍ التحقق من نتيجة الدفع',
+    'payment_fulfilment_fulfilled' => 'تم تأكيد الحجز بعد الدفع',
+    'payment_fulfilment_failed' => 'تعذّر تأكيد الحجز بعد الدفع',
+    'refund_requested' => 'بدأ الاسترداد',
+    'refund_refunded' => 'اكتمل الاسترداد',
+    'refund_failed' => 'فشل الاسترداد',
 ];
