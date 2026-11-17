@@ -275,3 +275,20 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
   `client_uuid` under the ticket row lock; her reply: `resolved → open`, `waiting → in_progress`, `closed` → 409 (D160).
   Staff are shown only as "Bliss aan support"; internal messages and `assigned_to` never reach mobile (D161).
   No admin endpoints (Slice 17). Tests: `tests/Feature/Support/*`, `tests/Feature/Database/TicketReplyLockingTest.php`.
+
+## Provider team (Slice 13, S13)
+
+- Contract: `docs/slice-13-contract.md` rev 2 (D230–D237). Members are records only and never log in (D230); packages and
+  occasion tags are not built (D231). Routes `routes/api/v1/provider/team.php`; every endpoint calls
+  `ProviderSetup::activeProvider()` first and scopes lookups to her provider (foreign id → 404).
+- `Services\Team\TeamMembers` (list active first, create, partial update; disable / enable writes provider-only history on
+  the member; no delete) and `Services\Team\BookingTeam::set()` (PUT semantics; `BookingLocks` order request → booking,
+  then member rows; booking `confirmed` / `in_progress` only → else 409 INVALID_STATE (D232); a disabled member may stay
+  but is never newly added → 422 `member_ids.N` (D233); history `team_member_assigned` / `_unassigned` on the **booking**,
+  visibility `provider`, so it never reaches request history, the client or the dashboard).
+- Photo: upload context `team_photo` (private, providers only, `uploads.team_photo` null outside local, D235), attached as
+  media collection `ProviderTeamMember::PHOTO`; resources hand out signed URLs (`DescribesTeamMember`).
+- `ProviderBookingResource` (list, detail, calendar) adds `team` and `actions.can_assign_team`; load `team.photo`
+  (`BookingQueries::PROVIDER_WITH`, `AvailabilityBlocks::calendar`). Client and admin resources never carry it.
+- Tests: `Tests\Concerns\BuildsTeam` (`teamMember()`, `disabledMember()`, `photo()`, `setTeam()`);
+  `tests/Feature/Team/{TeamMembers,BookingTeam}Test.php`, `tests/Feature/Database/BookingTeamLockingTest.php`.

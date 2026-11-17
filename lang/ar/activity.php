@@ -21,4 +21,9 @@ return [
     // Slice 12b
     'ticket_opened' => 'فُتحت تذكرة دعم',
     'ticket_replied' => 'أُرسل رد إلى الدعم',
+    // Slice 13 (provider only)
+    'team_member_assigned' => 'أُسندت عضوة فريق',
+    'team_member_unassigned' => 'أُزيلت عضوة فريق',
+    'team_member_disabled' => 'أُوقفت عضوة فريق',
+    'team_member_enabled' => 'فُعّلت عضوة فريق',
 ];

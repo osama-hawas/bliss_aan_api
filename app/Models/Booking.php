@@ -9,6 +9,7 @@ use App\Enums\ExecutionPlace;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
@@ -100,5 +101,20 @@ class Booking extends Model
     public function pendingCancellation(): ?CancellationRequest
     {
         return $this->cancellationRequests->firstWhere('status', CancellationStatus::UnderReview);
+    }
+
+    // --- Slice 13 (S13): the provider's team on this booking (D230), provider only. ---
+
+    public function team(): BelongsToMany
+    {
+        return $this->belongsToMany(ProviderTeamMember::class, 'booking_assignments', 'booking_id', 'team_member_id')
+            ->withTimestamps()
+            ->orderBy('booking_assignments.created_at')
+            ->orderBy('provider_team_members.id');
+    }
+
+    public function assignments(): HasMany
+    {
+        return $this->hasMany(BookingAssignment::class);
     }
 }

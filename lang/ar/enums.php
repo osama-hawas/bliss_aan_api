@@ -42,6 +42,7 @@ return [
         'banner' => 'بانر',
         'avatar' => 'الصورة الشخصية',
         'request_attachment' => 'مرفق الطلب',
+        'team_photo' => 'صورة عضوة الفريق',
     ],
     'provider_account_type' => ['individual' => 'فرد', 'establishment' => 'منشأة'],
     'provider_status' => [
@@ -85,4 +86,6 @@ return [
     // Slice 12b (support tickets)
     'ticket_status' => ['open' => 'مفتوحة', 'in_progress' => 'قيد المعالجة', 'waiting' => 'بانتظار ردّك', 'resolved' => 'تم الحل', 'closed' => 'مغلقة'],
     'ticket_topic' => ['service_quality' => 'جودة الخدمة', 'late_arrival' => 'تأخر الوصول', 'payment' => 'الدفع', 'cancellation' => 'الإلغاء', 'account' => 'الحساب', 'other' => 'أخرى'],
+    // Slice 13 (S13): provider team (D230).
+    'team_member_status' => ['active' => 'نشطة', 'disabled' => 'موقوفة'],
 ];

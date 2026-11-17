@@ -42,6 +42,7 @@ return [
         'banner' => 'Banner',
         'avatar' => 'Profile photo',
         'request_attachment' => 'Request attachment',
+        'team_photo' => 'Team member photo',
     ],
     'provider_account_type' => ['individual' => 'Individual', 'establishment' => 'Establishment'],
     'provider_status' => [
@@ -85,4 +86,6 @@ return [
     // Slice 12b (support tickets)
     'ticket_status' => ['open' => 'Open', 'in_progress' => 'In progress', 'waiting' => 'Waiting for your reply', 'resolved' => 'Resolved', 'closed' => 'Closed'],
     'ticket_topic' => ['service_quality' => 'Service quality', 'late_arrival' => 'Late arrival', 'payment' => 'Payment', 'cancellation' => 'Cancellation', 'account' => 'Account', 'other' => 'Other'],
+    // Slice 13 (S13): provider team (D230).
+    'team_member_status' => ['active' => 'Active', 'disabled' => 'Disabled'],
 ];

@@ -21,4 +21,9 @@ return [
     // Slice 12b
     'ticket_opened' => 'Support ticket opened',
     'ticket_replied' => 'Reply sent to support',
+    // Slice 13 (provider only)
+    'team_member_assigned' => 'Team member assigned',
+    'team_member_unassigned' => 'Team member removed',
+    'team_member_disabled' => 'Team member disabled',
+    'team_member_enabled' => 'Team member enabled',
 ];

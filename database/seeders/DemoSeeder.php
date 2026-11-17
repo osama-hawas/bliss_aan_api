@@ -7,6 +7,7 @@ use App\Enums\Audience;
 use App\Enums\MediaVisibility;
 use App\Enums\ProviderAccountType;
 use App\Enums\ProviderStatus;
+use App\Enums\TeamMemberStatus;
 use App\Enums\UploadContext;
 use App\Enums\UserType;
 use App\Models\Addon;
@@ -223,6 +224,15 @@ class DemoSeeder extends Seeder
                     $offered->filter(fn ($providerService) => $providerService->service->addons->contains('id', $addonId))->pluck('id'),
                 );
             }
+
+            // Slice 13 (S13): a small [DEMO] team for the first providers; one member disabled, no photos or assignments.
+            if ($i < 2) {
+                $provider->teamMembers()->createMany([
+                    ['name' => '[DEMO] ريم', 'title' => 'مساعدة تصوير', 'phone' => '+966511111101'],
+                    ['name' => '[DEMO] لمى', 'title' => 'منسقة', 'phone' => null],
+                    ['name' => '[DEMO] دانة', 'title' => 'مساعدة', 'status' => TeamMemberStatus::Disabled, 'disabled_at' => now()],
+                ]);
+            }
         }
 
         $featured = Provider::query()->where('is_featured', true)->orderBy('id')->first();
@@ -317,6 +327,7 @@ class DemoSeeder extends Seeder
             UploadContext::Avatar->value => $image,
             // Proposed, not approved (D53): local only so the request flow can be tried.
             UploadContext::RequestAttachment->value => ['mimes' => ['jpg', 'jpeg', 'png', 'webp', 'heic', 'pdf'], 'max_kb' => 10240],
+            UploadContext::TeamPhoto->value => $image, // Slice 13 (D235)
         ];
 
         foreach ($limits as $context => $value) {
