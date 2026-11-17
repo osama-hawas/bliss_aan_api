@@ -111,3 +111,17 @@ languages; `status` `visible|hidden` (+ banners `window`: `running|scheduled|end
 
 `tests/Feature/Admin/Content/{Banners,PagesAndFaqs,Broadcasts}Test.php`, `tests/Feature/Admin/Settings/{AppSettingsEditor,
 ReferenceData}Test.php`, `tests/Feature/Database/BroadcastSendLockingTest.php`; dashboard `e2e/content-config-live.spec.ts`.
+
+## 7. Revision 2 — review fixes (2026-11-17)
+
+| Finding | Change |
+|---|---|
+| H1 | `SettingCatalog::CONSTRAINTS`: `otp.expiry_seconds`, `otp.max_attempts`, `otp.resend_cooldown_seconds` are never `null` and ≥ 1 (OtpService reads them with `required()`); `payments.intent_ttl_minutes` ≥ 1 but `null` allowed (D191: never expire); `requests.max_attachments` ≥ 1 or `null`. A refused value is `422` on `value`. `GET admin/settings/app` adds `nullable` and `min` per row. |
+| M2 | `store.low_stock_threshold` (S18, D278) added as Integer. |
+| M3 | `broadcasts:dispatch-due` also re-dispatches campaigns still `sending` after `BroadcastCampaigns::STALE_SENDING_MINUTES` (15), touching `updated_at` so each is retried once per period; safe because delivery dedupes on `broadcast:{id}`. `SendBroadcastCampaign::failed()` logs. |
+| M4 | `send()` checks both languages before counting recipients (`TRANSLATION_MISSING` before `NO_RECIPIENTS`). |
+| M5 | Policy `effective_from` given as a date (`YYYY-MM-DD`) = start of that Riyadh day and may be today; a date-time must not be more than a minute in the past. |
+| L6 | Dashboard send/schedule menu items follow `actions.can_send` / `can_schedule`. |
+| L7 | `recipients_count` is the audience confirmed when sending starts. The job walks the live audience when it runs, so users who join or leave the audience in between are included or skipped (by design; no recipient snapshot table). |
+| L8 | A unique-key race between two first publishes of a policy type answers `409 INVALID_STATE`, not 500. |
+| L9 | `shared/home?city_id=` with an unknown or stopped city is treated as no city (all-cities content) instead of `422`. The Flutter home already only selects active cities. |

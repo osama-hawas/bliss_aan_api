@@ -26,6 +26,8 @@ return [
     ],
     'settings' => [
         'invalid' => [
+            'required' => 'This setting is needed to sign in, so it cannot be left empty.',
+            'min' => 'Enter :min or more.',
             'integer' => 'Enter a whole number of 0 or more.',
             'decimal' => 'Enter a number of 0 or more with up to 2 decimals.',
             'percent' => 'Enter a percentage between 0 and 100 with up to 2 decimals.',
@@ -35,6 +37,7 @@ return [
             'upload_limits' => 'Give at least one file type and a maximum size in KB.',
         ],
         'keys' => [
+            'store__low_stock_threshold' => 'Low stock level',
             'otp__length' => 'Verification code length',
             'otp__expiry_seconds' => 'Verification code lifetime',
             'otp__max_attempts' => 'Verification attempts',

@@ -28,6 +28,8 @@ class AdminAppSettingResource extends JsonResource
             'unit' => $row['unit'],
             'decision' => $row['decision'],
             'fixed' => $row['fixed'],
+            'nullable' => $row['nullable'], // false: can never go back to "not configured" (review H1)
+            'min' => $row['min'],
             'value' => $row['value'],
             'is_configured' => $row['is_configured'],
             'updated_at' => $this->dateTime($row['updated_at']),

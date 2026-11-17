@@ -10,6 +10,7 @@ use App\Models\PolicyVersion;
 use App\Models\User;
 use App\Services\Settings\PolicyResolver;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\Concerns\BuildsCatalog;
 use Tests\Concerns\BuildsContent;
 use Tests\TestCase;
@@ -87,5 +88,27 @@ class ReferenceDataTest extends TestCase
             ->assertJsonCount(2, 'data')->assertJsonPath('data.0.version', 2)->assertJsonPath('data.1.is_current', true);
         $this->assertSame(2, PolicyVersion::query()->count());
         $this->actingAsApi($admin)->putJson(self::POLICIES.'/1', $body)->assertStatus(405);
+    }
+
+    public function test_a_policy_dated_today_in_riyadh_is_accepted(): void
+    {
+        $admin = $this->admin();
+        // Frozen in UTC: a frozen clock in another zone becomes Carbon's default zone and shifts DB reads.
+        $this->travelTo(Carbon::parse('2026-12-01 01:30', 'Asia/Riyadh')->utc()); // still 2026-11-30 in UTC
+        $body = ['type' => 'terms', 'values' => [], 'reason' => 'today'];
+
+        $this->actingAsApi($admin)->postJson(self::POLICIES, [...$body, 'effective_from' => '2026-12-01'])->assertCreated()
+            ->assertJsonPath('data.effective_from', '2026-11-30T21:00:00Z')->assertJsonPath('data.is_current', true);
+        $this->actingAsApi($admin)->postJson(self::POLICIES, [...$body, 'effective_from' => '2026-11-30'])->assertUnprocessable()->assertJsonValidationErrors('effective_from');
+    }
+
+    public function test_home_ignores_a_stopped_city(): void
+    {
+        $admin = $this->admin();
+        $riyadh = $this->city();
+        $this->actingAsApi($admin)->postJson(self::CITIES."/{$riyadh->id}/stop", ['reason' => 'paused'])->assertOk();
+
+        $this->getJson('/api/v1/shared/home?city_id='.$riyadh->id)->assertOk()->assertJsonStructure(['data' => ['banners', 'categories', 'featured_providers']]);
+        $this->getJson('/api/v1/shared/home?city_id=999999')->assertOk();
     }
 }

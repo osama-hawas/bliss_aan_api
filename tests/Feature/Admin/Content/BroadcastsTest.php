@@ -11,6 +11,7 @@ use App\Jobs\SendBroadcastCampaign;
 use App\Models\BroadcastCampaign;
 use App\Models\NotificationPreference;
 use App\Models\User;
+use App\Services\Content\BroadcastCampaigns;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
 use Tests\Concerns\BuildsCatalog;
@@ -121,5 +122,25 @@ class BroadcastsTest extends TestCase
     public function test_broadcasts_need_notifications_broadcast(): void
     {
         $this->actingAsApi($this->admin(AdminRole::StoreContentOfficer))->getJson(self::URL)->assertForbidden();
+    }
+
+    public function test_a_campaign_stuck_in_sending_is_dispatched_again(): void
+    {
+        Bus::fake();
+        $admin = $this->admin();
+        User::factory()->client()->create();
+        $id = $this->draft($admin);
+        $this->actingAsApi($admin)->postJson(self::URL."/{$id}/send", ['expected_count' => 1])->assertOk();
+        Bus::assertDispatchedTimes(SendBroadcastCampaign::class, 1);
+
+        $this->artisan('broadcasts:dispatch-due')->assertSuccessful(); // not stale yet
+        Bus::assertDispatchedTimes(SendBroadcastCampaign::class, 1);
+
+        $this->travel(BroadcastCampaigns::STALE_SENDING_MINUTES + 1)->minutes();
+        $this->artisan('broadcasts:dispatch-due')->assertSuccessful();
+        Bus::assertDispatchedTimes(SendBroadcastCampaign::class, 2);
+        $this->artisan('broadcasts:dispatch-due')->assertSuccessful(); // touched: once per period
+        Bus::assertDispatchedTimes(SendBroadcastCampaign::class, 2);
+        $this->assertSame(BroadcastStatus::Sending, BroadcastCampaign::query()->find($id)->status);
     }
 }

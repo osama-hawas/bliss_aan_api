@@ -15,6 +15,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
  * Hands every recipient of a sending campaign to the Slice 8 Notifier (D306): event E40 `broadcast`, target
@@ -53,5 +55,17 @@ class SendBroadcastCampaign implements ShouldQueue
             }, 'users.id', 'id');
 
         $campaigns->finish($campaign);
+    }
+
+    /**
+     * Every attempt failed: the campaign stays `sending` and `broadcasts:dispatch-due` retries it after
+     * BroadcastCampaigns::STALE_SENDING_MINUTES (review M3).
+     */
+    public function failed(?Throwable $e): void
+    {
+        Log::error('[broadcasts] delivery job failed; it will be retried by broadcasts:dispatch-due', [
+            'campaign_id' => $this->campaignId,
+            'error' => $e?->getMessage(),
+        ]);
     }
 }

@@ -26,7 +26,7 @@ class SettingsEditor
     ) {}
 
     /**
-     * @return list<array{key: string, group: string, kind: SettingKind, unit: ?string, decision: ?string, fixed: bool, value: mixed, is_configured: bool, updated_at: mixed, updated_by: ?string, last_reason: ?string}>
+     * @return list<array{key: string, group: string, kind: SettingKind, unit: ?string, decision: ?string, fixed: bool, nullable: bool, min: int, value: mixed, is_configured: bool, updated_at: mixed, updated_by: ?string, last_reason: ?string}>
      */
     public function list(): array
     {
@@ -56,6 +56,8 @@ class SettingsEditor
                 'unit' => $def['unit'],
                 'decision' => $def['decision'],
                 'fixed' => $def['fixed'],
+                'nullable' => $def['nullable'],
+                'min' => $def['min'],
                 'value' => $row?->value,
                 'is_configured' => $row?->value !== null,
                 'updated_at' => $log?->created_at,
@@ -78,7 +80,10 @@ class SettingsEditor
         if (! $known && ! AppSetting::query()->where('key', $key)->exists()) {
             throw new ApiException(ErrorCode::NotFound);
         }
-        $value = $value === null ? null : $this->normalize($def['kind'], $def['unit'], $value);
+        if ($value === null && ! $def['nullable']) {
+            throw ValidationException::withMessages(['value' => __('content.settings.invalid.required')]); // review H1
+        }
+        $value = $value === null ? null : $this->normalize($def['kind'], $def['unit'], $value, $def['min']);
 
         DB::transaction(function () use ($key, $value, $admin, $reason) {
             $row = AppSetting::query()->where('key', $key)->lockForUpdate()->first()
@@ -91,14 +96,17 @@ class SettingsEditor
         $this->settings->flush();
     }
 
-    private function normalize(SettingKind $kind, ?string $unit, mixed $value): mixed
+    private function normalize(SettingKind $kind, ?string $unit, mixed $value, int $min = 0): mixed
     {
         $fail = fn (string $rule) => throw ValidationException::withMessages(['value' => __("content.settings.invalid.{$rule}")]);
 
         switch ($kind) {
             case SettingKind::Integer:
-                if (! $this->isWholeNumber($value) || (int) $value < 0 || (int) $value > 1_000_000_000) {
+                if (! $this->isWholeNumber($value) || (int) $value > 1_000_000_000) {
                     $fail('integer');
+                }
+                if ((int) $value < $min) {
+                    throw ValidationException::withMessages(['value' => __('content.settings.invalid.min', ['min' => $min])]);
                 }
 
                 return (int) $value;
