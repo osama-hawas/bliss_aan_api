@@ -28,6 +28,16 @@ abstract class StatusKpiSource implements KpiSource
     /** Dashboard list page the items link to (`/requests`). */
     abstract protected function listPath(): string;
 
+    /**
+     * Scope keys (`from`, `to`, `city_id`) the dashboard list page at listPath() reads from its URL (review L4).
+     *
+     * @return list<string>
+     */
+    protected function listScopeKeys(): array
+    {
+        return [];
+    }
+
     /** Dashboard detail page of one record. */
     abstract protected function detailHref(object $row): string;
 
@@ -85,10 +95,10 @@ abstract class StatusKpiSource implements KpiSource
         return in_array($key, $this->statuses(), true);
     }
 
-    protected function scoped(ReportScope $scope): Builder
+    protected function scoped(ReportScope $scope, ?string $periodColumn = null): Builder
     {
         $query = $this->base();
-        $scope->applyPeriod($query, $this->table().'.created_at');
+        $scope->applyPeriod($query, $periodColumn ?? $this->table().'.created_at');
 
         if ($scope->hasCity() && $this->cityAware()) {
             $this->applyCity($query, $scope->cityId);
@@ -115,18 +125,27 @@ abstract class StatusKpiSource implements KpiSource
             'label' => StatusLabels::label($status),
             'value' => $unavailable ? null : (int) ($counts[$status]->aggregate ?? 0),
             'amount' => $amountSql === null || $unavailable ? null : Cents::money((int) ($counts[$status]->cents ?? 0)),
-            'href' => $this->listPath().$scope->query(['status' => $status]),
+            'href' => $this->listPath().$scope->query(['status' => $status], $this->listScopeKeys()),
         ], $this->statuses());
     }
 
     public function records(string $key, ReportScope $scope, int $perPage): LengthAwarePaginator
+    {
+        return $this->recordsByPeriod($key, $scope, $perPage);
+    }
+
+    /**
+     * Drill-down rows with the period on another column (the revenue group dates money by `paid_at` /
+     * `processed_at`, like S19's FinanceOverview — review M2).
+     */
+    public function recordsByPeriod(string $key, ReportScope $scope, int $perPage, ?string $periodColumn = null): LengthAwarePaginator
     {
         if (! $this->hasItem($key) || ($scope->hasCity() && ! $this->cityAware())) {
             throw new NotFoundHttpException;
         }
 
         $table = $this->table();
-        $query = $this->scoped($scope)
+        $query = $this->scoped($scope, $periodColumn)
             ->where("{$table}.status", $key)
             ->select(["{$table}.id", "{$table}.status", "{$table}.created_at"])
             ->orderByDesc("{$table}.created_at")

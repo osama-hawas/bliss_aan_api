@@ -8,8 +8,9 @@ use App\Models\Provider;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Schema;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use Spatie\Permission\PermissionRegistrar;
 use Tests\Concerns\BuildsApplications;
 use Tests\Concerns\BuildsBookings;
@@ -39,12 +40,17 @@ class ExportsTest extends TestCase
      */
     private function sheet(string $content): array
     {
+        return $this->worksheet($content)->toArray();
+    }
+
+    private function worksheet(string $content): Worksheet
+    {
         $path = tempnam(sys_get_temp_dir(), 'xlsx');
         file_put_contents($path, $content);
-        $rows = IOFactory::load($path)->getActiveSheet()->toArray();
+        $sheet = IOFactory::load($path)->getActiveSheet();
         unlink($path);
 
-        return $rows;
+        return $sheet;
     }
 
     public function test_bookings_export_is_an_xlsx_in_the_request_language_and_is_audited(): void
@@ -91,9 +97,8 @@ class ExportsTest extends TestCase
         foreach (['audit-logs', 'clients', 'providers', 'service-requests', 'bookings', 'cancellations', 'support-tickets', 'indicators'] as $dataset) {
             $this->actingAsApi($admin)->get(self::URL."/{$dataset}")->assertOk();
         }
-        foreach (['payments' => 'payments', 'refunds' => 'refunds', 'store-orders' => 'store_orders', 'payouts' => 'payout_requests'] as $dataset => $table) {
-            $Schema = Schema::hasTable($table);
-            $this->actingAsApi($admin)->get(self::URL."/{$dataset}")->assertStatus($Schema ? 200 : 404);
+        foreach (['payments', 'refunds', 'store-orders', 'payouts'] as $dataset) {
+            $this->actingAsApi($admin)->get(self::URL."/{$dataset}")->assertOk();
         }
         $this->actingAsApi($admin)->getJson(self::URL.'/unknown')->assertNotFound();
     }
@@ -116,7 +121,7 @@ class ExportsTest extends TestCase
     public function test_too_many_rows_asks_to_narrow_the_period(): void
     {
         $this->booking($this->noura);
-        $this->booking($this->noura, User::factory()->client()->create());
+        $this->booking($this->matchingProvider('Huda Studio')); // a second provider: one client, two bookings
         config(['reports.export_max_rows' => 1]);
 
         $this->actingAsApi($this->staff(AdminRole::SuperAdmin))->getJson(self::URL.'/bookings')
@@ -132,5 +137,35 @@ class ExportsTest extends TestCase
 
         $this->assertNotContains('Address', $rows[0]);
         $this->assertNotContains('Notes', $rows[0]);
+    }
+
+    public function test_cells_are_text_so_names_never_become_formulas(): void
+    {
+        $evil = User::factory()->client()->create(['name' => '=HYPERLINK("http://evil.example","x")', 'email' => '@SUM(1+1)']);
+        $minus = User::factory()->client()->create(['name' => '-2+3']);
+
+        $sheet = $this->worksheet($this->actingAsApi($this->staff(AdminRole::SuperAdmin))->withHeader('Accept-Language', 'en')->get(self::URL.'/clients')->assertOk()->streamedContent());
+
+        $rows = collect(range(2, $sheet->getHighestRow()))->keyBy(fn (int $r) => (int) $sheet->getCell("A{$r}")->getValue());
+        $row = $rows[$evil->id];
+        $name = $sheet->getCell("B{$row}");
+        $this->assertSame(DataType::TYPE_STRING, $name->getDataType());
+        $this->assertSame('\'=HYPERLINK("http://evil.example","x")', $name->getValue());
+        $this->assertSame('\'@SUM(1+1)', $sheet->getCell("D{$row}")->getValue());
+        // Phones stay text with their +966 prefix, never a number.
+        $this->assertSame(DataType::TYPE_STRING, $sheet->getCell("C{$row}")->getDataType());
+        $this->assertSame($evil->phone, $sheet->getCell("C{$row}")->getValue());
+        $this->assertSame('\'-2+3', $sheet->getCell('B'.$rows[$minus->id])->getValue());
+        // Counts stay numbers.
+        $this->assertSame(DataType::TYPE_NUMERIC, $sheet->getCell("G{$row}")->getDataType());
+    }
+
+    public function test_money_cells_are_numbers(): void
+    {
+        $this->booking($this->noura);
+        $sheet = $this->worksheet($this->actingAsApi($this->staff(AdminRole::SuperAdmin))->get(self::URL.'/bookings')->assertOk()->streamedContent());
+
+        $this->assertSame(DataType::TYPE_NUMERIC, $sheet->getCell('G2')->getDataType());
+        $this->assertEquals(1000, $sheet->getCell('G2')->getValue());
     }
 }

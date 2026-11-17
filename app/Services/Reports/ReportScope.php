@@ -58,18 +58,16 @@ final readonly class ReportScope
     }
 
     /**
-     * Query string for drill-down links: `status=…&from=…&to=…&city_id=…` (dashboard URL state keys).
+     * Query string for drill-down links: `status=…&from=…&to=…&city_id=…` (dashboard URL state keys). `$only` = the scope
+     * keys the target list page reads, so a link never carries a filter the page silently ignores (review L4).
      *
      * @param  array<string, string|int|null>  $extra
+     * @param  list<string>  $only
      */
-    public function query(array $extra = []): string
+    public function query(array $extra = [], array $only = ['from', 'to', 'city_id']): string
     {
-        $params = array_filter([
-            ...$extra,
-            'from' => $this->from,
-            'to' => $this->to,
-            'city_id' => $this->cityId,
-        ], fn ($value) => $value !== null && $value !== '');
+        $scope = array_intersect_key(['from' => $this->from, 'to' => $this->to, 'city_id' => $this->cityId], array_flip($only));
+        $params = array_filter([...$extra, ...$scope], fn ($value) => $value !== null && $value !== '');
 
         return $params ? '?'.http_build_query($params) : '';
     }

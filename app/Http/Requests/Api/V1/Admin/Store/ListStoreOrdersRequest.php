@@ -15,6 +15,7 @@ class ListStoreOrdersRequest extends FormRequest
             'q' => ['nullable', 'string', 'max:64'],
             'filter.status' => ['nullable', 'in:all,pending_payment,confirmed,preparing,shipped,delivered,cancelled,expired'],
             'filter.method' => ['nullable', 'in:carrier,internal'],
+            'filter.shipment_status' => ['nullable', 'in:pending,in_transit,delivered,failed'], // S21 review L5: latest shipment
             'filter.from' => ['nullable', 'date_format:Y-m-d'],
             'filter.to' => ['nullable', 'date_format:Y-m-d'],
             'sort' => ['nullable', 'in:created_at,-created_at,total,-total'],

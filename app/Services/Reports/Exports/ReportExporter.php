@@ -20,8 +20,11 @@ use App\Services\Reports\Exports\Datasets\StoreOrdersDataset;
 use App\Services\Reports\Exports\Datasets\SupportTicketsDataset;
 use App\Services\Reports\ReportScope;
 use App\Services\Reports\StaffAccess;
+use Maatwebsite\Excel\DefaultValueBinder;
 use Maatwebsite\Excel\Excel as ExcelWriter;
 use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\SettingsProvider;
+use PhpOffice\PhpSpreadsheet\Cell\Cell as SpreadsheetCell;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -80,6 +83,9 @@ class ReportExporter
             $export = new ArrayExport($dataset, $rows, $locale);
         } else {
             $query = $dataset->query($scope, $filters);
+            // L1: freeze the row set at the ids that exist now; chunks are read by offset.
+            $maxId = (clone $query)->max($dataset->idColumn());
+            $query->where($dataset->idColumn(), '<=', (int) $maxId);
             $count = (clone $query)->getCountForPagination();
             if ($count > (int) config('reports.export_max_rows')) {
                 throw new ApiException(ErrorCode::ExportTooLarge);
@@ -93,6 +99,15 @@ class ReportExporter
             'rows' => $count,
         ]);
 
-        return Excel::download($export, $dataset->fileName(), ExcelWriter::XLSX);
+        // M1: cells go to the cache store in batches instead of all staying in PHP memory (this request only).
+        config(['excel.cache.driver' => config('reports.export_cell_cache', 'batch')]);
+        app(SettingsProvider::class)->provide();
+
+        try {
+            return Excel::download($export, $dataset->fileName(), ExcelWriter::XLSX);
+        } finally {
+            // The cell value binder is process-wide in PhpSpreadsheet: hand it back after this export.
+            SpreadsheetCell::setValueBinder(new DefaultValueBinder);
+        }
     }
 }

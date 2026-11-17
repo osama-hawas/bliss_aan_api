@@ -3,68 +3,40 @@
 namespace Tests\Feature\Admin\Reports;
 
 use App\Enums\AdminRole;
-use App\Models\AppSetting;
+use App\Events\Payments\PaymentSucceeded;
 use App\Models\PaymentReceipt;
 use App\Models\User;
 use App\Services\Reports\Receipts\PaymentReceipts;
 use App\Services\Settings\AppSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Str;
-use Tests\Concerns\BuildsApplications;
+use Tests\Concerns\BuildsFinance;
+use Tests\Concerns\BuildsStoreOrders;
 use Tests\TestCase;
 
 /**
- * Slice 21 (S21): payment receipt PDFs (D324, D325). Needs S10's `payments` table: skipped until S10 is merged.
- * Rows are inserted with the slice-10 contract columns so this file does not depend on S10's classes.
+ * Slice 21 (S21): payment receipt PDFs (D324, D325) over S10's payments (rows inserted by table contract).
  */
 class PaymentReceiptTest extends TestCase
 {
-    use BuildsApplications, RefreshDatabase;
-
-    private function payment(string $status = 'succeeded', string $amount = '1150.00', array $attributes = []): int
-    {
-        if (! Schema::hasTable('payments')) {
-            $this->markTestSkipped('S10 payments not merged yet.');
-        }
-
-        $client = User::factory()->client()->create(['name' => 'Sara Client']);
-
-        return DB::table('payments')->insertGetId([
-            'reference' => 'PY-'.random_int(1000000, 9999999),
-            'user_id' => $client->id,
-            'payable_type' => 'offer',
-            'payable_id' => 1,
-            'purpose' => 'full',
-            'amount' => $amount,
-            'currency' => 'SAR',
-            'method' => 'card',
-            'card' => json_encode(['brand' => 'mada', 'last4' => '4242']),
-            'gateway' => 'fake',
-            'status' => $status,
-            'fulfilment_status' => 'fulfilled',
-            'refunded_amount' => '0.00',
-            'idempotency_key' => (string) Str::uuid(),
-            'idempotency_fingerprint' => str_repeat('a', 64),
-            'paid_at' => $status === 'succeeded' ? now() : null,
-            'created_at' => now(),
-            'updated_at' => now(),
-            ...$attributes,
-        ]);
+    use BuildsFinance, BuildsStoreOrders, RefreshDatabase {
+        BuildsFinance::staffWith insteadof BuildsStoreOrders;
     }
 
     private function vat(?int $percent): void
     {
-        AppSetting::query()->updateOrCreate(['key' => 'tax.vat_percent'], ['value' => $percent]);
-        app(AppSettings::class)->flush();
+        app(AppSettings::class)->set('tax.vat_percent', $percent);
+    }
+
+    private function paid(string $amount = '1150.00', array $extra = []): int
+    {
+        return $this->payment(User::factory()->client()->create(['name' => 'Sara Client']), 'succeeded', $amount, ['card' => json_encode(['brand' => 'mada', 'last4' => '4242']), ...$extra]);
     }
 
     public function test_receipt_pdf_is_issued_once_with_the_vat_snapshot(): void
     {
         $this->vat(15);
-        $id = $this->payment();
-        $admin = $this->staff(AdminRole::SuperAdmin);
+        $id = $this->paid();
+        $admin = $this->financeStaff();
 
         $response = $this->actingAsApi($admin)->get("/api/v1/admin/payments/{$id}/receipt?lang=ar");
         $response->assertOk();
@@ -87,20 +59,73 @@ class PaymentReceiptTest extends TestCase
     public function test_no_vat_line_while_vat_is_not_set(): void
     {
         $this->vat(null);
-        $receipt = app(PaymentReceipts::class)->issue($this->payment());
+        $receipt = app(PaymentReceipts::class)->issue($this->paid());
 
         $this->assertNull($receipt->vat_percent);
         $this->assertNull($receipt->vat_amount);
         $this->assertNull($receipt->issued_by);
     }
 
+    public function test_a_store_order_receipt_copies_the_order_vat_snapshot_and_lines(): void
+    {
+        $this->configureStore();
+        $this->vat(5); // ignored: the order keeps its own snapshot
+        $order = $this->confirmedOrder();
+        $order->forceFill(['vat_percent' => '15.00', 'vat_amount' => '9.13', 'total' => '70.00'])->save();
+        $id = $this->paid('70.00', ['payable_type' => 'store_order', 'payable_id' => $order->id, 'purpose' => 'store']);
+
+        $receipts = app(PaymentReceipts::class);
+        $receipt = $receipts->issue($id);
+        $this->assertSame('15.00', (string) $receipt->vat_percent);
+        $this->assertSame('9.13', (string) $receipt->vat_amount);
+
+        $document = $receipts->document($receipt);
+        $this->assertSame('order', $document['kind']);
+        $this->assertSame($order->reference, $document['order']->reference);
+        $this->assertCount(1, $document['lines']);
+    }
+
+    public function test_refunds_and_the_net_amount_are_on_the_receipt(): void
+    {
+        $id = $this->paid('1000.00');
+        $this->refund($id, 'refunded', '250.00');
+        $this->refund($id, 'refunded', '100.50');
+        $this->refund($id, 'failed', '50.00');
+
+        $receipts = app(PaymentReceipts::class);
+        $document = $receipts->document($receipts->issue($id));
+
+        $this->assertCount(2, $document['refunds']);
+        $this->assertSame('350.50', $document['refunded']);
+        $this->assertSame('649.50', $document['net']);
+        $this->assertStringContainsString('4242', $document['method']);
+    }
+
+    public function test_the_payment_succeeded_event_issues_the_receipt(): void
+    {
+        $this->vat(15);
+        $id = $this->paid('230.00');
+
+        PaymentSucceeded::dispatch($id);
+
+        $receipt = PaymentReceipt::query()->where('payment_id', $id)->firstOrFail();
+        $this->assertNull($receipt->issued_by);
+        $this->assertSame('30.00', (string) $receipt->vat_amount);
+
+        // A failure in the listener never surfaces (pending payment: no receipt, no exception).
+        $pending = $this->payment(User::factory()->client()->create(), 'pending', '10.00');
+        PaymentSucceeded::dispatch($pending);
+        $this->assertFalse(PaymentReceipt::query()->where('payment_id', $pending)->exists());
+    }
+
     public function test_only_succeeded_payments_have_receipts_and_finance_view_is_required(): void
     {
-        $admin = $this->staff(AdminRole::SuperAdmin);
+        $admin = $this->financeStaff();
+        $client = User::factory()->client()->create();
 
-        $this->actingAsApi($admin)->getJson('/api/v1/admin/payments/'.$this->payment('pending').'/receipt')->assertStatus(409)->assertJsonPath('code', 'INVALID_STATE');
+        $this->actingAsApi($admin)->getJson('/api/v1/admin/payments/'.$this->payment($client, 'pending', '10.00').'/receipt')->assertStatus(409)->assertJsonPath('code', 'INVALID_STATE');
         $this->actingAsApi($admin)->getJson('/api/v1/admin/payments/999999/receipt')->assertNotFound();
-        $this->actingAsApi($this->staff(AdminRole::OperationsSupport))->getJson('/api/v1/admin/payments/'.$this->payment().'/receipt')->assertForbidden();
-        $this->actingAsApi($admin)->getJson('/api/v1/admin/payments/'.$this->payment().'/receipt?lang=fr')->assertUnprocessable();
+        $this->actingAsApi($this->member(AdminRole::OperationsSupport))->getJson('/api/v1/admin/payments/'.$this->paid().'/receipt')->assertForbidden();
+        $this->actingAsApi($admin)->getJson('/api/v1/admin/payments/'.$this->paid().'/receipt?lang=fr')->assertUnprocessable();
     }
 }

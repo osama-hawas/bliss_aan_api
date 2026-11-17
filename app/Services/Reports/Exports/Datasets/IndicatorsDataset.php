@@ -4,6 +4,7 @@ namespace App\Services\Reports\Exports\Datasets;
 
 use App\Models\City;
 use App\Models\User;
+use App\Services\Reports\Exports\Cell;
 use App\Services\Reports\Exports\ReportDataset;
 use App\Services\Reports\Indicators;
 use App\Services\Reports\ReportScope;
@@ -58,7 +59,7 @@ class IndicatorsDataset extends ReportDataset
                     __("reports.groups.{$group['key']}"),
                     StatusLabels::label($item['key']),
                     $item['value'],
-                    $item['amount']['amount'] ?? null,
+                    Cell::money($item['amount']['amount'] ?? null),
                     $period,
                     $city,
                 ];

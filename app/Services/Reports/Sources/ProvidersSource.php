@@ -28,6 +28,11 @@ class ProvidersSource extends StatusKpiSource
         return [ProviderStatus::Active->value, ProviderStatus::Suspended->value];
     }
 
+    protected function listScopeKeys(): array
+    {
+        return ['city_id'];
+    }
+
     protected function listPath(): string
     {
         return '/providers';

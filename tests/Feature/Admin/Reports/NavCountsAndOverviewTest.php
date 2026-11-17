@@ -8,7 +8,6 @@ use App\Models\AppSetting;
 use App\Models\Provider;
 use App\Services\Settings\AppSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Schema;
 use Tests\Concerns\BuildsApplications;
 use Tests\Concerns\BuildsBookings;
 use Tests\TestCase;
@@ -44,11 +43,10 @@ class NavCountsAndOverviewTest extends TestCase
         $this->assertSame(['cancellations' => 1, 'tickets' => 0, 'reports' => 0], $ops);
 
         $all = $this->actingAsApi($this->staff(AdminRole::SuperAdmin))->getJson('/api/v1/admin/nav-counts')->assertOk()->json('data');
-        $this->assertSame(Schema::hasTable('store_orders'), array_key_exists('orders', $all));
-        $this->assertSame(Schema::hasTable('payout_requests'), array_key_exists('payouts', $all));
+        $this->assertSame(['applications', 'cancellations', 'tickets', 'reports', 'orders', 'payouts', 'deliveries'], array_keys($all));
 
-        // Delivery officer has no dashboard.view but still gets her own badge (none before S9b).
-        $this->actingAsApi($this->staff(AdminRole::DeliveryOfficer))->getJson('/api/v1/admin/nav-counts')->assertOk();
+        // The delivery officer has no dashboard.view but still gets her own badge (values: MoneyKpisTest).
+        $this->assertSame(['deliveries' => 0], $this->actingAsApi($this->staff(AdminRole::DeliveryOfficer))->getJson('/api/v1/admin/nav-counts')->assertOk()->json('data'));
         $this->actingAsApi($this->client)->getJson('/api/v1/admin/nav-counts')->assertForbidden();
     }
 

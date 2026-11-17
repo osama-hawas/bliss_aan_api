@@ -452,11 +452,13 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
 
 - Contract: `docs/slice-21-contract.md` (D315–D329). Routes `routes/api/v1/admin/reports.php`. KPI groups are isolated sources in
   `app/Services/Reports/Sources/` listed in `KpiSourceRegistry` (`StatusKpiSource` base: counts + cents totals per status,
-  `Schema::hasTable` guard for tables of later slices, `records()` drill-down). `NavCounts`, `Overview`, `Indicators`, `ReportScope`
+  S9b/S10/S11 tables read by table contract, `records()` / `recordsByPeriod()` drill-down, `listScopeKeys()` = filters the
+  linked list page reads). Revenue is dated by `paid_at` / `processed_at` (same as S19's FinanceOverview). `NavCounts`, `Overview`, `Indicators`, `ReportScope`
   (Riyadh period + city; `filter[from|to|city_id]`), `StaffAccess::any()` for scope by permission.
 - Action log: `Services\Audit\AuditLogQueries` / `AuditSubjects` (readable record + dashboard link) / `AuditLabels`
   (`lang/{ar,en}/audit.php`; add a label when a slice adds an audit action). `AuditLog` rows refuse update/delete.
 - Exports: `Services\Reports\Exports\ReportExporter::DATASETS` (one `ReportDataset` per list; `maatwebsite/excel`), audit row
-  `report_exported`. Receipts: `Services\Reports\Receipts\PaymentReceipts` (+ `payment_receipts` VAT snapshot) and `ReceiptPdf`
+  `report_exported`; cells through `SafeCells` (numbers numeric, everything else explicit text, formula triggers prefixed `'`),
+  batch cell cache, id ceiling, cap `reports.export_max_rows` (10 000). Money cells: `Cell::money()` (numeric). Receipts: `Services\Reports\Receipts\PaymentReceipts` (+ `payment_receipts` VAT snapshot) and `ReceiptPdf`
   (dompdf + `ar-php` shaping, view `resources/views/reports/receipt.blade.php`); listener `Listeners\Reports\IssuePaymentReceipt`.
-- Tests: `tests/Feature/Admin/Reports/*` (`PaymentReceiptTest` skips until S10's `payments` table exists).
+- Tests: `tests/Feature/Admin/Reports/*` (money sources in `MoneyKpisTest`, rows by table contract via `BuildsFinance`).

@@ -52,7 +52,11 @@ class Overview
             ['tickets', ['support.view'], 'support_tickets', fn () => DB::table('support_tickets')->where('status', TicketStatus::Open->value)->count(), '/support?status=open'],
             ['reports', ['reviews.moderate'], 'content_reports', fn () => DB::table('content_reports')->where('status', ContentReportStatus::Open->value)->count(), '/content-reports?status=open'],
             ['orders', ['orders.view'], 'store_orders', fn () => DB::table('store_orders')->where('status', 'confirmed')->count(), '/store/orders?status=confirmed'],
-            ['failedShipments', ['orders.view'], 'shipments', fn () => DB::table('shipments')->where('status', 'failed')->count(), '/store/orders?shipment_status=failed'],
+            // Orders whose latest shipment failed (= the store orders list filter `shipment_status=failed`, review L5).
+            ['failedShipments', ['orders.view'], 'shipments', fn () => DB::table('shipments as s')
+                ->where('s.status', 'failed')
+                ->whereRaw('s.id = (SELECT MAX(l.id) FROM shipments l WHERE l.store_order_id = s.store_order_id)')
+                ->count(), '/store/orders?status=all&shipment_status=failed'],
             // D320: shown only once a threshold is set.
             ['lowStock', ['products.manage'], $threshold === null ? null : 'product_variants', fn () => DB::table('product_variants')
                 ->join('products', 'products.id', '=', 'product_variants.product_id')
@@ -126,17 +130,19 @@ class Overview
         $thisWeek = Carbon::now(RiyadhCalendar::TIMEZONE)->startOfWeek(Carbon::SATURDAY);
         $starts = array_map(fn (int $i) => $thisWeek->copy()->subWeeks($weeks - 1 - $i), range(0, $weeks - 1));
 
-        $query = DB::table($table)
-            ->where('created_at', '>=', $starts[0]->copy()->utc())
-            ->when($scope, $scope);
-        $dates = $query->pluck('created_at');
+        // L2: one row per week from SQL (Riyadh has no DST, so a week is exactly 604 800 s from the first start).
+        $first = $starts[0]->copy()->utc();
+        $rows = DB::table($table)
+            ->where('created_at', '>=', $first)
+            ->when($scope, $scope)
+            ->selectRaw('FLOOR(TIMESTAMPDIFF(SECOND, ?, created_at) / 604800) as week, COUNT(*) as aggregate', [$first->format('Y-m-d H:i:s')])
+            ->groupBy('week')
+            ->pluck('aggregate', 'week');
 
         $counts = array_fill(0, $weeks, 0);
-        foreach ($dates as $createdAt) {
-            $at = Carbon::parse($createdAt, 'UTC')->setTimezone(RiyadhCalendar::TIMEZONE);
-            $index = (int) floor($starts[0]->diffInDays($at) / 7);
-            if ($index >= 0 && $index < $weeks) {
-                $counts[$index]++;
+        foreach ($rows as $week => $count) {
+            if ((int) $week >= 0 && (int) $week < $weeks) {
+                $counts[(int) $week] = (int) $count;
             }
         }
 

@@ -4,9 +4,7 @@ namespace Tests\Feature\Admin\Reports;
 
 use App\Enums\AdminRole;
 use App\Models\Provider;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Schema;
 use Tests\Concerns\BuildsApplications;
 use Tests\Concerns\BuildsBookings;
 use Tests\TestCase;
@@ -43,7 +41,7 @@ class IndicatorsTest extends TestCase
     public function test_counts_and_booked_totals_per_status_with_drill_down_links(): void
     {
         $this->booking($this->noura);
-        $this->booking($this->noura, User::factory()->client()->create());
+        $this->booking($this->matchingProvider('Huda Studio')); // a second provider: one client, two bookings
         $admin = $this->staff(AdminRole::OperationsSupport);
 
         $groups = $this->actingAsApi($admin)->getJson(self::URL)->assertOk()->json('data.groups');
@@ -118,12 +116,10 @@ class IndicatorsTest extends TestCase
         $this->actingAsApi($this->staff(AdminRole::StoreContentOfficer))->getJson(self::URL.'/bookings/confirmed/records')->assertNotFound();
     }
 
-    public function test_groups_of_slices_not_merged_yet_are_absent_until_their_tables_exist(): void
+    public function test_every_group_is_listed_for_a_super_admin(): void
     {
-        $groups = collect($this->actingAsApi($this->staff(AdminRole::SuperAdmin))->getJson(self::URL)->assertOk()->json('data.groups'))->pluck('key');
+        $groups = collect($this->actingAsApi($this->staff(AdminRole::SuperAdmin))->getJson(self::URL)->assertOk()->json('data.groups'))->pluck('key')->all();
 
-        foreach (['payments' => 'payments', 'refunds' => 'refunds', 'revenue' => 'payments', 'orders' => 'store_orders', 'payouts' => 'payout_requests'] as $group => $table) {
-            $this->assertSame(Schema::hasTable($table), $groups->contains($group), $group);
-        }
+        $this->assertSame(['requests', 'bookings', 'cancellations', 'support', 'clients', 'providers', 'applications', 'orders', 'payments', 'refunds', 'revenue', 'payouts'], $groups);
     }
 }
