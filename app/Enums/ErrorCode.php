@@ -36,6 +36,12 @@ enum ErrorCode: string
     case OutOfStock = 'OUT_OF_STOCK'; // Slice 9 cart: quantity above the variant's current stock (03-api-conventions: 422)
     case ServerError = 'SERVER_ERROR';
 
+    // Slice 14b — staff & roles (D165, D168, D169).
+    case LastSuperAdmin = 'LAST_SUPER_ADMIN';
+    case OwnAccount = 'OWN_ACCOUNT';
+    case RoleInUse = 'ROLE_IN_USE';
+    case PermissionRestricted = 'PERMISSION_RESTRICTED';
+
     public function status(): int
     {
         return match ($this) {
@@ -47,6 +53,8 @@ enum ErrorCode: string
             self::InvalidState, self::NotConfigured, self::DuplicateRequest, self::SlotUnavailable, self::BlockOverlap, self::OfferExpired, self::AlreadyBooked, self::WalletExists, self::CancellationPending, self::StartTooEarly, self::AlreadyReviewed, self::AlreadyReported => 409,
             self::TooManyAttempts => 429,
             self::ServerError => 500,
+            self::LastSuperAdmin, self::OwnAccount, self::RoleInUse => 409, // Slice 14b
+            self::PermissionRestricted => 422, // Slice 14b
         };
     }
 

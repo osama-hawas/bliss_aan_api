@@ -104,6 +104,16 @@ class DeviceSessionService
         );
     }
 
+    /**
+     * Closes every open session of the user (staff suspension D170, client suspension in S15).
+     *
+     * @return int how many sessions were closed
+     */
+    public function revokeAll(User $user): int
+    {
+        return $this->revoke(UserDevice::query()->where('user_id', $user->id));
+    }
+
     public function setFcmToken(UserDevice $device, ?string $fcmToken): UserDevice
     {
         $device->update(['fcm_token' => $fcmToken]);

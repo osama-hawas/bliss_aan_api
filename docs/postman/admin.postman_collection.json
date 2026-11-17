@@ -411,6 +411,436 @@
           }
         }
       ]
+    },
+    {
+      "name": "Staff accounts (roles.manage) — S14b",
+      "description": "Slice 14b, D165–D170. Every route needs roles.manage.",
+      "item": [
+        {
+          "name": "List staff",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/settings/staff?q=&filter[role]=&filter[status]=active&sort=-created_at",
+            "description": "q (name/phone), filter[role], filter[status] (active|suspended), sort name|created_at|last_login_at (− = desc), page, per_page ≤ 50."
+          }
+        },
+        {
+          "name": "Show staff",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/settings/staff/{{staff_id}}",
+            "description": "With status_history (last 20 suspend/reactivate entries, internal note included). Non-admin id → 404."
+          }
+        },
+        {
+          "name": "Create staff",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/settings/staff",
+            "description": "D170: name, phone (Saudi mobile, normalised to E.164), optional email, one role. A phone used by any account (soft-deleted included) → 422. Non-super-admin: cannot assign super_admin or a role with permissions she lacks → 403 (D166).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sara\",\n  \"phone\": \"0533334444\",\n  \"email\": null,\n  \"role\": \"operations_support\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Edit staff",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/settings/staff/{{staff_id}}",
+            "description": "Name and email only (phone not editable, D170). Acting on a super admin needs super_admin (D166).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sara A.\",\n  \"email\": \"sara@example.com\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Role impact",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/settings/staff/{{staff_id}}/role-impact",
+            "description": "Preview only: {staff_count, staff, added, removed}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"store_content_officer\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Change role",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/settings/staff/{{staff_id}}/role",
+            "description": "One role per staff member (D167). Own account → 409 OWN_ACCOUNT; last active super admin → 409 LAST_SUPER_ADMIN (D165); same role → 409 INVALID_STATE.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"store_content_officer\",\n  \"reason\": \"Moved to the store team\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Suspend staff",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/settings/staff/{{staff_id}}/suspend",
+            "description": "Disable = suspend (D170): reason is shown to her, internal_note is not; every session is revoked. Own account → 409 OWN_ACCOUNT; last active super admin → 409 LAST_SUPER_ADMIN.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Contract ended\",\n  \"internal_note\": \"HR ticket 12\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Reactivate staff",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/settings/staff/{{staff_id}}/reactivate",
+            "description": "Not suspended → 409 INVALID_STATE. She signs in again with OTP.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Rehired\",\n  \"internal_note\": null\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Roles and permissions (roles.manage) — S14b",
+      "description": "Slice 14b, D164–D169.",
+      "item": [
+        {
+          "name": "List roles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/settings/roles",
+            "description": "System roles first (AdminRole order), then custom. Each: label, labels (custom only), is_system, is_editable (false for super_admin), restricted_permissions, permissions, staff_count, updated_at/by."
+          }
+        },
+        {
+          "name": "Show role",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/settings/roles/{{role_id}}",
+            "description": ""
+          }
+        },
+        {
+          "name": "Role impact",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/settings/roles/{{role_id}}/impact",
+            "description": "Preview only. requests.attachments.view for a role other than super_admin → 422 PERMISSION_RESTRICTED (D169).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"permissions\": [\n    \"dashboard.view\",\n    \"orders.view\"\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Save permissions",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/settings/roles/{{role_id}}",
+            "description": "Full permission set + reason. super_admin → 409 (fixed, D165); requests.attachments.view on any other role → 422 PERMISSION_RESTRICTED (D169); no change → 409 INVALID_STATE; granting what you lack (non-super-admin) → 403 (D166).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"permissions\": [\n    \"dashboard.view\",\n    \"orders.view\"\n  ],\n  \"reason\": \"Drivers see orders\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Create custom role",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/settings/roles",
+            "description": "D168: key ^[a-z][a-z0-9_]{2,39}$ (immutable), label {ar, en}, permissions, reason. requests.attachments.view → 422 PERMISSION_RESTRICTED.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"events_lead\",\n  \"label\": {\n    \"ar\": \"قائدة الفعاليات\",\n    \"en\": \"Events lead\"\n  },\n  \"permissions\": [\n    \"dashboard.view\",\n    \"bookings.view\"\n  ],\n  \"reason\": \"New events team\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Rename custom role",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/settings/roles/{{role_id}}",
+            "description": "Custom roles only; system role → 409 INVALID_STATE.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": {\n    \"ar\": \"قائدة الفعاليات\",\n    \"en\": \"Events lead\"\n  },\n  \"reason\": \"Clearer name\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete custom role",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/settings/roles/{{role_id}}",
+            "description": "Only when nobody (active or suspended) holds it → 204; otherwise 409 ROLE_IN_USE; system role → 409 INVALID_STATE.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"No longer needed\"\n}"
+            }
+          }
+        }
+      ]
     }
   ]
 }
