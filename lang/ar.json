@@ -48,5 +48,11 @@
     "Thank you for your review.": "شكرًا لتقييمك.",
     "Reply published.": "نُشر الرد.",
     "Report sent.": "أُرسل البلاغ.",
-    "Decision saved.": "تم حفظ القرار."
+    "Decision saved.": "تم حفظ القرار.",
+    "Staff member added.": "تمت إضافة الموظفة.",
+    "Role changed.": "تم تغيير الدور.",
+    "Account suspended.": "تم إيقاف الحساب.",
+    "Account reactivated.": "تمت إعادة تفعيل الحساب.",
+    "Role saved.": "تم حفظ الدور.",
+    "Role created.": "تم إنشاء الدور."
 }

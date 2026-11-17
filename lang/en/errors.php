@@ -33,4 +33,17 @@ return [
     // Messages for specific INVALID_STATE cases.
     'application_documents_open' => 'Accept every attached document before activating the account.',
     'application_documents_missing' => 'A required document is missing.',
+
+    // Slice 14b — staff & roles.
+    'LAST_SUPER_ADMIN' => 'This would leave no active super admin.',
+    'OWN_ACCOUNT' => 'You cannot change your own role or suspend your own account.',
+    'ROLE_IN_USE' => 'This role is assigned to staff members and cannot be deleted.',
+    'PERMISSION_RESTRICTED' => 'This permission is reserved for the super admin role.',
+    'role_unchanged' => 'The role already has exactly these permissions.',
+    'role_super_admin_fixed' => 'The super admin role always has every permission and cannot be edited.',
+    'role_system' => 'System roles cannot be renamed or deleted.',
+    'staff_same_role' => 'The staff member already has this role.',
+    'staff_already_suspended' => 'This account is already suspended.',
+    'staff_not_suspended' => 'This account is not suspended.',
+    'staff_escalation' => 'You cannot grant permissions you do not hold, or manage super admins.',
 ];

@@ -225,3 +225,18 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
 - `composer dev` — server, queue, logs, vite
 - `php artisan test` — run tests
 - `./vendor/bin/pint` — code style
+
+## Staff accounts & roles (Slice 14b)
+
+- Contract: `docs/slice-14b-contract.md` (D164–D170). Routes `routes/api/v1/admin/settings/{staff,roles}.php`, all behind
+  `permission:roles.manage`. Logic in `app/Services/Staff/`: `StaffManagement` (list / create / edit / role change / suspend /
+  reactivate), `RoleManagement` (list, impact, permission sets, custom roles), `StaffAccess` (guards), `RestrictedPermissions`.
+- Guards: no own role change / self-suspension (`409 OWN_ACCOUNT`); the last active `super_admin` is never demoted or suspended
+  (`409 LAST_SUPER_ADMIN`, under a lock on the `super_admin` role row); `super_admin` is fixed to all permissions; only a
+  super admin acts on super admins, others grant only what they hold (`403`, D166); `requests.attachments.view` never reaches a
+  role other than `super_admin` (`422 PERMISSION_RESTRICTED`, D169/D64). One role per staff member (D167).
+- Disable = suspend: status log + `DeviceSessionService::revokeAll()` (shared with client suspension). Every write is audit-logged.
+- `App\Models\Role` (spatie role model, `config/permission.php`): `label` {ar, en} for custom roles, `is_system`, `displayLabel()`.
+- `RolesAndPermissionsSeeder` is non-destructive (D164): never `syncPermissions()`; new permissions reach their mapped roles once.
+  Later slices append to `App\Enums\Permission` and the mapping only.
+- Tests: `Tests\Concerns\BuildsStaff`; `tests/Feature/Admin/{Staff,Roles}/*`, `tests/Feature/Database/SuperAdminLockingTest.php`.

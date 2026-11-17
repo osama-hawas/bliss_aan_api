@@ -28,7 +28,7 @@ return [
          * `Spatie\Permission\Contracts\Role` contract.
          */
 
-        'role' => Role::class,
+        'role' => App\Models\Role::class, // Slice 14b: label + is_system (D168)
 
         /*
          * When using the "Teams" feature from this package, we need to know which
