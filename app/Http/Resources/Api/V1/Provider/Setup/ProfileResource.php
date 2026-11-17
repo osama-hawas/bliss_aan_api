@@ -27,6 +27,10 @@ class ProfileResource extends JsonResource
             'display_name' => $this->display_name,
             'bio' => $this->bio,
             'avatar_url' => $this->avatar ? $media->url($this->avatar) : null,
+            // S26: what her own public-profile screen shows (rating and count come from `provider/reviews` meta).
+            'city' => $this->city ? ['id' => $this->city->id, 'name' => $this->city->name] : null,
+            'started_year' => $this->started_year,
+            'is_verified' => (bool) $this->is_verified,
             'accepts_open_requests' => $this->accepts_open_requests,
             'working_hours' => $this->workingHours->map(fn ($h) => [
                 'weekday' => $h->weekday,
@@ -46,6 +50,6 @@ class ProfileResource extends JsonResource
 
     public static function load(Provider $provider): Provider
     {
-        return $provider->refresh()->load(['avatar', 'workingHours', 'portfolioItems.media', 'coverageCities']);
+        return $provider->refresh()->load(['avatar', 'city', 'workingHours', 'portfolioItems.media', 'coverageCities']);
     }
 }
