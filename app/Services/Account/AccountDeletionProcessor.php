@@ -34,6 +34,7 @@ use App\Services\Audit\ActivityRecorder;
 use App\Services\Audit\AuditLogger;
 use App\Services\Auth\DeviceSessionService;
 use App\Services\Notifications\Notifier;
+use App\Services\Reports\Receipts\PaymentReceipts;
 use App\Services\ServiceRequests\ServiceRequestLifecycle;
 use App\Services\Settings\AppSettings;
 use Illuminate\Support\Carbon;
@@ -81,6 +82,7 @@ class AccountDeletionProcessor
         private readonly AppSettings $settings,
         private readonly ServiceRequestLifecycle $requests,
         private readonly PaymentGateway $gateway,
+        private readonly PaymentReceipts $receipts,
     ) {}
 
     /**
@@ -268,6 +270,11 @@ class AccountDeletionProcessor
     {
         $from = $user->status->value;
 
+        // D338: the name stays in the financial records only. Every succeeded payment she made, or received through a
+        // booking, gets its receipt now (issue() is idempotent) so the payer / provider names are snapshotted before
+        // her rows are anonymised. Store orders keep their own recipient snapshot; nothing financial is rewritten.
+        $receipts = $this->issueMissingReceipts($user);
+
         // Open requests are cancelled while her name is still there (E3 to the providers taking part).
         $cancelled = 0;
         if ($user->type === UserType::Client) {
@@ -334,6 +341,7 @@ class AccountDeletionProcessor
             'addresses_removed' => $addresses->count(),
             'payment_methods_removed' => $methods->count(),
             'requests_cancelled' => $cancelled,
+            'receipts_issued' => $receipts,
             ...$providerSummary,
         ], fn ($v) => $v !== null);
     }
@@ -376,6 +384,25 @@ class AccountDeletionProcessor
         ])->save();
 
         return ['services_stopped' => $services, 'portfolio_hidden' => $portfolio, 'offers_withdrawn' => $offers];
+    }
+
+    private function issueMissingReceipts(User $user): int
+    {
+        if (! Schema::hasTable('payments') || ! Schema::hasTable('payment_receipts')) {
+            return 0;
+        }
+        $providerId = $user->type === UserType::Provider ? Provider::query()->where('user_id', $user->id)->value('id') : null;
+        $ids = DB::table('payments')->where('status', 'succeeded')
+            ->where(fn ($q) => $q->where('user_id', $user->id)
+                ->when($providerId && Schema::hasColumn('bookings', 'payment_id'), fn ($q) => $q->orWhereIn('id',
+                    DB::table('bookings')->where('provider_id', $providerId)->whereNotNull('payment_id')->select('payment_id'))))
+            ->whereNotExists(fn ($q) => $q->selectRaw('1')->from('payment_receipts')->whereColumn('payment_receipts.payment_id', 'payments.id'))
+            ->orderBy('id')->pluck('id');
+        foreach ($ids as $id) {
+            $this->receipts->issue((int) $id);
+        }
+
+        return $ids->count();
     }
 
     private function openReturns(User $user): int

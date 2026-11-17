@@ -469,7 +469,7 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
 
 ## Account deletion processing (Slice 22 — S22)
 
-- Contract: `docs/slice-22-contract.md` (D330–D337, OD38; answers Q76). `Services\Account\AccountDeletionProcessor`:
+- Contract: `docs/slice-22-contract.md` (D330–D338, OD38; answers Q76 except the retention remainder). D338: the name survives only in financial snapshots (store order recipient, receipt `payer_name`/`payer_phone`/`provider_name`, issued before anonymisation). `Services\Account\AccountDeletionProcessor`:
   `obligations()` (active bookings, open store orders, open S23 returns, pending payouts, open tickets — only keys > 0),
   `process($id, ?staff, ?reason)` (lock user row → request row; skipped when not pending / already deleted; blocked →
   `blocked_by` + `checked_at` + E50 once on the scheduled path; else anonymise + `processed`), `processNow()` (staff,

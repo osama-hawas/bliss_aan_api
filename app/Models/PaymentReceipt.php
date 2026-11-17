@@ -10,7 +10,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class PaymentReceipt extends Model
 {
-    protected $fillable = ['payment_id', 'amount', 'currency', 'vat_percent', 'vat_amount', 'issued_by', 'issued_at'];
+    protected $fillable = ['payment_id', 'amount', 'currency', 'vat_percent', 'vat_amount', 'issued_by', 'issued_at',
+        // S22 (D338): parties as they were at the sale.
+        'payer_name', 'payer_phone', 'provider_name'];
 
     protected function casts(): array
     {
