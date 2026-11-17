@@ -639,7 +639,7 @@
               }
             ],
             "url": "{{base_url}}/client/conversations/{{conversation_id}}/messages?before=&per_page=30",
-            "description": "Newest first; `before` = older-than message id; `per_page` ≤ 50; `meta.has_more`, `meta.next_before`. Never marks anything read. Example: {\"id\": 31, \"type\": \"text\", \"body\": \"Is the date available?\", \"client_uuid\": \"6f1c…\", \"is_mine\": true, \"sender_side\": \"client\", \"attachment\": null, \"offer\": null, \"read\": false, \"created_at\": \"2026-11-15T09:00:00Z\"}"
+            "description": "`flagged` (D246/D253): true/false on her own messages when the body held a phone number, email or URL, null on the other party's. Newest first; `before` = older-than message id; `per_page` ≤ 50; `meta.has_more`, `meta.next_before`. Never marks anything read. Example: {\"id\": 31, \"type\": \"text\", \"body\": \"Is the date available?\", \"client_uuid\": \"6f1c…\", \"is_mine\": true, \"sender_side\": \"client\", \"attachment\": null, \"offer\": null, \"read\": false, \"created_at\": \"2026-11-15T09:00:00Z\"}"
           }
         },
         {
@@ -665,7 +665,7 @@
               }
             ],
             "url": "{{base_url}}/client/conversations/{{conversation_id}}/messages",
-            "description": "201 new / 200 same `client_uuid` + same payload; another payload with that uuid → 409 DUPLICATE_REQUEST. 409 INVALID_STATE when read-only.",
+            "description": "Never blocked: a body with a phone number, email or URL is stored and returned with `flagged: true` (D246). 201 new / 200 same `client_uuid` + same payload; another payload with that uuid → 409 DUPLICATE_REQUEST. 409 INVALID_STATE when read-only.",
             "body": {
               "mode": "raw",
               "raw": "{\"client_uuid\": \"{{$guid}}\", \"type\": \"text\", \"body\": \"Is the date available?\"}"

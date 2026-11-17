@@ -128,3 +128,12 @@ the message must belong to the conversation; repeating it is harmless. Answers `
 
 Admin chat access (Req 42 → Slice 17 with `chats.view_for_ticket` + access log), realtime broadcasting (Reverb not
 configured), push (Slice 8), typing indicator, message edit/delete, location sharing, payments.
+
+## Revision 4 (SFIX, 2026-11-17) — S5 decided
+
+S5 → **D246** (orchestrator under owner delegation, OD29) and Q141 → **D253**: warning only. `ChatMessenger::send()`
+sets `messages.flagged` when `App\Services\Chat\ContactInfoDetector` finds a phone number, an email or a URL in the
+body; the message is always sent. `MessageResource` adds `flagged` — the stored boolean on her own messages, `null` on
+the other party's. The apps show a non-blocking hint above the composer while the draft matches, and a caption under
+her own flagged message. No manual moderation, no admin access (Slice 17). Rules and tests:
+`slice-close-leftovers-contract.md` §1.

@@ -20,7 +20,7 @@ class AppSettingSeeder extends Seeder
             'otp.max_attempts' => null,
             'otp.resend_cooldown_seconds' => null,
             'offers.validity_days' => [3, 7, 14], // D5
-            'requests.max_attachments' => null, // D53, Q14: not approved
+            'requests.max_attachments' => null, // D53; outside local: D242 below
             'bookings.buffer_minutes' => 0, // D108
             'bookings.start_early_minutes' => 60, // D126
             // Slice 11 (D215, D216): not specified until the owner sets them (null = NOT_CONFIGURED / no minimum).
@@ -45,6 +45,27 @@ class AppSettingSeeder extends Seeder
 
         foreach ($settings as $key => $value) {
             AppSetting::query()->firstOrCreate(['key' => $key], ['value' => $value]);
+        }
+
+        $this->requestAttachmentLimits();
+    }
+
+    /**
+     * D242 (Q14, SFIX): request attachment limits outside `local` — 10 MB per file, 5 files, jpg/jpeg/png/heic/pdf.
+     * Filled only where the value is still `null`; an admin value is never overwritten. Local keeps `DemoSeeder`'s values.
+     */
+    private function requestAttachmentLimits(): void
+    {
+        if (app()->environment('local')) {
+            return;
+        }
+
+        $values = [
+            UploadContext::RequestAttachment->settingKey() => ['mimes' => ['jpg', 'jpeg', 'png', 'heic', 'pdf'], 'max_kb' => 10240],
+            'requests.max_attachments' => 5,
+        ];
+        foreach ($values as $key => $value) {
+            AppSetting::query()->where('key', $key)->whereNull('value')->update(['value' => json_encode($value)]);
         }
     }
 }

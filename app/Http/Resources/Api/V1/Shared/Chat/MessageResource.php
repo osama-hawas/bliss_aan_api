@@ -14,7 +14,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 /**
  * One message for a participant (slice-7-contract.md §5–§6). Attachments get 10-minute signed URLs (the caller already
  * scoped the conversation to her). The offer card is rendered from the live offer; the client never sees a superseded
- * or withdrawn offer's details (5b §3.6).
+ * or withdrawn offer's details (5b §3.6). `flagged` is shown to the sender only (D253).
  *
  * @mixin Message
  */
@@ -50,6 +50,8 @@ class MessageResource extends JsonResource
             ] : null,
             'offer' => $m->offer ? $this->card($m->offer) : null,
             'read' => $mine ? $m->id <= $this->otherMarker : null,
+            // D246/D253: only the sender learns her message was flagged for contact details.
+            'flagged' => $mine ? (bool) $m->flagged : null,
             'created_at' => $this->dateTime($m->created_at),
         ];
     }

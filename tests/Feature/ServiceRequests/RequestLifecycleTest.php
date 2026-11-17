@@ -187,7 +187,7 @@ class RequestLifecycleTest extends TestCase
         $this->asProvider($this->noura)->getJson('/api/v1/provider/decline-reasons')
             ->assertOk()
             ->assertJsonCount(6, 'data')
-            ->assertJsonPath('data.0', ['id' => $this->reason()->id, 'code' => 'fully_booked', 'name' => 'Fully booked at this time']);
+            ->assertJsonPath('data.0', ['id' => $this->reason()->id, 'code' => 'fully_booked', 'name' => 'Already booked at this time']);
     }
 
     // ── Decline ─────────────────────────────────────────────────────────────────────────────
@@ -218,7 +218,7 @@ class RequestLifecycleTest extends TestCase
         $this->asProvider($this->noura)->postJson(self::PROVIDER."/{$request->id}/decline", $body)->assertOk()->assertJsonPath('data.request_status', 'awaiting_offers');
         $this->asProvider($this->huda)->postJson(self::PROVIDER."/{$request->id}/decline", $body)->assertOk();
 
-        $this->assertSame('awaiting_offers', $request->fresh()->status->value); // Q17: no transition
+        $this->assertSame('awaiting_offers', $request->fresh()->status->value); // D244 (Q17): no transition
         $this->asClient()->getJson(self::CLIENT."/{$request->id}")->assertJsonPath('data.status', 'awaiting_offers');
     }
 
