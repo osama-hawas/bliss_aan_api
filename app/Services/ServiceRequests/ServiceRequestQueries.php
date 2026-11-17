@@ -25,7 +25,7 @@ class ServiceRequestQueries
 
     public const OFFER_SORTS = ['total', '-total', 'sent_at', '-sent_at', 'valid_until', '-valid_until'];
 
-    public const CLIENT_LIST = ['service.category', 'targetProvider.avatar', 'eventType', 'city', 'addons', 'booking'];
+    public const CLIENT_LIST = ['service.category', 'targetProvider.avatar', 'eventType', 'city', 'addons', 'booking', 'package' /* Slice 24 */];
 
     public const CLIENT_DETAIL = [...self::CLIENT_LIST, 'attachments', 'history'];
 
@@ -71,7 +71,7 @@ class ServiceRequestQueries
             ->select('service_request_recipients.*')
             ->join('service_requests', 'service_requests.id', '=', 'service_request_recipients.service_request_id')
             ->where('service_request_recipients.provider_id', $provider->id)
-            ->with(['serviceRequest.service', 'serviceRequest.eventType', 'serviceRequest.city', 'serviceRequest.client', 'serviceRequest.addons', 'declineReason', ...$this->ownOffers($provider, false)])
+            ->with(['serviceRequest.service', 'serviceRequest.eventType', 'serviceRequest.city', 'serviceRequest.client', 'serviceRequest.addons', 'serviceRequest.package', 'declineReason', ...$this->ownOffers($provider, false)])
             ->when($filters['status'], fn (Builder $q, array $s) => $q->whereIn('service_request_recipients.status', $s))
             ->when($filters['type'], fn (Builder $q, string $t) => $q->where('service_requests.type', $t))
             ->orderBy($column, str_starts_with($sort, '-') ? 'desc' : 'asc')
@@ -87,7 +87,7 @@ class ServiceRequestQueries
         return ServiceRequestRecipient::query()
             ->where('provider_id', $provider->id)
             ->where('service_request_id', $requestId)
-            ->with(['serviceRequest.service', 'serviceRequest.eventType', 'serviceRequest.city', 'serviceRequest.client', 'serviceRequest.addons', 'serviceRequest.attachments', 'declineReason', ...$this->ownOffers($provider, true)])
+            ->with(['serviceRequest.service', 'serviceRequest.eventType', 'serviceRequest.city', 'serviceRequest.client', 'serviceRequest.addons', 'serviceRequest.package', 'serviceRequest.attachments', 'declineReason', ...$this->ownOffers($provider, true)])
             ->firstOrFail();
     }
 

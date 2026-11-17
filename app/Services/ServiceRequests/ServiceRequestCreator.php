@@ -15,6 +15,7 @@ use App\Exceptions\ApiException;
 use App\Models\Addon;
 use App\Models\Address;
 use App\Models\Media;
+use App\Models\Package;
 use App\Models\Provider;
 use App\Models\ProviderAddon;
 use App\Models\ProviderService;
@@ -130,7 +131,7 @@ class ServiceRequestCreator
             'lng' => isset($data['address']['lng']) ? (float) $data['address']['lng'] : null,
         ] : null;
 
-        return hash('sha256', json_encode([
+        $shape = [
             'type' => $data['type'],
             'provider_id' => $int($data['provider_id'] ?? null),
             'service_id' => $int($data['service_id']),
@@ -145,7 +146,13 @@ class ServiceRequestCreator
             'addon_ids' => $ids($data['addon_ids'] ?? null),
             'notes' => $data['notes'] ?? null,
             'media_ids' => $ids($data['media_ids'] ?? null),
-        ]));
+        ];
+        // Slice 24: added only when sent, so a request without a package keeps its pre-S24 fingerprint.
+        if (isset($data['package_id'])) {
+            $shape['package_id'] = $int($data['package_id']);
+        }
+
+        return hash('sha256', json_encode($shape));
     }
 
     /**
@@ -178,6 +185,8 @@ class ServiceRequestCreator
             ->find((int) $data['service_id'])
             ?? $this->invalid('service_id', 'validation.custom.service_id.unavailable');
 
+        $packageId = isset($data['package_id']) ? $this->package((int) $data['package_id'], $service->id) : null;
+
         $guests = $this->guests($service, $data['guests_count'] ?? null);
 
         $addonIds = array_values(array_unique(array_map('intval', $data['addon_ids'] ?? [])));
@@ -207,6 +216,7 @@ class ServiceRequestCreator
             notes: $data['notes'] ?? null,
             addonIds: $addonIds,
             mediaIds: $mediaIds,
+            packageId: $packageId,
         );
 
         if ($place === ExecutionPlace::EventLocation) {
@@ -233,6 +243,21 @@ class ServiceRequestCreator
         }
 
         return [$startsAt, $startsAt->copy()->addMinutes($minutes)];
+    }
+
+    /**
+     * Slice 24 (D353): the package must be visible to clients (D352) and hold the requested service. Only the id is
+     * kept; matching, recipients and privacy are those of any open request.
+     */
+    private function package(int $packageId, int $serviceId): int
+    {
+        $package = Package::query()->visibleToClients()->find($packageId)
+            ?? $this->invalid('package_id', 'validation.custom.package_id.unavailable');
+        if (! $package->items()->where('service_id', $serviceId)->exists()) {
+            $this->invalid('service_id', 'validation.custom.package_id.service');
+        }
+
+        return $package->id;
     }
 
     private function guests(Service $service, mixed $value): ?int
@@ -358,6 +383,7 @@ class ServiceRequestCreator
             'target_provider_id' => $draft->provider?->id,
             'provider_service_id' => $draft->providerService?->id,
             'service_id' => $draft->service->id,
+            'package_id' => $draft->packageId, // Slice 24 (D353)
             'event_type_id' => $draft->eventTypeId,
             'execution_place' => $draft->place,
             'event_date' => $draft->eventDate,

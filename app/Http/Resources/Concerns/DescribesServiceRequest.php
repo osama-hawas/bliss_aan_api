@@ -34,6 +34,8 @@ trait DescribesServiceRequest
             'city' => ['id' => $r->city_id, 'name' => $r->city?->name],
             'guests_count' => $r->guests_count,
             'addons' => $r->addons->map(fn (ServiceRequestAddon $a) => ['id' => $a->addon_id, 'name' => $a->name])->values(),
+            // Slice 24 (D353): the package the request came from, for every audience; no price, nothing private.
+            'package' => $r->package_id === null ? null : ['id' => $r->package_id, 'name' => $r->package?->name],
         ];
     }
 

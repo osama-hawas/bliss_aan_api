@@ -500,3 +500,19 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
 - Tests: `Tests\Concerns\BuildsStoreReturns` (`configureReturns()`, `deliveredOrder()` paid through the fake gateway,
   `requestReturn()`, `returnPhoto()`); `tests/Feature/Store/{StoreReturn,AdminStoreReturn}Test.php`,
   `tests/Feature/Database/StoreReturnLockingTest.php`, `tests/Unit/Store/ReturnMoneyTest.php`.
+
+## Service packages (Slice 24 — S24)
+
+- Contract: `docs/slice-24-contract.md` (D350–D359, OD39). A package is an admin-curated bundle of catalog services with
+  **no price, ever** (D350). Tables `packages` (stop_reason, sort), `package_items`, `event_type_package` (none = every
+  occasion, D351); `service_requests.package_id` (open requests only, D353).
+- Admin: `routes/api/v1/admin/catalog/packages.php` (`catalog.manage`), `Services\Catalog\Admin\CatalogPackages` (CatalogRows
+  for text/image/move; own locked stop/activate writing `stop_reason`; audit `catalog_package_*`; never deleted).
+- Public: `shared/packages`, `shared/packages/{id}`, `shared/home.packages` via `Services\Catalog\PackageBrowser`
+  (`Package::visibleToClients()` = active + ≥1 visible service, D352; per-service market `starting_price`, never the bare
+  guide price, D355).
+- Requests: `ServiceRequestCreator` checks `package_id` (visible package containing `service_id`); the fingerprint adds it
+  only when sent; `DescribesServiceRequest` returns `package`. One service per request (D354): the app sends one open
+  request per package service.
+- Tests: `Tests\Concerns\BuildsPackages`; `tests/Feature/Admin/Catalog/CatalogPackagesTest.php`, `tests/Feature/Packages/*`,
+  `tests/Feature/Database/PackageLockingTest.php`.

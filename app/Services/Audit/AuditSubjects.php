@@ -37,6 +37,7 @@ class AuditSubjects
         'service' => '/catalog/services/{id}',
         'service_category' => '/catalog/categories',
         'addon' => '/catalog/addons',
+        'package' => '/catalog/packages/{id}', // Slice 24
         'banner' => '/content/banners',
         'page' => '/content/pages',
         'faq' => '/content/faqs',
