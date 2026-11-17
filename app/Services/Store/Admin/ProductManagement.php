@@ -12,9 +12,11 @@ use App\Models\ProductVariant;
 use App\Models\User;
 use App\Services\Audit\AuditLogger;
 use App\Services\Settings\AppSettings;
+use Closure;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -112,7 +114,9 @@ class ProductManagement
      */
     public function create(array $data, User $actor): Product
     {
-        return DB::transaction(function () use ($data, $actor) {
+        $skus = array_map(fn (array $v) => strtoupper(trim($v['sku'])), $data['variants']);
+
+        return $this->guardSkuRace($skus, null, null, fn () => DB::transaction(function () use ($data, $actor) {
             $this->assertCategory($data['category_id']);
             $variants = array_map(fn (array $v) => $this->normalizeVariant($v), $data['variants']);
             $this->assertVariantsDistinct($variants);
@@ -144,7 +148,7 @@ class ProductManagement
             ]);
 
             return $this->find($product->id);
-        });
+        }));
     }
 
     /**
@@ -212,7 +216,7 @@ class ProductManagement
      */
     public function addVariant(int $productId, array $data, User $actor): Product
     {
-        return DB::transaction(function () use ($productId, $data, $actor) {
+        return $this->guardSkuRace([strtoupper(trim($data['sku']))], null, 'sku', fn () => DB::transaction(function () use ($productId, $data, $actor) {
             $product = Product::query()->lockForUpdate()->findOrFail($productId);
             $variant = $this->normalizeVariant($data);
             $siblings = $product->variants()->lockForUpdate()->get();
@@ -228,7 +232,7 @@ class ProductManagement
                 ['variant_id' => $row->id, 'sku' => $row->sku, 'attributes' => $row->getAttribute('attributes'), 'price' => $row->price, 'stock' => $row->stock]);
 
             return $this->find($product->id);
-        });
+        }));
     }
 
     /**
@@ -239,7 +243,9 @@ class ProductManagement
      */
     public function updateVariant(int $variantId, array $data, User $actor): Product
     {
-        return DB::transaction(function () use ($variantId, $data, $actor) {
+        $skus = isset($data['sku']) ? [strtoupper(trim($data['sku']))] : [];
+
+        return $this->guardSkuRace($skus, $variantId, 'sku', fn () => DB::transaction(function () use ($variantId, $data, $actor) {
             $productId = ProductVariant::query()->whereKey($variantId)->value('product_id') ?? throw new ApiException(ErrorCode::NotFound);
             $product = Product::query()->lockForUpdate()->findOrFail($productId);
             $variant = ProductVariant::query()->lockForUpdate()->findOrFail($variantId);
@@ -280,7 +286,7 @@ class ProductManagement
             }
 
             return $this->find($product->id);
-        });
+        }));
     }
 
     public function setVariantActive(int $variantId, bool $active, User $actor, ?string $reason): Product
@@ -372,6 +378,26 @@ class ProductManagement
     }
 
     /**
+     * L2: two staff saving the same SKU at once both pass the pre-check; the unique index stops the second insert.
+     * Map that to the same 422 field error as the pre-check instead of a 500.
+     *
+     * @param  list<string>  $skus
+     * @param  Closure(): Product  $work
+     */
+    private function guardSkuRace(array $skus, ?int $exceptVariantId, ?string $field, Closure $work): Product
+    {
+        try {
+            return $work();
+        } catch (UniqueConstraintViolationException $e) {
+            if ($skus === []) {
+                throw $e;
+            }
+            $this->assertSkusFree($skus, $exceptVariantId, $field); // the other transaction has committed: names the field
+            throw new ApiException(ErrorCode::ValidationFailed, null, [($field ?? 'variants.0.sku') => [__('store.admin.sku_taken')]]);
+        }
+    }
+
+    /**
      * @param  list<string>  $skus  already upper-case
      */
     private function assertSkusFree(array $skus, ?int $exceptVariantId = null, ?string $field = null): void
@@ -379,14 +405,15 @@ class ProductManagement
         $errors = [];
         foreach (array_count_values($skus) as $sku => $count) {
             if ($count > 1) {
-                $errors[$field ?? 'variants.'.array_search($sku, $skus, true).'.sku'] = [__('store.admin.sku_taken')];
+                // array_count_values() turns numeric SKUs ("12345") into int keys: compare as strings (L3).
+                $errors[$field ?? 'variants.'.array_search((string) $sku, $skus, true).'.sku'] = [__('store.admin.sku_taken')];
             }
         }
         $taken = ProductVariant::query()->whereIn('sku', $skus)
             ->when($exceptVariantId, fn (Builder $q, int $id) => $q->whereKeyNot($id))
             ->pluck('sku')->map(fn (string $s) => strtoupper($s))->all();
         foreach ($taken as $sku) {
-            $errors[$field ?? 'variants.'.array_search($sku, $skus, true).'.sku'] = [__('store.admin.sku_taken')];
+            $errors[$field ?? 'variants.'.array_search((string) $sku, $skus, true).'.sku'] = [__('store.admin.sku_taken')];
         }
         if ($errors) {
             throw new ApiException(ErrorCode::ValidationFailed, null, $errors);

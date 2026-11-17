@@ -19,6 +19,6 @@ class UpdateProductController extends Controller
 
     public function __invoke(ProductRequest $request, int $product)
     {
-        return $this->success(new AdminProductDetailResource($this->products->update($product, $request->data(), $request->user())), __('store.admin.messages.product_updated'));
+        return $this->success(new AdminProductDetailResource($this->products->update($product, $request->fields(), $request->user())), __('store.admin.messages.product_updated'));
     }
 }

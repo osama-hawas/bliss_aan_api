@@ -19,6 +19,6 @@ class UpdateProductCategoryController extends Controller
 
     public function __invoke(ProductCategoryRequest $request, int $category)
     {
-        return $this->success(new AdminProductCategoryResource($this->categories->update($category, $request->data(), $request->user())), __('store.admin.messages.category_updated'));
+        return $this->success(new AdminProductCategoryResource($this->categories->update($category, $request->fields(), $request->user())), __('store.admin.messages.category_updated'));
     }
 }

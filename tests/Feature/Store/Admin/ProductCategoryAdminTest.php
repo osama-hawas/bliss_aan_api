@@ -39,9 +39,9 @@ class ProductCategoryAdminTest extends TestCase
 
     public function test_only_products_manage_reaches_the_endpoints(): void
     {
+        $this->getJson(self::URL)->assertUnauthorized(); // guest first: later calls keep the last token header
         $this->actingAsApi($this->staff(AdminRole::OperationsSupport))->getJson(self::URL)->assertForbidden();
         $this->actingAsApi(User::factory()->client()->create())->getJson(self::URL)->assertForbidden();
-        $this->getJson(self::URL)->assertUnauthorized();
         $this->actingAsApi($this->officer())->getJson(self::URL)->assertOk();
     }
 

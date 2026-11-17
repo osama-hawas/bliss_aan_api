@@ -91,7 +91,8 @@ class ProductAdminTest extends TestCase
             ->assertUnprocessable()->assertJsonValidationErrors(['variants.0.sku', 'variants.0.price', 'variants.0.stock']);
         $this->actingAsApi($admin)->postJson(self::URL, $this->body($category, ['variants' => [['sku' => 'A-1', 'price' => '1.005', 'stock' => 1]]]))
             ->assertUnprocessable()->assertJsonValidationErrors(['variants.0.price']);
-        $this->assertSame(0, Product::query()->count());
+        // The TAKEN-1 factory variant brings its own product: count only this category's.
+        $this->assertSame(0, Product::query()->where('category_id', $category->id)->count());
     }
 
     public function test_list_filters_and_search_by_sku(): void
@@ -188,5 +189,38 @@ class ProductAdminTest extends TestCase
         $this->actingAsApi($admin)->postJson(self::VARIANTS."/{$small->id}/activate", [])->assertUnprocessable()->assertJsonValidationErrors(['attributes']);
         $this->actingAsApi($admin)->putJson(self::VARIANTS.'/999999', ['price' => 1])->assertNotFound();
         $this->assertSame(2, ProductVariant::query()->count()); // nothing deleted
+    }
+
+    public function test_numeric_skus_name_the_right_field(): void
+    {
+        $admin = $this->officer();
+        $category = ProductCategory::factory()->create();
+        ProductVariant::factory()->create(['sku' => '777']);
+
+        // L3: "12345" twice in one body, and a numeric SKU already taken.
+        $this->actingAsApi($admin)->postJson(self::URL, $this->body($category, ['variants' => [
+            ['sku' => '12345', 'attributes' => ['size' => ['ar' => 'أ', 'en' => 'A']], 'price' => 10, 'stock' => 1],
+            ['sku' => '12345', 'attributes' => ['size' => ['ar' => 'ب', 'en' => 'B']], 'price' => 10, 'stock' => 1],
+        ]]))->assertUnprocessable()->assertJsonValidationErrors(['variants.0.sku']);
+        $this->actingAsApi($admin)->postJson(self::URL, $this->body($category, ['variants' => [['sku' => '777', 'price' => 10, 'stock' => 1]]]))
+            ->assertUnprocessable()->assertJsonValidationErrors(['variants.0.sku']);
+    }
+
+    public function test_a_sku_taken_by_a_concurrent_save_is_a_422_not_a_500(): void
+    {
+        $admin = $this->officer();
+        $category = ProductCategory::factory()->create();
+        $other = Product::factory()->create();
+
+        // L2: the pre-check passed, then another save takes the SKU just before this insert.
+        ProductVariant::creating(function (ProductVariant $variant) use ($other) {
+            if ($variant->sku === 'RACE-1' && ! ProductVariant::query()->where('sku', 'RACE-1')->exists()) {
+                ProductVariant::query()->insert(['product_id' => $other->id, 'sku' => 'RACE-1', 'price' => '1.00', 'stock' => 0, 'is_active' => true, 'created_at' => now(), 'updated_at' => now()]);
+            }
+        });
+
+        $this->actingAsApi($admin)->postJson(self::URL, $this->body($category, ['variants' => [['sku' => 'race-1', 'price' => 10, 'stock' => 1]]]))
+            ->assertUnprocessable()->assertJsonPath('code', 'VALIDATION_FAILED')->assertJsonValidationErrors(['variants.0.sku']);
+        $this->assertSame(0, Product::query()->where('category_id', $category->id)->count());
     }
 }

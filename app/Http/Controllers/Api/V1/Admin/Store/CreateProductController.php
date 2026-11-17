@@ -19,7 +19,7 @@ class CreateProductController extends Controller
 
     public function __invoke(ProductRequest $request)
     {
-        $product = $this->products->create($request->data(), $request->user());
+        $product = $this->products->create($request->fields(), $request->user());
 
         return $this->success(new AdminProductDetailResource($product), __('store.admin.messages.product_created'), 201);
     }
