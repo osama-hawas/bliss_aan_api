@@ -100,4 +100,8 @@ return [
     'shipment_method' => ['carrier' => 'Shipping company', 'internal' => 'Internal delivery'],
     'promo_code_type' => ['percent' => 'Percentage', 'fixed' => 'Fixed amount'],
     'promo_code_usage_status' => ['held' => 'Held by an open checkout', 'used' => 'Used', 'released' => 'Released'],
+    // Slice 11 (payouts)
+    'ledger_entry_type' => ['earning' => 'Booking earning', 'refund_adjustment' => 'Refund adjustment', 'payout' => 'Payout request', 'payout_reversal' => 'Payout returned'],
+    'ledger_entry_status' => ['pending' => 'On hold', 'available' => 'Available'],
+    'payout_request_status' => ['requested' => 'Requested', 'paid' => 'Transferred', 'rejected' => 'Rejected'],
 ];

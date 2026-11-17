@@ -32,5 +32,8 @@ return [
         'store_order_shipped' => ['title' => 'Order on the way', 'body' => 'Your order :reference is on its way.'],
         'store_order_delivered' => ['title' => 'Order delivered', 'body' => 'Your order :reference was delivered.'],
         'store_order_cancelled' => ['title' => 'Order cancelled', 'body' => 'Your order :reference was cancelled. Open it for details.'],
+        // Slice 11 (D224): E18, E19.
+        'payout_paid' => ['title' => 'Payout transferred', 'body' => 'Your payout :reference was transferred to your bank account.'],
+        'payout_rejected' => ['title' => 'Payout request rejected', 'body' => 'Your payout request :reference was rejected. Open it to see the reason.'],
     ],
 ];

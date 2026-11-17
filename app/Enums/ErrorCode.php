@@ -42,6 +42,10 @@ enum ErrorCode: string
     case OwnAccount = 'OWN_ACCOUNT';
     case RoleInUse = 'ROLE_IN_USE';
     case PermissionRestricted = 'PERMISSION_RESTRICTED';
+    // Slice 11 — payouts (D216, D221).
+    case PayoutAccountRequired = 'PAYOUT_ACCOUNT_REQUIRED';
+    case PayoutRequestOpen = 'PAYOUT_REQUEST_OPEN';
+    case InsufficientBalance = 'INSUFFICIENT_BALANCE';
 
     // Slice 10 — payments (D185, D188, D189).
     case PaymentRequired = 'PAYMENT_REQUIRED';
@@ -74,6 +78,7 @@ enum ErrorCode: string
             self::InvalidSignature => 401, // Slice 10
             self::CartEmpty, self::PromoCodeInvalid => 422, // Slice 9b
             self::CartHasIssues, self::PriceChanged, self::CarrierFailed => 409, // Slice 9b
+            self::PayoutAccountRequired, self::PayoutRequestOpen, self::InsufficientBalance => 409, // Slice 11
         };
     }
 

@@ -61,4 +61,8 @@ return [
     'PROMO_CODE_INVALID' => 'This promo code cannot be used.',
     'PRICE_CHANGED' => 'The order total changed. Review the new total and confirm again.',
     'CARRIER_FAILED' => 'The carrier could not create the shipment. Try again or choose internal delivery.',
+    // Slice 11 (payouts).
+    'PAYOUT_ACCOUNT_REQUIRED' => 'Add your bank account before requesting a payout.',
+    'PAYOUT_REQUEST_OPEN' => 'You already have a payout request in progress.',
+    'INSUFFICIENT_BALANCE' => 'The amount is more than your available balance.',
 ];

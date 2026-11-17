@@ -14,4 +14,5 @@ enum NotificationTargetType: string
     case Reviews = 'reviews';
     case ProviderAccount = 'provider_account';
     case StoreOrder = 'store_order'; // Slice 9b
+    case PayoutRequest = 'payout_request'; // Slice 11 (D224)
 }

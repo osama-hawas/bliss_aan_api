@@ -1296,6 +1296,199 @@
           }
         }
       ]
+    },
+    {
+      "name": "Payouts (Slice 11)",
+      "description": "docs/slice-11-contract.md §6/§12. Read: finance.view or payouts.process; act and full IBAN: payouts.process (audited).",
+      "item": [
+        {
+          "name": "Payouts queue",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/payouts?filter[status]=requested&sort=created_at&page=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "payouts"
+              ],
+              "query": [
+                {
+                  "key": "filter[status]",
+                  "value": "requested"
+                },
+                {
+                  "key": "sort",
+                  "value": "created_at"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Payout detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/payouts/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "payouts",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Full IBAN (audited)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/payouts/1/iban",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "payouts",
+                "1",
+                "iban"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mark paid",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/payouts/1/mark-paid",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "payouts",
+                "1",
+                "mark-paid"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transfer_reference\": \"TRF-2026-0001\",\n  \"internal_note\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "Reject",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/payouts/1/reject",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "payouts",
+                "1",
+                "reject"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"The account holder name does not match.\",\n  \"internal_note\": null\n}"
+            }
+          }
+        }
+      ]
     }
   ]
 }

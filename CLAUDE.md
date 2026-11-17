@@ -320,3 +320,19 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
 - Tests: `Tests\Concerns\BuildsStoreOrders` (`configureStore()`, `referencesEnding('-FAIL'|'-DELIVER')`, `pendingOrder()`,
   `confirmedOrder()` without the gateway, `bareOrder()`); `tests/Feature/Store/*`, `tests/Feature/Database/StoreOrderLockingTest.php`.
   `StoreOrderPaymentTest` / `StoreOrderExpiryTest` need the Slice 10 merge.
+
+## Earnings & payouts (Slice 11 — S11)
+
+- Contract: `docs/slice-11-contract.md` rev 2 (D215–D226). Settings `payouts.commission_percent`, `payouts.hold_days` (both `null` →
+  earnings / payout requests `409 NOT_CONFIGURED`, nothing recorded) and `payouts.min_amount` (`null` = no minimum).
+- Ledger: `provider_ledger_entries`, append-only, **bigint cents**, idempotent by unique `entry_key`; balances are sums
+  (`Services\Payouts\ProviderEarnings`), pending/available derived from `available_at`. `wallet_ledger_entries` stays unwritten (D218).
+- `EarningsRecorder::recordLocked()` runs inside `BookingExecution::complete` (paid + completed only; never fails completion);
+  `payouts:record-earnings` (every 15 min) back-fills earnings and refund adjustments. `RefundAdjustments` handles S10's
+  `RefundSettled` (`Listeners\Payouts\RecordRefundAdjustment`). All Slice 10 reads are in `Services\Payouts\S10Payments`.
+- Payout account (`PayoutAccounts`, one per provider, `Rules\ValidSaudiIban`, IBAN encrypted, masked everywhere); payout requests
+  (`PayoutRequests`: provider row lock → key re-check → checks → request + `payout` debit; one open request via `open_provider_id`);
+  staff processing (`PayoutProcessing`: provider row → request row; mark paid / reject + `payout_reversal`; audit + E18/E19);
+  full IBAN only via `GET admin/payouts/{id}/iban` (`payouts.process`, audit `payout_iban_viewed`). Money helpers: `Services\Payouts\Cents`.
+- Tests: `Tests\Concerns\BuildsPayouts` (`configurePayouts()`, `paidBooking()` writes S10 rows, `settledRefund()`, `settle()`);
+  `tests/Feature/Payouts/*`, `tests/Feature/Database/PayoutLockingTest.php`, `tests/Unit/Payouts/PayoutMathTest.php`.

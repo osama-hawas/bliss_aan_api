@@ -31,5 +31,8 @@ return [
         'store_order_shipped' => ['title' => 'طلبكِ في الطريق', 'body' => 'طلبكِ :reference في الطريق إليكِ.'],
         'store_order_delivered' => ['title' => 'تم توصيل طلبكِ', 'body' => 'تم توصيل طلبكِ :reference.'],
         'store_order_cancelled' => ['title' => 'تم إلغاء طلبكِ', 'body' => 'تم إلغاء طلبكِ :reference. افتحيه لمعرفة التفاصيل.'],
+        // Slice 11 (D224): E18, E19.
+        'payout_paid' => ['title' => 'تم التحويل', 'body' => 'تم تحويل طلبكِ :reference إلى حسابكِ البنكي.'],
+        'payout_rejected' => ['title' => 'رُفض طلب التحويل', 'body' => 'رُفض طلب التحويل :reference. افتحيه لمعرفة السبب.'],
     ],
 ];

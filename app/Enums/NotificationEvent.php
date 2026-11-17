@@ -35,6 +35,9 @@ enum NotificationEvent: string
     case StoreOrderShipped = 'store_order_shipped';           // E27
     case StoreOrderDelivered = 'store_order_delivered';       // E28
     case StoreOrderCancelled = 'store_order_cancelled';       // E29
+    // Slice 11 (D224).
+    case PayoutPaid = 'payout_paid';                          // E18
+    case PayoutRejected = 'payout_rejected';                  // E19
 
     /**
      * The D26 key that can switch off the push (D135). Null = transactional, always pushed.

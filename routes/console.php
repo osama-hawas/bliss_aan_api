@@ -19,3 +19,5 @@ Schedule::command('payments:reconcile')->everyMinute()->withoutOverlapping();
 // S9b (Slice 9b store orders): expire unpaid orders; poll the carrier for in-transit shipments.
 Schedule::command('store-orders:expire')->everyFiveMinutes()->withoutOverlapping();
 Schedule::command('shipments:sync')->everyThirtyMinutes()->withoutOverlapping();
+// Slice 11 (S11): back-fill provider earnings and refund adjustments (slice-11-contract.md §4).
+Schedule::command('payouts:record-earnings')->everyFifteenMinutes()->withoutOverlapping();
