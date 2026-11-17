@@ -54,6 +54,12 @@ class AuthService
         $this->otp->verify($phone, OtpPurpose::Login, $code);
 
         return DB::transaction(function () use ($user, $app, $device) {
+            // A suspension between the first check and here (D173): the user row lock serializes with it, so no open
+            // session is ever issued to a suspended account.
+            $user = User::query()->lockForUpdate()->findOrFail($user->id);
+            if ($user->status === UserStatus::Suspended) {
+                throw new ApiException(ErrorCode::AccountSuspended, errors: ['reason' => $user->status_reason]);
+            }
             $user->update(['last_login_at' => now()]);
 
             return ['user' => $user, 'token' => $this->sessions->issue($user, $app, $device)];

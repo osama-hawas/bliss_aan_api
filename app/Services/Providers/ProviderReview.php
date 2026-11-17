@@ -10,6 +10,7 @@ use App\Enums\ProviderDocumentStatus;
 use App\Enums\ProviderStatus;
 use App\Exceptions\ApiException;
 use App\Models\DocumentType;
+use App\Models\PortfolioItem;
 use App\Models\Provider;
 use App\Models\ProviderDocument;
 use App\Models\ProviderReviewNote;
@@ -156,6 +157,70 @@ class ProviderReview
     public function reactivate(Provider $provider, User $admin, string $reason, ?string $internalNote): Provider
     {
         return $this->changeStanding($provider, $admin, ProviderStatus::Active, $reason, $internalNote);
+    }
+
+    /**
+     * D175: the verification badge (manual, no automatic rule), on an activated provider, with a reason. No notification.
+     */
+    public function setVerified(Provider $provider, User $admin, bool $value, string $reason, ?string $internalNote): Provider
+    {
+        return $this->setFlag($provider, $admin, 'is_verified', $value, $value ? 'provider_verified' : 'provider_unverified', $reason, $internalNote);
+    }
+
+    /**
+     * D175 / D32: home "featured providers". No cap here; the home shows up to 10.
+     */
+    public function setFeatured(Provider $provider, User $admin, bool $value, string $reason, ?string $internalNote): Provider
+    {
+        return $this->setFlag($provider, $admin, 'is_featured', $value, $value ? 'provider_featured' : 'provider_unfeatured', $reason, $internalNote);
+    }
+
+    /**
+     * D176: hides a portfolio item from every public list (`PortfolioItem::published()`), with a reason.
+     */
+    public function hidePortfolioItem(Provider $provider, int $itemId, User $admin, string $reason, ?string $internalNote): PortfolioItem
+    {
+        return $this->moderatePortfolio($provider, $itemId, $admin, true, $reason, $internalNote);
+    }
+
+    public function restorePortfolioItem(Provider $provider, int $itemId, User $admin): PortfolioItem
+    {
+        return $this->moderatePortfolio($provider, $itemId, $admin, false, null, null);
+    }
+
+    private function setFlag(Provider $provider, User $admin, string $field, bool $value, string $event, string $reason, ?string $internalNote): Provider
+    {
+        return DB::transaction(function () use ($provider, $admin, $field, $value, $event, $reason, $internalNote) {
+            $provider = Provider::query()->lockForUpdate()->findOrFail($provider->id);
+            if (! in_array($provider->status, [ProviderStatus::Active, ProviderStatus::Suspended], true)) {
+                throw new ApiException(ErrorCode::NotFound);
+            }
+            if ($provider->{$field} === $value) {
+                throw new ApiException(ErrorCode::InvalidState);
+            }
+            $provider->update([$field => $value]);
+            $this->activity->record($provider, $event, actor: $admin, visibility: ActivityVisibility::Internal, meta: array_filter(['internal_note' => $internalNote]));
+            $this->audit->log($event, $admin, $provider, $reason, [$field => ! $value], [$field => $value]);
+
+            return $provider;
+        });
+    }
+
+    private function moderatePortfolio(Provider $provider, int $itemId, User $admin, bool $hide, ?string $reason, ?string $internalNote): PortfolioItem
+    {
+        return DB::transaction(function () use ($provider, $itemId, $admin, $hide, $reason, $internalNote) {
+            $item = PortfolioItem::query()->where('provider_id', $provider->id)->lockForUpdate()->findOrFail($itemId);
+            if ($item->hidden_by_admin === $hide) {
+                throw new ApiException(ErrorCode::InvalidState);
+            }
+            $item->update(['hidden_by_admin' => $hide, 'hidden_reason' => $hide ? $reason : null]);
+            $event = $hide ? 'portfolio_hidden' : 'portfolio_restored';
+            $this->activity->record($provider, $event, actor: $admin, visibility: ActivityVisibility::Internal,
+                meta: array_filter(['portfolio_item_id' => $item->id, 'internal_note' => $internalNote]));
+            $this->audit->log($event, $admin, $provider, $reason, ['portfolio_item_id' => $item->id, 'hidden' => ! $hide], ['portfolio_item_id' => $item->id, 'hidden' => $hide]);
+
+            return $item;
+        });
     }
 
     private function changeStanding(Provider $provider, User $admin, ProviderStatus $to, string $reason, ?string $internalNote): Provider

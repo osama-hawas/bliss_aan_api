@@ -8,6 +8,7 @@ use App\Enums\NotificationEvent;
 use App\Enums\NotificationTargetType;
 use App\Enums\OfferStatus;
 use App\Enums\PolicyType;
+use App\Enums\ProviderStatus;
 use App\Enums\RecipientStatus;
 use App\Enums\ServiceRequestStatus;
 use App\Exceptions\ApiException;
@@ -87,6 +88,10 @@ class OfferSender
             throw new IdempotencyRace;
         }
         if (! $recipient->status->isActive() || ! $request->status->isOpenForResponses()) {
+            throw new ApiException(ErrorCode::InvalidState);
+        }
+        // D172: a provider suspended at provider-status level sends no new offers (shared lock: serialized with suspension).
+        if (Provider::query()->whereKey($provider->id)->sharedLock()->toBase()->value('status') === ProviderStatus::Suspended->value) {
             throw new ApiException(ErrorCode::InvalidState);
         }
 

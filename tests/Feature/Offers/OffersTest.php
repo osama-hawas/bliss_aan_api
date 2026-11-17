@@ -5,12 +5,14 @@ namespace Tests\Feature\Offers;
 use App\Enums\AdminRole;
 use App\Enums\OfferStatus;
 use App\Enums\ProviderStatus;
+use App\Exceptions\ApiException;
 use App\Models\ActivityEvent;
 use App\Models\DeclineReason;
 use App\Models\Offer;
 use App\Models\Provider;
 use App\Models\ServiceRequest;
 use App\Models\User;
+use App\Services\Offers\OfferSender;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
@@ -312,5 +314,23 @@ class OffersTest extends TestCase
             ->assertJsonCount(3, 'data.offers');
         $this->assertEqualsCanonicalizing(['active', 'superseded', 'withdrawn'], collect($res->json('data.offers'))->pluck('status')->all());
         $this->assertNotNull($res->json('data.offers.0.provider.display_name'));
+    }
+
+    /**
+     * Slice 15 (D172): the service itself refuses a provider suspended after the controller's check (race window).
+     */
+    public function test_the_sender_refuses_a_provider_suspended_meanwhile(): void
+    {
+        $request = $this->created($this->openBody());
+        $stale = $this->noura->replicate()->forceFill(['id' => $this->noura->id]);
+        $this->noura->update(['status' => ProviderStatus::Suspended]);
+
+        try {
+            app(OfferSender::class)->send($stale, $request, (string) Str::uuid(), $this->body());
+            $this->fail('A suspended provider sent an offer.');
+        } catch (ApiException $e) {
+            $this->assertSame(409, $e->status());
+        }
+        $this->assertSame(0, Offer::query()->count());
     }
 }

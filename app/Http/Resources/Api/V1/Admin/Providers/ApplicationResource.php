@@ -24,6 +24,7 @@ class ApplicationResource extends JsonResource
             'status' => $this->status->value,
             'status_label' => $this->status->label(),
             'name' => $this->display_name,
+            'account_name' => $this->user->name,
             'account_type' => $this->account_type->value,
             'account_type_label' => $this->account_type->label(),
             'city_id' => $this->city_id,
