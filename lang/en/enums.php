@@ -85,4 +85,7 @@ return [
     // Slice 12b (support tickets)
     'ticket_status' => ['open' => 'Open', 'in_progress' => 'In progress', 'waiting' => 'Waiting for your reply', 'resolved' => 'Resolved', 'closed' => 'Closed'],
     'ticket_topic' => ['service_quality' => 'Service quality', 'late_arrival' => 'Late arrival', 'payment' => 'Payment', 'cancellation' => 'Cancellation', 'account' => 'Account', 'other' => 'Other'],
+    // Slice 18 (S18) — store management.
+    'stock_movement_source' => ['initial' => 'Initial stock', 'adjustment' => 'Staff adjustment', 'order' => 'Order', 'order_cancelled' => 'Order cancelled'],
+    'stock_adjustment_reason' => ['restock' => 'New stock received', 'stocktake' => 'Stocktake', 'damaged' => 'Damaged or lost', 'correction' => 'Correction', 'other' => 'Other'],
 ];

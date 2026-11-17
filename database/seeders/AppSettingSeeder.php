@@ -24,6 +24,8 @@ class AppSettingSeeder extends Seeder
             'bookings.buffer_minutes' => 0, // D108
             'bookings.start_early_minutes' => 60, // D126
             'support.auto_close_days' => null, // D160 (S12b): no auto-close until decided
+            // S18 (Slice 18) — low-stock level for the dashboard; null = no low-stock flag (D278).
+            'store.low_stock_threshold' => null,
         ];
 
         foreach (UploadContext::cases() as $context) {

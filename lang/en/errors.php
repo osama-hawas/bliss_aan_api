@@ -48,4 +48,6 @@ return [
     'staff_escalation' => 'You cannot grant permissions you do not hold, or manage super admins.',
     // Slice 12a (S12a).
     'DELETION_PENDING' => 'You already have an account deletion request under review.',
+    // Slice 18 (S18).
+    'STOCK_CHANGED' => 'The stock changed since you opened it. Check the current count and try again.',
 ];

@@ -43,6 +43,9 @@ enum ErrorCode: string
     case RoleInUse = 'ROLE_IN_USE';
     case PermissionRestricted = 'PERMISSION_RESTRICTED';
 
+    // Slice 18 (S18) — stock adjustments (D274).
+    case StockChanged = 'STOCK_CHANGED';
+
     public function status(): int
     {
         return match ($this) {
@@ -56,6 +59,7 @@ enum ErrorCode: string
             self::ServerError => 500,
             self::LastSuperAdmin, self::OwnAccount, self::RoleInUse => 409, // Slice 14b
             self::PermissionRestricted => 422, // Slice 14b
+            self::StockChanged => 409, // Slice 18 (S18)
         };
     }
 
