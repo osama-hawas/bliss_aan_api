@@ -75,7 +75,7 @@ trait BuildsFinance
     {
         return DB::table('payout_requests')->insertGetId([
             'reference' => 'PO-'.random_int(1_000_000, 9_999_999), 'provider_id' => $provider->id, 'amount_cents' => $cents, 'status' => $status,
-            'holder_name' => 'Noura', 'iban' => encrypt('SA0380000000608010167519'), 'iban_last4' => '7519', 'bank_name' => null,
+            'holder_name' => 'Noura', 'iban' => encrypt('SA0380000000608010167519'), 'iban_last4' => '7519', 'bank_name_key' => null,
             'transfer_reference' => $status === 'paid' ? 'TR-'.Str::random(8) : null, 'processed_at' => $status === 'requested' ? null : now(),
             'idempotency_key' => (string) Str::uuid(), 'idempotency_fingerprint' => str_repeat('a', 64),
             'open_provider_id' => $status === 'requested' ? $provider->id : null,

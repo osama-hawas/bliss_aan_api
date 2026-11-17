@@ -45,7 +45,7 @@ Migration `2026_11_29_100000_create_ledger_adjustments_table` (after S10 `2026_1
 | `reason_code` | `LedgerAdjustmentReason`: `payout_returned` · `booking_correction` · `goodwill` · `penalty` · `other` |
 | `reason` | text 3–1000, internal (staff only) |
 | `booking_id` | nullable FK bookings; required for `booking_correction`, must be hers |
-| `payout_request_id` | nullable, indexed (S11's `payout_requests`; no FK constraint because the table is created by S11 — added at merge if wanted); required for `payout_returned` |
+| `payout_request_id` | nullable FK `payout_requests` (restrict; added by `2026_12_01_100000_add_payout_request_foreign_key_to_ledger_adjustments` after the S11 merge); required for `payout_returned` |
 | `payout_return_key` | = `payout_request_id` while `pending_approval` / `posted` (else null), **unique** → one return per payout |
 | `status` | `LedgerAdjustmentStatus`: `pending_approval` · `posted` · `rejected` · `cancelled` |
 | `requires_approval` | bool snapshot (D288) |
@@ -200,7 +200,7 @@ New feature folder `src/features/finance-ledger/` (own `routes.ts`, `api.ts`, `t
 `/finance/ledger`, `/finance/adjustments`, `/finance/adjustments/:id`, `/finance/reconciliation`. Nav: an S19 block in
 the finance group. `LIVE_ADMIN_ROUTES`: S19 block `/admin/finance/`. Adjustment dialog: provider (balances detail
 pre-selects), direction, amount, reason category, reason, booking / payout id; shows the limits and warns when a debit
-would take available below zero. Approve / reject buttons only with `finance.process`; the requester sees "cancel"
+would take available below zero (live: the dialog loads `provider-balances/{id}` for the typed provider when opened from the Adjustments page, and shows a warning Alert with the balance after the deduction; never blocks, D290). The reject / cancel reason is checked for 3–1000 characters like the API. Approve / reject buttons only with `finance.process`; the requester sees "cancel"
 instead of "approve". E2E `e2e/finance-ledger.spec.ts` (stubbed) + `e2e/finance-ledger-live.spec.ts` (manual, :8027).
 
 ## 10. Decisions (source: "Session recommendation under owner delegation, 2026-11-17")

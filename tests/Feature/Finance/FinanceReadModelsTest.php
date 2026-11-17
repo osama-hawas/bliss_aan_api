@@ -83,7 +83,7 @@ class FinanceReadModelsTest extends TestCase
     {
         $this->seedLedger();
 
-        $this->actingAsApi($this->staff)->getJson(self::FINANCE_URL.'/ledger-entries')->assertOk()->assertJsonCount(7, 'data');
+        $this->actingAsApi($this->staff)->getJson(self::FINANCE_URL.'/ledger-entries')->assertOk()->assertJsonCount(6, 'data'); // Noura 5 + Huda 1
         $this->actingAsApi($this->staff)->getJson(self::FINANCE_URL.'/ledger-entries?filter[type]=payout')->assertOk()->assertJsonCount(2, 'data')
             ->assertJsonPath('data.0.type_label', 'Payout');
         $this->actingAsApi($this->staff)->getJson(self::FINANCE_URL."/ledger-entries?filter[provider_id]={$this->huda->id}")->assertOk()
