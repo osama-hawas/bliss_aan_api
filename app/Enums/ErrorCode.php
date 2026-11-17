@@ -43,6 +43,10 @@ enum ErrorCode: string
     case RoleInUse = 'ROLE_IN_USE';
     case PermissionRestricted = 'PERMISSION_RESTRICTED';
 
+    // Slice 19 (S19) — ledger adjustments (D288, D289).
+    case AdjustmentLimitExceeded = 'ADJUSTMENT_LIMIT_EXCEEDED';
+    case SelfApproval = 'SELF_APPROVAL';
+
     public function status(): int
     {
         return match ($this) {
@@ -56,6 +60,8 @@ enum ErrorCode: string
             self::ServerError => 500,
             self::LastSuperAdmin, self::OwnAccount, self::RoleInUse => 409, // Slice 14b
             self::PermissionRestricted => 422, // Slice 14b
+            self::AdjustmentLimitExceeded => 422, // Slice 19
+            self::SelfApproval => 409, // Slice 19
         };
     }
 

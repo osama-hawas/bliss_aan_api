@@ -24,6 +24,9 @@ class AppSettingSeeder extends Seeder
             'bookings.buffer_minutes' => 0, // D108
             'bookings.start_early_minutes' => 60, // D126
             'support.auto_close_days' => null, // D160 (S12b): no auto-close until decided
+            // Slice 19 (S19, D288): adjustments are NOT_CONFIGURED until a maximum is set; null approval amount = always four-eyes.
+            'finance.adjustment_max_amount' => null,
+            'finance.adjustment_approval_amount' => null,
         ];
 
         foreach (UploadContext::cases() as $context) {

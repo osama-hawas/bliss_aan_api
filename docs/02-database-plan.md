@@ -102,6 +102,7 @@ Labels: **[C]** confirmed · **[R]** recommendation · **[?]** open question.
 | `provider_ledger_entries` | provider_id, booking_id nullable, type (earning/commission/adjustment/payout), amount, status (pending/available/paid), meta. Ledger, not a balance column | M |
 | `payout_accounts` | provider_id, **iban (encrypted)**, bank_name, holder_name, verified_at | M |
 | `payout_requests` | provider_id, reference, amount, status (requested/processing/paid/failed/rejected), processed_by, idempotency_key unique | M (processing D) |
+| `ledger_adjustments` | Slice 19 (D286–D292): reference `LA-`, provider_id, direction (credit/debit), amount_cents > 0, reason_code (payout_returned/booking_correction/goodwill/penalty/other), reason (internal), booking_id nullable, payout_request_id nullable, **payout_return_key unique nullable** (one live return per payout), status (pending_approval/posted/rejected/cancelled), requires_approval + limits snapshot, requested_by, decided_by/at, decision_reason, posted_at, **ledger_entry_key unique** (`adjustment:{id}` = the one `provider_ledger_entries` row, type `adjustment`, written on posting), **unique(requested_by, idempotency_key)**. Never edited or deleted. Migration `2026_11_29_100000_create_ledger_adjustments_table` | P2 (Slice 19) |
 
 ## 7. Chat, support, media
 

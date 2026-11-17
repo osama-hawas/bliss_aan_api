@@ -48,4 +48,7 @@ return [
     'staff_escalation' => 'You cannot grant permissions you do not hold, or manage super admins.',
     // Slice 12a (S12a).
     'DELETION_PENDING' => 'You already have an account deletion request under review.',
+    // Slice 19 (S19).
+    'ADJUSTMENT_LIMIT_EXCEEDED' => 'The amount is above the largest adjustment allowed.',
+    'SELF_APPROVAL' => 'Another staff member must approve an adjustment you requested.',
 ];

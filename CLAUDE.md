@@ -275,3 +275,19 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
   `client_uuid` under the ticket row lock; her reply: `resolved → open`, `waiting → in_progress`, `closed` → 409 (D160).
   Staff are shown only as "Bliss aan support"; internal messages and `assigned_to` never reach mobile (D161).
   No admin endpoints (Slice 17). Tests: `tests/Feature/Support/*`, `tests/Feature/Database/TicketReplyLockingTest.php`.
+
+## Finance: adjustments, overview, reconciliation (Slice 19 — S19)
+
+- Contract: `docs/slice-19-contract.md` (D285–D299). Builds on S10 (payments/refunds) and S11 (provider ledger, payouts) by
+  their **table contracts** only (query builder, no S10/S11 classes imported); `Money::toCents/fromCents` come from S10.
+- `Services\Finance\LedgerAdjustments` (`create` / `approve` / `reject`): `finance.process`; limits from settings
+  `finance.adjustment_max_amount` (null → `409 NOT_CONFIGURED`) and `finance.adjustment_approval_amount` (null → every
+  adjustment needs a second approver); approver ≠ requester (`409 SELF_APPROVAL`); the requester's own reject = cancel.
+  Lock order: requester user (create) / adjustment row (decide) → providers row. Posting writes exactly one
+  `provider_ledger_entries` row (`type adjustment`, `entry_key adjustment:{id}`, available at once) through
+  `ProviderLedgerWriter`, audit + `activity_events` (internal) + E35/E36 to the provider (target `earnings`).
+- Read models (`finance.view`): `FinanceOverview`, `ProviderBalances` (same sums as S11 §4.3), `LedgerEntryQueries`,
+  `AdjustmentQueries`, `Reconciliation` (11 read-only checks, `App\Enums\ReconciliationCheck`, + daily Riyadh-day totals).
+  Periods: `FinancePeriod` (Riyadh days, default this month). Routes `routes/api/v1/admin/finance/*.php`. No exports (S21).
+- Tests: `Tests\Concerns\BuildsFinance` (inserts S10/S11 rows by table contract); `tests/Feature/Finance/*`,
+  `tests/Feature/Database/LedgerAdjustmentLockingTest.php` — they need the S10/S11 tables, so they run after that merge.

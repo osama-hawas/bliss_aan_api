@@ -26,5 +26,8 @@ return [
         'application_suspended' => ['title' => 'تم إيقاف حسابكِ', 'body' => 'أُوقف حسابكِ كمقدمة خدمة. افتحيه لمعرفة التفاصيل.'],
         'application_reactivated' => ['title' => 'أُعيد تفعيل حسابكِ', 'body' => 'أصبح حسابكِ مفعّلًا من جديد.'],
         'application_document_rejected' => ['title' => 'لم يُقبل أحد المستندات', 'body' => 'لم يُقبل أحد مستندات طلبكِ. افتحيه لرفع مستند جديد.'],
+        // Slice 19 (S19).
+        'ledger_credit_posted' => ['title' => 'أُضيف مبلغ إلى رصيدكِ', 'body' => 'أُضيف :amount :currency إلى رصيدكِ (:reference).'],
+        'ledger_debit_posted' => ['title' => 'تعديل على رصيدكِ', 'body' => 'خُصم :amount :currency من رصيدكِ (:reference).'],
     ],
 ];
