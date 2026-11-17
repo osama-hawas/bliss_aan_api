@@ -74,4 +74,6 @@ return [
     // Slice 19 (S19).
     'ADJUSTMENT_LIMIT_EXCEEDED' => 'The amount is above the largest adjustment allowed.',
     'SELF_APPROVAL' => 'Another staff member must approve an adjustment you requested.',
+    // S21 (D322).
+    'EXPORT_TOO_LARGE' => 'This export has more rows than one file can hold. Narrow the period or filters and try again.',
 ];

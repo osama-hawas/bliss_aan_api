@@ -72,6 +72,9 @@ enum ErrorCode: string
     case AudienceChanged = 'AUDIENCE_CHANGED';
     case NoRecipients = 'NO_RECIPIENTS';
 
+    // S21 — reports (D322).
+    case ExportTooLarge = 'EXPORT_TOO_LARGE';
+
     public function status(): int
     {
         return match ($this) {
@@ -95,6 +98,7 @@ enum ErrorCode: string
             self::AdjustmentLimitExceeded => 422, // Slice 19
             self::SelfApproval => 409, // Slice 19
             self::TranslationMissing, self::AudienceChanged, self::NoRecipients => 409, // Slice 20
+            self::ExportTooLarge => 422, // S21 (D322)
         };
     }
 

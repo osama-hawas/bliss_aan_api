@@ -447,3 +447,16 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
   audit + cache flush; fixed keys read-only), `CityManagement`, `DocumentTypeManagement`, `PolicyPublisher` (append-only).
 - Tests: `Tests\Concerns\BuildsContent`; `tests/Feature/Admin/Content/*`, `tests/Feature/Admin/Settings/*`,
   `tests/Feature/Database/BroadcastSendLockingTest.php`.
+
+## KPIs, audit, reports (Slice 21 — S21)
+
+- Contract: `docs/slice-21-contract.md` (D315–D329). Routes `routes/api/v1/admin/reports.php`. KPI groups are isolated sources in
+  `app/Services/Reports/Sources/` listed in `KpiSourceRegistry` (`StatusKpiSource` base: counts + cents totals per status,
+  `Schema::hasTable` guard for tables of later slices, `records()` drill-down). `NavCounts`, `Overview`, `Indicators`, `ReportScope`
+  (Riyadh period + city; `filter[from|to|city_id]`), `StaffAccess::any()` for scope by permission.
+- Action log: `Services\Audit\AuditLogQueries` / `AuditSubjects` (readable record + dashboard link) / `AuditLabels`
+  (`lang/{ar,en}/audit.php`; add a label when a slice adds an audit action). `AuditLog` rows refuse update/delete.
+- Exports: `Services\Reports\Exports\ReportExporter::DATASETS` (one `ReportDataset` per list; `maatwebsite/excel`), audit row
+  `report_exported`. Receipts: `Services\Reports\Receipts\PaymentReceipts` (+ `payment_receipts` VAT snapshot) and `ReceiptPdf`
+  (dompdf + `ar-php` shaping, view `resources/views/reports/receipt.blade.php`); listener `Listeners\Reports\IssuePaymentReceipt`.
+- Tests: `tests/Feature/Admin/Reports/*` (`PaymentReceiptTest` skips until S10's `payments` table exists).

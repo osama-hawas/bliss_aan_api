@@ -42,6 +42,8 @@ class AppSettingSeeder extends Seeder
             // Slice 19 (S19, D288): adjustments are NOT_CONFIGURED until a maximum is set; null approval amount = always four-eyes.
             'finance.adjustment_max_amount' => null,
             'finance.adjustment_approval_amount' => null,
+            // S21 — reports (D320): the overview's low-stock item reads `store.low_stock_threshold` (S18's key above) and stays
+            // hidden while it is null.
         ];
 
         foreach (UploadContext::cases() as $context) {
