@@ -1,4 +1,4 @@
-# SFIX — closing the leftovers of Slices 2, 4, 5b, 7, 12 and settings (contract rev 2, 2026-11-17)
+# SFIX — closing the leftovers of Slices 2, 4, 5b, 7, 12 and settings (contract rev 3, 2026-11-17)
 
 Session SFIX, branch `slice-close-leftovers` (API + app worktrees `wt-sfix/`). Every rule below comes from the
 orchestrator decisions OD23–OD35 (`orchestrator-decisions-2026-11-17.md`, taken under the owner's delegation). This
@@ -38,12 +38,17 @@ stays Slice 17, Req 42).
   (empty = clean). Called by `ChatMessenger::send()` before the insert; `'flagged' => $detector->detect($body) !== []`.
   Applies to every message type that has a `body`. The idempotency fingerprint is unchanged (a replay returns the
   stored row with its stored flag).
-- Detection (Arabic-Indic `٠–٩` and Persian `۰–۹` digits are normalised to ASCII first):
-  - **phone** — a run of digits joined by spaces, `-`, `.`, `(`, `)`, optionally starting with `+` or `00`. Any
-    consecutive group sequence inside the run, with separators removed, matching one of:
+- Detection (Arabic-Indic `٠–٩` and Persian `۰–۹` digits are normalised to ASCII and no-break spaces U+00A0 / U+202F
+  to plain spaces first; PHP patterns use `/u`):
+  - **phone** — a run of digits joined by spaces, `-`, `.`, `(`, `)`, optionally starting with `+` or `00`; a spaced dash
+    (` - `) ends the run (a range). A candidate is consecutive groups of the run, with separators removed, that
+    **starts** at a group beginning with `+`, `0` (incl. `00`), `5`, `9200` or `800`, has **at least 9 digits**, never
+    crosses a year-like group (4 digits from `19`/`20`) or a dash joining two groups of 4+ digits (`5000-10000`), and
+    matches one of:
     Saudi mobile `^(?:\+?966|00966|0)?5\d{8}$`; Saudi landline `^(?:\+?966|00966|0)1\d{8}$`; unified/toll-free
     `^(?:9200|800)\d{5,6}$`; international `^(?:\+|00)\d{8,15}$`. So prices, dates (`2026-12-01 18:00`), times,
-    request references (`RN-1234567`) and guest counts are **not** flagged.
+    request references (`RN-1234567`), guest counts and ranges (`5000-10000`, `8000 - 12000`, `9200-15000`,
+    `2026-12-05 - 2026-12-08`) are **not** flagged (rev 3, review M1).
   - **email** — `[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}` (case-insensitive).
   - **url** — `https?://…`, `www.…`, or a bare domain ending in a common TLD
     (`com|net|org|sa|me|io|co|app|link|ly|info|biz|store|shop`, e.g. `wa.me/…`, `t.me/x`, `instagram.com/x`).
@@ -83,9 +88,10 @@ stays Slice 17, Req 42).
 ## 2. Request attachment limits (Q14 → D242)
 
 - `AppSettingSeeder`: outside `local`, `uploads.request_attachment` =
-  `{"mimes": ["jpg","jpeg","png","heic","pdf"], "max_kb": 10240}` and `requests.max_attachments` = `5`. Created when
-  missing **and** filled when the stored value is `null` (the decision replaces "not decided"); a non-null value an admin
-  set is never overwritten.
+  `{"mimes": ["jpg","jpeg","png","heic","pdf"], "max_kb": 10240}` and `requests.max_attachments` = `5`, as the values a
+  key gets **when it is created**. An existing row is never touched, so an admin's value — including a deliberate
+  `null` — survives re-seeding (rev 3, review L3). The seeder flushes the `AppSettings` cache at the end of `run()`
+  (rev 3, review M2), so a deploy's seed is read at once.
 - `local`: unchanged — `AppSettingSeeder` leaves them as before and `DemoSeeder::uploadLimits()` still only fills nulls.
   The local DB values are not touched by SFIX.
 - No upload/validation code change: `MediaService` already reads `mimes` / `max_kb`; `ServiceRequestCreator` already

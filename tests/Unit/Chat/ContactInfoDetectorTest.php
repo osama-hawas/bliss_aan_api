@@ -47,6 +47,8 @@ class ContactInfoDetectorTest extends TestCase
             'www url' => ['www.site.sa', 'url'],
             'whatsapp link' => ['wa.me/966551234567', 'url'],
             'bare domain' => ['instagram.com/bliss', 'url'],
+            'no-break spaces' => ["055\u{00A0}123\u{202F}4567", 'phone'],
+            'dashed mobile' => ['055-123-4567', 'phone'],
         ];
     }
 
@@ -61,6 +63,14 @@ class ContactInfoDetectorTest extends TestCase
             'decimal' => ['0.5'],
             'plain text' => ['Is the date available?'],
             'sentence end dot' => ['Thanks.See you'],
+            'budget range' => ['الميزانية 5000-10000 ريال'],
+            'budget range arabic digits' => ['الميزانية ٥٠٠٠-١٠٠٠٠ ريال'],
+            'spaced range' => ['8000 - 12000'],
+            'spaced range arabic digits' => ['٨٠٠٠ - ١٢٠٠٠'],
+            'range from 9200' => ['9200-15000'],
+            'range from 9200 arabic digits' => ['٩٢٠٠-١٥٠٠٠'],
+            'date range' => ['2026-12-05 - 2026-12-08'],
+            'date range arabic digits' => ['٢٠٢٦-١٢-٠٥ - ٢٠٢٦-١٢-٠٨'],
             'empty' => [''],
             'null' => [null],
         ];

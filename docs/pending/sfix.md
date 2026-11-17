@@ -10,7 +10,7 @@ the text below into those files at merge time. Status: **implemented on branch `
 |---|---|---|---|
 | D240 | C5 / Q80 — no structured reschedule. The parties agree in chat or a support ticket, then the booking is cancelled through the Slice 6 flow and a new request is made. Closes the reschedule item of row 12 | Orchestrator under owner delegation, 2026-11-17 (OD23) | 2026-11-17 |
 | D241 | Q11 — no distance sort. City filtering is the location filter. The app's "nearest" sort option is removed (with the mock-only distance captions, D254) | Orchestrator under owner delegation, 2026-11-17 (OD24) | 2026-11-17 |
-| D242 | Q14 — request attachment limits: 10 MB per file, at most 5 files per request, types jpg/jpeg/png/heic/pdf. Seeded by `AppSettingSeeder` as `uploads.request_attachment` / `requests.max_attachments` outside `local` (created, or filled when `null`; an admin value is never overwritten). Local unchanged (`DemoSeeder`). Replaces D53's "not approved" | Orchestrator under owner delegation, 2026-11-17 (OD25) | 2026-11-17 |
+| D242 | Q14 — request attachment limits: 10 MB per file, at most 5 files per request, types jpg/jpeg/png/heic/pdf. Seeded by `AppSettingSeeder` as `uploads.request_attachment` / `requests.max_attachments` outside `local` (the values of newly created keys only; an existing row — an admin value or a deliberate `null` — is never touched; the settings cache is flushed after seeding). Local unchanged (`DemoSeeder`). Replaces D53's "not approved" | Orchestrator under owner delegation, 2026-11-17 (OD25) | 2026-11-17 |
 | D243 | Q15 — final AR/EN wording of the seven decline reasons (codes unchanged, D51) as in `slice-close-leftovers-contract.md` §3; `DeclineReasonSeeder` updates a row only while it still holds the old proposed text. Copy review on the release checklist | Orchestrator under owner delegation, 2026-11-17 (OD26) | 2026-11-17 |
 | D244 | Q17 — an open request whose recipients all declined stays `awaiting_offers` (no new status) until the client cancels or the event passes | Orchestrator under owner delegation, 2026-11-17 (OD27) | 2026-11-17 |
 | D245 | Q63 — the client is not notified when a provider withdraws her offer on an open request; E5 stays direct-only (keeps D76/D91) | Orchestrator under owner delegation, 2026-11-17 (OD28) | 2026-11-17 |
@@ -67,7 +67,7 @@ C8. Remove from *Open — scope / clarification*: S5, S8, S9, S12. Add to *Resol
 
 | Item | From | Note |
 |---|---|---|
-| Confirm the D242 attachment values on the production database after seeding (replaces the Q14 row) | Slice 4 (D242) | Seeded outside local; admin values never overwritten |
+| Confirm the D242 attachment values on the production database after seeding (replaces the Q14 row) | Slice 4 (D242) | Seeded outside local for newly created keys only; a DB seeded before D242 keeps `null` until staff set the values |
 | Choose the real vendors: SMS, payment gateway, shipping carrier, maps (Q8) | OD2 | Fake drivers only until then |
 | ZATCA e-invoicing | OD8 | Out of scope until the release phase |
 | Copy review of the decline reasons (D243) and the chat contact warning (D246), AR and EN | SFIX | Text written by SFIX under delegation |
