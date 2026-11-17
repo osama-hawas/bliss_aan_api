@@ -100,6 +100,35 @@ class ChatReviewTest extends TestCase
         $this->asStaff($this->staff)->getJson($this->url($t->id, $c->id, '/messages')."?access_log_id={$logId}")->assertStatus(409); // null = reason every page
     }
 
+    public function test_the_window_is_measured_from_the_reason_and_never_slides(): void
+    {
+        $request = $this->created($this->openBody());
+        $c = $this->conversationFor($request, $this->noura, 12);
+        $t = $this->ticket($this->client, TicketRelatedType::ServiceRequest->value, $request->id);
+        $t->forceFill(['assigned_to' => $this->staff->id])->save();
+        $page = fn (int $logId, int $before) => $this->asStaff($this->staff)
+            ->getJson($this->url($t->id, $c->id, '/messages')."?access_log_id={$logId}&before={$before}&per_page=2");
+
+        $first = $this->asStaff($this->staff)->postJson($this->url($t->id, $c->id, '/review'), ['reason' => 'Complaint', 'per_page' => 2]);
+        $root = $first->json('data.access_log_id');
+
+        // Page 2 at +20 min, chained from the page row; page 3 at +29 min (still inside 30 min of the reason).
+        $this->travel(20)->minutes();
+        $second = $page($root, $first->json('meta.next_before'))->assertOk();
+        $this->travel(9)->minutes();
+        $third = $page($second->json('data.access_log_id'), $second->json('meta.next_before'))->assertOk();
+
+        // +31 min from the reason: refused even though the last page was read 2 minutes ago.
+        $this->travel(2)->minutes();
+        $page($third->json('data.access_log_id'), $third->json('meta.next_before'))->assertStatus(409)->assertJsonPath('code', 'INVALID_STATE');
+        $page($root, $third->json('meta.next_before'))->assertStatus(409);
+
+        $logs = ConversationAccessLog::query()->orderBy('id')->get();
+        $this->assertCount(3, $logs);
+        $this->assertNull($logs[0]->review_log_id);
+        $this->assertSame([$root, $root], [$logs[1]->review_log_id, $logs[2]->review_log_id]);
+    }
+
     public function test_only_the_assignee_with_permission_on_an_open_linked_ticket(): void
     {
         $request = $this->created($this->openBody());

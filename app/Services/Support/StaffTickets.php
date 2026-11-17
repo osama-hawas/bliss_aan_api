@@ -225,11 +225,15 @@ class StaffTickets
 
     private function notifyStatus(SupportTicket $ticket, TicketStatus $from, TicketStatus $to, ActivityEvent $event, User $staff): void
     {
-        $notify = $to === TicketStatus::Resolved
-            || ($to === TicketStatus::Closed && in_array($from, [TicketStatus::Open, TicketStatus::InProgress, TicketStatus::Waiting], true));
-        if ($notify) {
-            $this->notifier->send((int) $ticket->user_id, NotificationEvent::SupportTicketResolved, ['reference' => $ticket->reference],
-                NotificationTargetType::SupportTicket, $ticket->id, 'ticket_status:'.$ticket->id.':'.$event->id, $staff); // E21
+        // E21: `resolved` invites a reply; a close straight from an open state says it is closed (replies are refused, D160).
+        $event21 = match (true) {
+            $to === TicketStatus::Resolved => NotificationEvent::SupportTicketResolved,
+            $to === TicketStatus::Closed && in_array($from, [TicketStatus::Open, TicketStatus::InProgress, TicketStatus::Waiting], true) => NotificationEvent::SupportTicketClosed,
+            default => null,
+        };
+        if ($event21 !== null) {
+            $this->notifier->send((int) $ticket->user_id, $event21, ['reference' => $ticket->reference],
+                NotificationTargetType::SupportTicket, $ticket->id, 'ticket_status:'.$ticket->id.':'.$event->id, $staff);
         }
     }
 

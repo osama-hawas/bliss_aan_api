@@ -11,6 +11,10 @@
 >
 > Revision history: rev 1 (2026-11-17) draft with Q146–Q155. Rev 2 (2026-11-17): all recommendations approved as
 > written; nothing else changed. Notification events: S17 owns E20–E25 (S11 E18–E19, S9b E26–E29).
+> Review fixes (2026-11-17, after the final review; no decision changed): the chat-review window is measured from the
+> row that carried the reason and never slides (§3, §7); a staff request cancel sends E22 to the providers too (§4, §9);
+> E21 has a closed variant and its dedupe key is the history entry (§9); providers cannot reply to or report a hidden
+> review (§8); the ticket detail carries `last_message_from` like the list (§6).
 
 ## 12a. Decisions (orchestrator under owner delegation, 2026-11-17)
 
@@ -108,7 +112,7 @@ Existing `GET admin/service-requests`, `GET …/{id}` unchanged except: detail `
 
 | Method & path | Permission | Body | Effect |
 |---|---|---|---|
-| `POST admin/service-requests/{id}/cancel` | `bookings.view` + `bookings.intervene` | `reason` (3–1000, shown to the client and to the providers still taking part), `internal_note` (≤ 1000, optional) | Only `awaiting_offers` / `offers_received` (else `409 INVALID_STATE`; a booked request is cancelled through its booking). Reuses the client-cancel path of `ServiceRequestLifecycle` (same locks: request → recipients; offers closed; recipients `closed`), extended with an actor = staff. History `request_cancelled_by_staff` (all, reason) + internal note entry. Audit `service_request.cancelled_by_staff`. Notifies E3 `request_cancelled` (providers still `new`/`offer_sent`, as today) + **E22** to the client |
+| `POST admin/service-requests/{id}/cancel` | `bookings.view` + `bookings.intervene` | `reason` (3–1000, shown to the client and to the providers still taking part), `internal_note` (≤ 1000, optional) | Only `awaiting_offers` / `offers_received` (else `409 INVALID_STATE`; a booked request is cancelled through its booking). Reuses the client-cancel path of `ServiceRequestLifecycle` (same locks: request → recipients; offers closed; recipients `closed`), extended with an actor = staff. History `request_cancelled_by_staff` (all, reason) + internal note entry. Audit `service_request.cancelled_by_staff`. Notifies **E22** to the client and to the providers still `new`/`offer_sent` (staff wording; E3's "<client> cancelled" text is not used, since the client did not cancel) |
 | `POST admin/service-requests/{id}/notes` | `bookings.view` + `bookings.intervene` | `note` (1–1000) | History entry `staff_note` with visibility `internal` (D76). Audit `service_request.note_added`. No notification |
 
 ## 5. Bookings (`admin/bookings`)
@@ -186,7 +190,7 @@ than `support.auto_close_days`; setting `null` (seeded) → no-op. History `tick
 |---|---|---|
 | `GET admin/support-tickets/{id}/conversations` | — | The conversations the ticket gives access to (no messages): `{id, request{id,reference}, client{id,name}, provider{id,display_name}, last_message_at, messages_count}` |
 | `POST admin/support-tickets/{id}/conversations/{conversationId}/review` | `reason` (3–500, required), `before` (message id, optional), `per_page` (≤ 50) | Writes one `conversation_access_logs` row, then returns a page of messages (newest first, Slice 7 cursor) as `{id, type, body, sender_side, sender_name, attachment{id,name,mime,size,url,expires_at}, offer{id,reference,status}|null, flagged, created_at}` + `meta.has_more/next_before` + `access_log_id`. Attachment URLs are 10-minute signed URLs (Slice 7 rule) |
-| `GET admin/support-tickets/{id}/conversations/{conversationId}/messages?access_log_id=&before=` | — | Next page **without a new reason** only for the same staff member, same ticket and conversation, within `support.chat_access_minutes` of that log row (Q150); still writes its own log row (same reason, `before` recorded). Outside the window → `409 INVALID_STATE` (`errors.access_expired` message) |
+| `GET admin/support-tickets/{id}/conversations/{conversationId}/messages?access_log_id=&before=` | — | Next page **without a new reason** only for the same staff member, same ticket and conversation, within `support.chat_access_minutes` of the **row that carried the reason** (the `/review` row; any page row of the review may be passed and resolves to it, so the window never slides; Q150); still writes its own log row (same reason, `before` recorded, `review_log_id` = that root row). Outside the window → `409 INVALID_STATE` (`errors.access_expired` message) |
 
 Rules (Q150): caller holds `chats.view_for_ticket` **and is the ticket's assignee** (else `403 FORBIDDEN`); ticket not
 `closed` (`409 INVALID_STATE`); ticket has a `related` record; accessible conversations = the related request's
@@ -215,8 +219,8 @@ rating cache; the client's own booking still returns her review with `status: hi
 | E | Event | Recipient | Source | Target | Dedupe |
 |---|---|---|---|---|---|
 | E20 | `support_replied` | the ticket's user | staff reply | `support_ticket` | `support_replied:{message}` |
-| E21 | `support_ticket_resolved` | the ticket's user | status → `resolved` (or `closed` straight from an open state) | `support_ticket` | `ticket_status:{ticket}:{status}` |
-| E22 | `request_cancelled_by_staff` | the client | §4 cancel | request | `request_cancelled:{request}` |
+| E21 | `support_ticket_resolved` · `support_ticket_closed` | the ticket's user | status → `resolved` ("reply if you still need help"), or `closed` straight from an open state (closed variant: replies are refused) | `support_ticket` | `ticket_status:{ticket}:{history_event_id}` (one per move, so a second resolve after a reopen notifies again) |
+| E22 | `request_cancelled_by_staff` | the client and the providers still taking part | §4 cancel | request | `request_cancelled:{request}` |
 | E23 | `booking_cancelled_by_staff` | client and provider | §5.2 cancel | booking | `booking_cancelled:{booking}` |
 | E24 | `booking_completed_by_staff` | client and provider | §5.2 complete | booking | `booking_completed:{booking}` |
 | E25 | `refund_issued` | the client | `RefundSettled` (`refunded`, kind `staff`) | booking (or the payable's target) | `refund_issued:{refund}` |
@@ -331,3 +335,14 @@ business rule added):
   that label (Flutter `BookingCancellationModel.requestedByStaff`).
 - Flutter: `NotificationRouter` opens `support_ticket` targets (E20/E21) on the ticket screen; hidden review tag on the
   booking screen. Test `test/operations_unit_test.dart`.
+
+### 15.1 Review fixes (2026-11-17)
+
+- **M1** chat window: new migration `2026_11_27_100100_add_review_log_id_to_conversation_access_logs` (nullable
+  `review_log_id`, null on the reason row). `ChatReview::page()` resolves any page row to its root and measures
+  `support.chat_access_minutes` from the root; the dashboard keeps the reason row's id. Test
+  `ChatReviewTest::test_the_window_is_measured_from_the_reason_and_never_slides`.
+- **L4** ticket detail has `last_message_from` (same sub-select as the list).
+- **L5** staff request cancel: E22 to client and providers (no E3).
+- **L6** `ReviewQueries::providerReview` filters `published()`: reply/report on a hidden review → 404.
+- **L7** E21 closed variant `support_ticket_closed`. **L8** E21 dedupe documented as `ticket_status:{ticket}:{history_event_id}`.

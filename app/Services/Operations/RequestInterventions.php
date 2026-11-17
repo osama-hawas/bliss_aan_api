@@ -64,15 +64,15 @@ class RequestInterventions
             $this->audit->log('service_request.cancelled_by_staff', $staff, $request, $reason,
                 ['status' => $from->value], ['status' => ServiceRequestStatus::Cancelled->value, 'internal_note' => $internalNote]);
 
-            // E3 to the providers still taking part (unchanged event), E22 to the client (D257).
+            // E22 to the client and to the providers still taking part (D257): the staff wording, never "<client> cancelled"
+            // (E3's text), since the client did not cancel it.
             $request->loadMissing('client', 'service');
-            $params = Notifier::requestParams($request, Notifier::firstName($request->client?->name));
-            foreach (Provider::query()->whereKey($active->pluck('provider_id')->all())->orderBy('id')->pluck('user_id') as $userId) {
-                $this->notifier->send((int) $userId, NotificationEvent::RequestCancelled, $params, NotificationTargetType::Request,
+            $params = Notifier::requestParams($request, null);
+            $recipients = [(int) $request->client_id, ...Provider::query()->whereKey($active->pluck('provider_id')->all())->orderBy('id')->pluck('user_id')->map(fn ($id) => (int) $id)->all()];
+            foreach ($recipients as $userId) {
+                $this->notifier->send($userId, NotificationEvent::RequestCancelledByStaff, $params, NotificationTargetType::Request,
                     $request->id, 'request_cancelled:'.$request->id, $staff);
             }
-            $this->notifier->send((int) $request->client_id, NotificationEvent::RequestCancelledByStaff, $params, NotificationTargetType::Request,
-                $request->id, 'request_cancelled:'.$request->id, $staff);
 
             return $request;
         }), 'operations.request_cancel', ['service_request_id' => $request->id]);

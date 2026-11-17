@@ -77,6 +77,23 @@ class AdminBookingsTest extends TestCase
         $this->asStaff($this->staffWith(['support.view']))->getJson('/api/v1/admin/bookings')->assertForbidden();
         $this->asClient()->getJson('/api/v1/admin/bookings')->assertForbidden();
         $this->asStaff($this->staff)->getJson('/api/v1/admin/bookings/999999')->assertNotFound();
+    }
+
+    /**
+     * Its own test with the headers cleared: `actingAsApi()` keeps the Authorization header for later requests in the
+     * same test, so a "guest" call after any signed-in call (staff, or the client inside `booking()`) still carries a token.
+     */
+    public function test_a_guest_is_refused(): void
+    {
+        $booking = $this->booking($this->noura); // creates the request through the API as the client (its token stays set)
+
+        // A real guest: no Authorization header and a fresh guard.
+        $this->flushHeaders();
+        $this->app['tymon.jwt']->unsetToken();
+        $this->app['auth']->forgetGuards();
+
+        $this->getJson('/api/v1/admin/bookings')->assertUnauthorized();
         $this->getJson("/api/v1/admin/bookings/{$booking->id}")->assertUnauthorized();
+        $this->postJson("/api/v1/admin/bookings/{$booking->id}/cancel", ['reason' => 'No token here'])->assertUnauthorized();
     }
 }

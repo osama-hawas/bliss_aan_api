@@ -12,11 +12,11 @@ class ConversationAccessLog extends Model
 {
     public const UPDATED_AT = null;
 
-    protected $fillable = ['staff_id', 'ticket_id', 'conversation_id', 'reason', 'messages_count', 'before_message_id', 'ip'];
+    protected $fillable = ['staff_id', 'ticket_id', 'conversation_id', 'review_log_id', 'reason', 'messages_count', 'before_message_id', 'ip'];
 
     protected function casts(): array
     {
-        return ['messages_count' => 'integer', 'before_message_id' => 'integer'];
+        return ['messages_count' => 'integer', 'before_message_id' => 'integer', 'review_log_id' => 'integer'];
     }
 
     public function staff(): BelongsTo

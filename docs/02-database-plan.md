@@ -117,7 +117,7 @@ Labels: **[C]** confirmed · **[R]** recommendation · **[?]** open question.
 | `content_reports` | reportable_type/id (review/message/user), reporter_id, reason_code, details, status (open/handled), handled_by, handled_at; unique(reportable, reporter). Slice 6 writes review reports only. Slice 17 (D262): decision (actioned/dismissed), decision_reason, internal_note | M (6) |
 | `support_tickets` | reference (`TK-` + 7 random digits, D159), user_id, topic, **subject** (≤ 80), related_type/related_id (`service_request`/`booking` API keys, no FK; store_order later), status, assigned_to, **last_message_at**, **idempotency_key + fingerprint**, unique(user_id, idempotency_key) (Slice 12b, `slice-12b-contract.md`). Migration `2026_11_16_231200_create_support_ticket_tables`. Slice 17: resolved_at, closed_at (auto-close, D265) | M (handling D) |
 | `ticket_messages` | ticket_id, author_id, body, **is_internal** (never returned to mobile, D161), **client_uuid + fingerprint**, unique(author_id, client_uuid) (Slice 12b) | M/D |
-| `conversation_access_logs` | staff_id, ticket_id, conversation_id, reason, messages_count, before_message_id, ip, created_at — one insert-only row per page read (Req 42, Slice 17 D260). Migration `2026_11_27_100000_create_operations_support_tables` | D |
+| `conversation_access_logs` | staff_id, ticket_id, conversation_id, review_log_id (the reason row; null on it), reason, messages_count, before_message_id, ip, created_at — one insert-only row per page read (Req 42, Slice 17 D260). Migration `2026_11_27_100000_create_operations_support_tables` | D |
 | `faqs` | question, answer (ar/en), audience (client/provider), is_active, sort | F (demo seed only) |
 
 ## 8. Store (admin-run — no seller accounts)

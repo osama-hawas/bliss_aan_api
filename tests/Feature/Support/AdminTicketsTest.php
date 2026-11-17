@@ -32,7 +32,7 @@ class AdminTicketsTest extends TestCase
         $this->staff = $this->ops();
     }
 
-    private function status(SupportTicket $t, string $status, ?string $reason = null, ?User $as = null): TestResponse
+    private function moveTo(SupportTicket $t, string $status, ?string $reason = null, ?User $as = null): TestResponse
     {
         return $this->asStaff($as ?? $this->staff)->postJson("/api/v1/admin/support-tickets/{$t->id}/status", array_filter(['status' => $status, 'reason' => $reason]));
     }
@@ -98,30 +98,30 @@ class AdminTicketsTest extends TestCase
     {
         $t = $this->ticket($this->sara);
 
-        $this->status($t, 'in_progress')->assertOk()->assertJsonPath('data.status', 'in_progress');
-        $this->status($t, 'resolved')->assertOk()->assertJsonPath('data.status', 'resolved')->assertJsonPath('data.actions.transitions', ['closed', 'in_progress']);
+        $this->moveTo($t, 'in_progress')->assertOk()->assertJsonPath('data.status', 'in_progress');
+        $this->moveTo($t, 'resolved')->assertOk()->assertJsonPath('data.status', 'resolved')->assertJsonPath('data.actions.transitions', ['closed', 'in_progress']);
         $this->assertNotNull($t->refresh()->resolved_at);
         $this->assertSame(['support_ticket_resolved'], $this->events($this->sara));
 
-        $this->status($t, 'in_progress')->assertStatus(422)->assertJsonValidationErrors('reason'); // reopen needs a reason
-        $this->status($t, 'in_progress', 'She wrote again by phone')->assertOk();
+        $this->moveTo($t, 'in_progress')->assertStatus(422)->assertJsonValidationErrors('reason'); // reopen needs a reason
+        $this->moveTo($t, 'in_progress', 'She wrote again by phone')->assertOk();
         $this->assertNull($t->refresh()->resolved_at);
-        $this->status($t, 'resolved')->assertOk();
+        $this->moveTo($t, 'resolved')->assertOk();
         $this->assertSame(['support_ticket_resolved', 'support_ticket_resolved'], $this->events($this->sara)); // one per resolve
 
-        $this->status($t, 'closed')->assertStatus(422);
-        $this->status($t, 'closed', 'Done')->assertOk()->assertJsonPath('data.actions.transitions', [])->assertJsonPath('data.actions.can_reply', false);
+        $this->moveTo($t, 'closed')->assertStatus(422);
+        $this->moveTo($t, 'closed', 'Done')->assertOk()->assertJsonPath('data.actions.transitions', [])->assertJsonPath('data.actions.can_reply', false);
         $this->assertNotNull($t->refresh()->closed_at);
         $this->assertCount(2, $this->events($this->sara)); // resolved → closed sends nothing more
-        $this->status($t, 'open')->assertStatus(409); // closed is final
+        $this->moveTo($t, 'open')->assertStatus(409); // closed is final
     }
 
     public function test_closing_straight_from_open_notifies_and_closed_is_final(): void
     {
         $t = $this->ticket($this->sara);
-        $this->status($t, 'closed', 'Spam')->assertOk();
-        $this->assertSame(['support_ticket_resolved'], $this->events($this->sara));
-        $this->status($t, 'in_progress', 'Reopen')->assertStatus(409)->assertJsonPath('code', 'INVALID_STATE');
+        $this->moveTo($t, 'closed', 'Spam')->assertOk();
+        $this->assertSame(['support_ticket_closed'], $this->events($this->sara)); // no "reply if…" text on a closed ticket
+        $this->moveTo($t, 'in_progress', 'Reopen')->assertStatus(409)->assertJsonPath('code', 'INVALID_STATE');
         // The user cannot reply to a closed ticket (D160).
         $this->actingAsApi($this->sara)->postJson("/api/v1/shared/support-tickets/{$t->id}/messages", ['body' => 'Hi', 'client_uuid' => (string) Str::uuid()])->assertStatus(409);
     }
@@ -133,7 +133,7 @@ class AdminTicketsTest extends TestCase
 
         $this->asStaff($viewer)->getJson("/api/v1/admin/support-tickets/{$t->id}")->assertOk()
             ->assertJsonPath('data.actions.can_reply', false)->assertJsonPath('data.actions.transitions', []);
-        $this->status($t, 'resolved', null, $viewer)->assertForbidden();
+        $this->moveTo($t, 'resolved', null, $viewer)->assertForbidden();
         $this->asStaff($this->staffWith(['bookings.view']))->getJson('/api/v1/admin/support-tickets')->assertForbidden();
         $this->actingAsApi($this->sara)->getJson('/api/v1/admin/support-tickets')->assertForbidden();
         $this->asStaff($this->staff)->getJson('/api/v1/admin/support-tickets/999999')->assertNotFound();

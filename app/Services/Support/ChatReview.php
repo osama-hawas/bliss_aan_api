@@ -81,7 +81,9 @@ class ChatReview
 
     /**
      * A further page without a new reason, only for the same staff member, ticket and conversation, within
-     * `support.chat_access_minutes` of the referenced log row (null = never). Still writes its own log row.
+     * `support.chat_access_minutes` of the log row that **carried the reason** (the `/review` row; null setting = never).
+     * The window never slides: any page row of the review may be passed, it resolves to its root. Still writes its own
+     * log row, linked to that root.
      *
      * @return array{0: ConversationAccessLog, 1: Collection, 2: bool, 3: Conversation}
      */
@@ -92,33 +94,35 @@ class ChatReview
 
         $previous = ConversationAccessLog::query()->whereKey($accessLogId)
             ->where('staff_id', $staff->id)->where('ticket_id', $ticket->id)->where('conversation_id', $conversation->id)->first();
+        $root = $previous?->review_log_id ? ConversationAccessLog::query()->find($previous->review_log_id) : $previous;
         $minutes = $this->settings->get('support.chat_access_minutes');
-        if (! $previous || ! is_numeric($minutes) || (int) $minutes <= 0 || $previous->created_at->lt(now()->subMinutes((int) $minutes))) {
+        if (! $root || ! is_numeric($minutes) || (int) $minutes <= 0 || $root->created_at->lt(now()->subMinutes((int) $minutes))) {
             throw new ApiException(ErrorCode::InvalidState, __('support.access_expired'));
         }
 
-        return $this->read($staff, $ticket, $conversation, $previous->reason, $before, $perPage, $ip);
+        return $this->read($staff, $ticket, $conversation, $root->reason, $before, $perPage, $ip, $root->id);
     }
 
     /**
      * @return array{0: ConversationAccessLog, 1: Collection, 2: bool, 3: Conversation}
      */
-    private function read(User $staff, SupportTicket $ticket, Conversation $conversation, string $reason, ?int $before, int $perPage, ?string $ip): array
+    private function read(User $staff, SupportTicket $ticket, Conversation $conversation, string $reason, ?int $before, int $perPage, ?string $ip, ?int $rootId = null): array
     {
         [$messages, $hasMore] = $this->chat->messages($conversation, $before, $perPage);
 
-        $log = DB::transaction(function () use ($staff, $ticket, $conversation, $reason, $before, $messages, $ip) {
+        $log = DB::transaction(function () use ($staff, $ticket, $conversation, $reason, $before, $messages, $ip, $rootId) {
             $log = ConversationAccessLog::query()->create([
                 'staff_id' => $staff->id,
                 'ticket_id' => $ticket->id,
                 'conversation_id' => $conversation->id,
+                'review_log_id' => $rootId,
                 'reason' => $reason,
                 'messages_count' => $messages->count(),
                 'before_message_id' => $before,
                 'ip' => $ip,
             ]);
             $this->audit->log('chat.reviewed', $staff, $conversation, $reason, null,
-                ['access_log_id' => $log->id, 'ticket_id' => $ticket->id, 'messages_count' => $messages->count()]);
+                ['access_log_id' => $log->id, 'review_log_id' => $rootId, 'ticket_id' => $ticket->id, 'messages_count' => $messages->count()]);
 
             return $log;
         });

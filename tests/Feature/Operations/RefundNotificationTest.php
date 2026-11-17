@@ -34,22 +34,29 @@ class RefundNotificationTest extends TestCase
         $this->noura = $this->matchingProvider('Noura Lens');
     }
 
+    private ?int $paymentId = null;
+
+    /**
+     * One booking with one payment (a second booking would take the same slot); each call adds one refund row.
+     */
     private function settled(string $kind, string $status): object
     {
-        $booking = $this->booking($this->noura);
-        $paymentId = DB::table('payments')->insertGetId([
-            'reference' => 'PY-'.random_int(1000000, 9999999), 'user_id' => $this->client->id, 'payable_type' => 'offer', 'payable_id' => $booking->offer_id,
-            'purpose' => 'full', 'amount' => '1000.00', 'currency' => 'SAR', 'method' => 'card', 'gateway' => 'fake', 'status' => 'succeeded',
-            'fulfilment_status' => 'fulfilled', 'refunded_amount' => '250.00', 'idempotency_key' => 'k-'.$booking->id, 'idempotency_fingerprint' => str_repeat('a', 64),
-            'created_at' => now(), 'updated_at' => now(),
-        ]);
-        DB::table('bookings')->where('id', $booking->id)->update(['payment_id' => $paymentId]);
+        if ($this->paymentId === null) {
+            $booking = $this->booking($this->noura);
+            $this->paymentId = DB::table('payments')->insertGetId([
+                'reference' => 'PY-'.random_int(1000000, 9999999), 'user_id' => $this->client->id, 'payable_type' => 'offer', 'payable_id' => $booking->offer_id,
+                'purpose' => 'full', 'amount' => '1000.00', 'currency' => 'SAR', 'method' => 'card', 'gateway' => 'fake', 'status' => 'succeeded',
+                'fulfilment_status' => 'fulfilled', 'refunded_amount' => '500.00', 'idempotency_key' => 'k-'.$booking->id, 'idempotency_fingerprint' => str_repeat('a', 64),
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+            DB::table('bookings')->where('id', $booking->id)->update(['payment_id' => $this->paymentId]);
+        }
         $refundId = DB::table('refunds')->insertGetId([
-            'payment_id' => $paymentId, 'reference' => 'RF-'.random_int(1000000, 9999999), 'kind' => $kind, 'amount' => '250.00',
-            'reason' => 'Partial refund', 'status' => $status, 'idempotency_key' => 'r-'.$booking->id, 'created_at' => now(), 'updated_at' => now(),
+            'payment_id' => $this->paymentId, 'reference' => 'RF-'.random_int(1000000, 9999999), 'kind' => $kind, 'amount' => '250.00',
+            'reason' => 'Partial refund', 'status' => $status, 'idempotency_key' => 'r-'.$kind.'-'.$status, 'created_at' => now(), 'updated_at' => now(),
         ]);
 
-        return (object) ['refundId' => $refundId, 'paymentId' => $paymentId, 'status' => $status];
+        return (object) ['refundId' => $refundId, 'paymentId' => $this->paymentId, 'status' => $status];
     }
 
     public function test_staff_refund_settled_notifies_the_client_once(): void
