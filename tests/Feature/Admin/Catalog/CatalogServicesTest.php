@@ -67,7 +67,8 @@ class CatalogServicesTest extends TestCase
         $service = Service::query()->findOrFail($response->json('data.id'));
         $this->assertSame(GuestCountMode::Required, $service->guest_count_mode);
         $this->assertSame($providerRows, ProviderService::query()->count());
-        $this->assertCount(1, $this->audits('catalog_service_created'));
+        $created = $this->audits('catalog_service_created')->sole();
+        $this->assertSame(['Edited film', 'Drone shots'], array_map(fn (array $i) => $i['text']['en'], $created->new['inclusions'])); // review L4
     }
 
     public function test_create_validates_the_guide_price_and_references(): void
@@ -177,6 +178,40 @@ class CatalogServicesTest extends TestCase
         $this->catalogPut("/services/{$this->photo->id}", ['inclusions' => [['id' => $drop->id, 'text' => $this->both('Prints')]]])
             ->assertOk()->assertJsonPath('data.inclusions.0.id', $drop->id)->assertJsonPath('data.inclusions.0.is_active', true);
         $this->assertSame(3, ServiceInclusion::query()->where('service_id', $this->photo->id)->count());
+    }
+
+    public function test_her_off_choice_for_an_inclusion_the_admin_switched_off_survives_until_it_is_back(): void
+    {
+        // Review M1 (D179/D180): re-saving her inclusions while one is switched off by the admin must not drop her row.
+        $keep = ServiceInclusion::query()->create(['service_id' => $this->photo->id, 'text' => $this->both('Edited photos'), 'sort' => 1]);
+        $paused = ServiceInclusion::query()->create(['service_id' => $this->photo->id, 'text' => $this->both('Prints'), 'sort' => 2]);
+        $offered = $this->noura->services()->firstOrFail();
+        $asNoura = fn () => $this->actingAsApi($this->noura->user)->withHeader('Accept-Language', 'en');
+
+        $asNoura()->putJson("/api/v1/provider/services/{$offered->id}/inclusions", ['disabled_inclusion_ids' => [$paused->id]])->assertOk();
+        $this->catalogPut("/services/{$this->photo->id}", ['inclusions' => [['id' => $keep->id, 'text' => $this->both('Edited photos')]]])->assertOk();
+
+        $asNoura()->putJson("/api/v1/provider/services/{$offered->id}/inclusions", ['disabled_inclusion_ids' => []])->assertOk();
+        $this->assertSame(1, ProviderServiceInclusion::query()->where('service_inclusion_id', $paused->id)->where('enabled', false)->count());
+
+        $this->catalogPut("/services/{$this->photo->id}", ['inclusions' => [
+            ['id' => $keep->id, 'text' => $this->both('Edited photos')],
+            ['id' => $paused->id, 'text' => $this->both('Prints')],
+        ]])->assertOk();
+        $rows = collect($asNoura()->getJson('/api/v1/provider/services')->assertOk()->json('data.0.inclusions'))->keyBy('id');
+        $this->assertTrue($rows[$keep->id]['enabled']);
+        $this->assertFalse($rows[$paused->id]['enabled']);
+    }
+
+    public function test_a_service_in_a_stopped_category_cannot_be_added_by_a_provider(): void
+    {
+        // Review L2: the service is active but its category is stopped (D34).
+        $video = $this->service($this->photo->category, 'Video');
+        $this->catalogPost("/categories/{$this->photo->category_id}/stop", ['reason' => 'Seasonal pause'])->assertOk();
+
+        $this->actingAsApi($this->noura->user)->postJson('/api/v1/provider/services', ['service_id' => $video->id, 'at_provider_location' => true])
+            ->assertUnprocessable()->assertJsonValidationErrors(['service_id']);
+        $this->assertSame(0, ProviderService::query()->where('service_id', $video->id)->count());
     }
 
     public function test_inclusion_ids_must_belong_to_the_service_and_the_list_is_capped(): void

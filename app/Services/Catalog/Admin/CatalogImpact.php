@@ -34,10 +34,11 @@ class CatalogImpact
         return [
             'services_count' => count($serviceIds),
             'providers_total' => (int) $rows()->distinct()->count('provider_id'),
-            'providers_default' => $rows()->whereNull('custom_price')->count(),
+            // Every count is distinct providers, so the figures add up across a category (review L3).
+            'providers_default' => (int) $rows()->whereNull('custom_price')->distinct()->count('provider_id'),
             // Shown to clients right now (D34/D75): an offered row of a listed provider is enough.
-            'providers_default_visible' => $rows()->whereNull('custom_price')->visible()->count(),
-            'providers_custom' => $rows()->whereNotNull('custom_price')->count(),
+            'providers_default_visible' => (int) $rows()->whereNull('custom_price')->visible()->distinct()->count('provider_services.provider_id'),
+            'providers_custom' => (int) $rows()->whereNotNull('custom_price')->distinct()->count('provider_id'),
             'open_requests' => $serviceIds === [] ? 0 : ServiceRequest::query()
                 ->whereIn('service_id', $serviceIds)
                 ->whereIn('status', self::OPEN_REQUEST_STATUSES)
@@ -50,7 +51,7 @@ class CatalogImpact
     }
 
     /**
-     * Number of default-price rows now (stored with a guide-price change).
+     * Number of default-price rows now (stored with a guide-price change; one service, so rows = providers).
      */
     public function defaultProviders(int $serviceId): int
     {

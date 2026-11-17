@@ -87,7 +87,8 @@ class CatalogServices
                 $service->addons()->sync($data['addon_ids']);
             }
 
-            $this->audit->log('catalog_service_created', $actor, $service, null, null, $this->values($service));
+            // Review L4: the created inclusions are part of the record.
+            $this->audit->log('catalog_service_created', $actor, $service, null, null, [...$this->values($service), 'inclusions' => $this->inclusionValues($service)]);
 
             return $this->find($service->id);
         });
