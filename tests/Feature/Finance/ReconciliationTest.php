@@ -46,7 +46,8 @@ class ReconciliationTest extends TestCase
         $this->payment($client, 'pending', '100.00'); // not expired yet
         $unfulfilled = $this->payment($client, 'succeeded', '100.00', ['fulfilment_status' => 'pending']);
         $lost = $this->payment($client, 'succeeded', '100.00', ['fulfilment_status' => 'failed', 'fulfilment_error' => 'SLOT_UNAVAILABLE']);
-        $this->payment($client, 'succeeded', '100.00', ['fulfilment_status' => 'failed', 'refunded_amount' => '100.00']);
+        $refundedLost = $this->payment($client, 'succeeded', '100.00', ['fulfilment_status' => 'failed', 'refunded_amount' => '100.00']);
+        $this->refund($refundedLost, 'refunded', '100.00'); // fully refunded: matches neither check
         $mismatch = $this->payment($client, 'succeeded', '100.00', ['refunded_amount' => '30.00']);
         $this->refund($mismatch, 'refunded', '20.00');
         $this->refund($healthy, 'failed', '10.00', ['failure_code' => 'gateway_error']);

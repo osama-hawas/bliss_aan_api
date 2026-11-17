@@ -177,6 +177,8 @@ class LedgerAdjustmentTest extends TestCase
         $this->adjust($this->alice, $this->body(['direction' => 'debit', 'reason_code' => 'goodwill']))->assertStatus(422)->assertJsonStructure(['errors' => ['direction']]);
         $this->adjust($this->alice, $this->body(['reason_code' => 'penalty']))->assertStatus(422)->assertJsonStructure(['errors' => ['direction']]);
         $this->adjust($this->alice, $this->body(['provider_id' => 999999]))->assertStatus(422)->assertJsonStructure(['errors' => ['provider_id']]);
+        // adjust() set an Idempotency-Key header on the test instance: drop it so this request really has none.
+        $this->flushHeaders();
         $this->actingAsApi($this->alice)->postJson(self::FINANCE_URL.'/adjustments', $this->body())->assertStatus(422)->assertJsonStructure(['errors' => ['idempotency_key']]);
     }
 
