@@ -37,7 +37,7 @@ class FakeCheckoutController extends Controller
         $gateway = $this->gateway;
         $gateway->settle($reference, $approve);
         [$body, $headers] = FakePaymentGateway::webhook($approve ? WebhookEvent::PAYMENT_SUCCEEDED : WebhookEvent::PAYMENT_FAILED,
-            $reference, $approve ? null : 'authentication_failed');
+            $reference, $approve ? null : 'authentication_failed', null, null, $payment->reference);
         $webhook = Request::create('/webhooks/payments/fake', 'POST', [], [], [], [], $body);
         $webhook->headers->add($headers);
         $this->webhooks->handle('fake', $webhook);

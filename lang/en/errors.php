@@ -59,6 +59,7 @@ return [
     'REFUND_AMOUNT_EXCEEDED' => 'The refund is more than the amount left to refund on this payment.',
     'INVALID_SIGNATURE' => 'The webhook signature is not valid.',
     'payment_not_refundable' => 'Only a successful payment can be refunded.',
+    'payment_fulfilment_pending' => 'The booking for this payment is still being confirmed. Try the refund again in a minute.',
     // Slice 9b — store checkout and orders.
     'CART_EMPTY' => 'Your cart is empty.',
     'CART_HAS_ISSUES' => 'Some items in your cart are unavailable or exceed the available stock. Update your cart to continue.',

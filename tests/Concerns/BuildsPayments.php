@@ -8,6 +8,12 @@ use App\Models\Payment;
 use App\Models\Provider;
 use App\Models\ServiceRequest;
 use App\Models\User;
+use App\Services\Audit\ActivityRecorder;
+use App\Services\Availability\DeadlockRetry;
+use App\Services\Availability\ProviderAvailability;
+use App\Services\Bookings\BookingReferenceGenerator;
+use App\Services\Bookings\OfferAcceptor;
+use App\Services\Notifications\Notifier;
 use App\Services\Offers\OfferSender;
 use App\Services\Payments\PaymentSettings;
 use App\Services\Settings\AppSettings;
@@ -26,6 +32,7 @@ trait BuildsPayments
     protected function requirePayment(bool $on = true): void
     {
         app(AppSettings::class)->set(PaymentSettings::BOOKING_PAYMENT_REQUIRED, $on);
+        $this->intentTtl(30); // D191 seed (tests do not run AppSettingSeeder)
     }
 
     protected function intentTtl(?int $minutes): void
@@ -49,6 +56,29 @@ trait BuildsPayments
     protected function cardToken(string $last4 = '4242', string $brand = 'visa', int $month = 12, int $year = 2030): string
     {
         return FakePaymentGateway::token($brand, $last4, $month, $year);
+    }
+
+    /**
+     * Drops headers and the JWT kept from earlier requests in the same test (withHeader / actingAsApi persist).
+     */
+    protected function asGuest(): static
+    {
+        $this->flushHeaders();
+        $this->app['tymon.jwt']->unsetToken();
+        $this->app['auth']->forgetGuards();
+
+        return $this;
+    }
+
+    /**
+     * A partial OfferAcceptor (real constructor dependencies) whose accept() throws — fulfilment errors on purpose.
+     */
+    protected function failingAcceptor(\Throwable $error): void
+    {
+        $mock = \Mockery::mock(OfferAcceptor::class, [app(ActivityRecorder::class), app(DeadlockRetry::class), app(ProviderAvailability::class),
+            app(BookingReferenceGenerator::class), app(Notifier::class)])->makePartial();
+        $mock->shouldReceive('accept')->andThrow($error);
+        $this->app->instance(OfferAcceptor::class, $mock);
     }
 
     protected function asClient(?User $as = null): static

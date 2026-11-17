@@ -78,6 +78,7 @@ class PaymentStateMachine
         $payment->paid_at = $now;
         $payment->failure_code = null;
         // A late success on an abandoned attempt is never fulfilled: it is refunded in full (§6.4).
-        $payment->fulfilment_status = $from === PaymentStatus::Cancelled ? FulfilmentStatus::NotApplicable : FulfilmentStatus::Pending;
+        $payment->fulfilment_status = in_array($from, [PaymentStatus::Cancelled, PaymentStatus::Failed], true)
+            ? FulfilmentStatus::NotApplicable : FulfilmentStatus::Pending;
     }
 }

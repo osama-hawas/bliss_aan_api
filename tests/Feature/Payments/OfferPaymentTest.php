@@ -112,7 +112,7 @@ class OfferPaymentTest extends TestCase
         $this->assertSame('confirmed', $request->fresh()->status->value);
         $this->assertNotNull($payment->gateway_reference);
         $this->assertSame('fake', $payment->gateway);
-        $this->assertSame(['brand' => 'mada', 'last4' => '4242', 'exp_month' => 12, 'exp_year' => 2030], $payment->card);
+        $this->assertEquals(['brand' => 'mada', 'last4' => '4242', 'exp_month' => 12, 'exp_year' => 2030], $payment->card); // MySQL JSON reorders keys
         $this->assertNotNull($payment->expires_at); // D191: 30-minute lifetime
         Event::assertDispatched(PaymentSucceeded::class);
         Event::assertDispatched(PaymentFulfilled::class, fn (PaymentFulfilled $e) => $e->fulfilledId === $booking->id && $e->payableType === 'offer');
@@ -333,7 +333,7 @@ class OfferPaymentTest extends TestCase
         $this->requirePayment();
         $offer = $this->offerFrom($this->noura);
 
-        $this->asClient()->postJson("/api/v1/client/offers/{$offer->id}/payments", ['method' => 'card', 'token' => 'x'])
+        $this->asGuest()->asClient()->postJson("/api/v1/client/offers/{$offer->id}/payments", ['method' => 'card', 'token' => 'x'])
             ->assertStatus(422)->assertJsonValidationErrors('idempotency_key');
         $this->pay($offer, ['method' => 'bitcoin', 'token' => 'x'])->assertStatus(422)->assertJsonValidationErrors('method');
         $this->pay($offer, ['method' => 'card'])->assertStatus(422)->assertJsonValidationErrors(['payment_method_id', 'token']);
@@ -352,7 +352,7 @@ class OfferPaymentTest extends TestCase
         $offer = $this->offerFrom($this->noura);
         $stranger = User::factory()->client()->create();
 
-        $this->postJson("/api/v1/client/offers/{$offer->id}/payments")->assertStatus(401);
+        $this->asGuest()->postJson("/api/v1/client/offers/{$offer->id}/payments")->assertStatus(401);
         $this->pay($offer, [], null, $this->noura->user)->assertStatus(403);
         $this->pay($offer, [], null, $stranger)->assertStatus(404);
 

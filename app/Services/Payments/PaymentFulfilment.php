@@ -22,6 +22,8 @@ use Throwable;
  */
 class PaymentFulfilment
 {
+    public const MAX_AUTOMATIC_REFUNDS = 3;
+
     public function __construct(
         private readonly PayableRegistry $registry,
         private readonly PaymentRefunds $refunds,
@@ -38,6 +40,13 @@ class PaymentFulfilment
         try {
             $model = $this->registry->for($payment->payable_type)->fulfil($payment);
         } catch (ApiException $e) {
+            if ($e->status() >= 500) {
+                // Review M1: not a refusal (deadlock retries exhausted, server error): stays pending for reconcile.
+                Log::error('Payment fulfilment errored; it stays pending for the reconcile command.', ['payment_id' => $payment->id, 'code' => $e->errorCode->value]);
+
+                return $payment->fresh();
+            }
+            // A refusal of the payable itself (ALREADY_BOOKED, INVALID_STATE, OFFER_EXPIRED, SLOT_UNAVAILABLE, NOT_FOUND, …).
             $this->mark($payment, FulfilmentStatus::Failed, $e->errorCode->value);
             $this->refundInFull($payment, RefundKind::AcceptanceFailed);
 
@@ -54,7 +63,8 @@ class PaymentFulfilment
     }
 
     /**
-     * Full refund of whatever is still refundable, once per kind (idempotency key `auto:{kind}`).
+     * Full refund of whatever is still refundable (not reserved by a refund in progress or done). Keys `auto:{kind}`, then
+     * `auto:{kind}:2`, `auto:{kind}:3` after failed attempts (review M3); after the last one staff refund it by hand.
      */
     public function refundInFull(Payment $payment, RefundKind $kind): void
     {
@@ -63,8 +73,15 @@ class PaymentFulfilment
         if ($cents <= 0) {
             return;
         }
+        $attempts = $payment->refunds()->where('kind', $kind)->count();
+        if ($attempts >= self::MAX_AUTOMATIC_REFUNDS) {
+            Log::error('Automatic refund gave up; a staff refund is needed.', ['payment_id' => $payment->id, 'kind' => $kind->value, 'attempts' => $attempts]);
+
+            return;
+        }
+        $key = $attempts === 0 ? 'auto:'.$kind->value : 'auto:'.$kind->value.':'.($attempts + 1);
         try {
-            $this->refunds->refund($payment, Money::fromCents($cents), $kind, null, null, 'auto:'.$kind->value);
+            $this->refunds->refund($payment, Money::fromCents($cents), $kind, null, null, $key);
         } catch (ApiException $e) {
             Log::error('Automatic refund could not start.', ['payment_id' => $payment->id, 'kind' => $kind->value, 'code' => $e->errorCode->value]);
         }

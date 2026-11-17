@@ -58,20 +58,23 @@ class PaymentIntents
             return [$this->refresh($existing), false];
         }
 
+        // §6.4: her older open attempts on this payable are asked first and cancelled only when the gateway answers.
+        // An attempt whose outcome is still unknown stays open for the reconcile command (never cancelled blind).
+        Payment::query()->where('user_id', $payer->id)->where('payable_type', $type->value)->where('payable_id', $payable->getKey())
+            ->whereIn('status', PaymentStatus::open())->orderBy('id')->get()
+            ->each(fn (Payment $old) => $this->retire($old));
+
+        // The quote runs after the older attempts settled: if one of them just confirmed the payable, nothing is charged.
         $handler = $this->registry->for($type);
         $quote = $handler->quote($payer, $payable);
         [$token, $card, $saved] = $this->resolve($payer, $instrument);
 
         try {
-            [$payment, $superseded] = $this->retry->run(fn () => DB::transaction(
+            $payment = $this->retry->run(fn () => DB::transaction(
                 fn () => $this->insert($payer, $type, $payable, $quote, $instrument, $card, $saved, $idempotencyKey, $fingerprint)
             ), 'payment.create', ['user_id' => $payer->id, 'payable' => $type->value.':'.$payable->getKey()]);
         } catch (IdempotencyRace) {
             return [$this->refresh($this->replay($payer, $idempotencyKey, $fingerprint) ?? throw new ApiException(ErrorCode::ServerError)), false];
-        }
-
-        foreach ($superseded as $old) {
-            $this->cancelAtGateway($old);
         }
 
         try {
@@ -118,17 +121,63 @@ class PaymentIntents
     }
 
     /**
-     * Expires an open attempt past its lifetime (D191): asks the gateway first, then cancels.
+     * Expires an open attempt past its lifetime (D191). Same rule as superseding: see retire().
      */
     public function expire(Payment $payment): Payment
     {
-        $payment = $this->refresh($payment, true);
+        return $this->retire($payment, 'expiry');
+    }
+
+    /**
+     * Cancels an open attempt only once the gateway has answered about it (review H1): the gateway is asked first
+     * (by reference, or by our idempotency key when the charge call gave none). If it cannot be reached the attempt
+     * stays open (`unknown`) and the reconcile command asks again — captured money is never left unrecorded. A known
+     * outcome is applied; a still-open charge is cancelled at the gateway and here (a late success is then matched by
+     * its reference and refunded, §6.4).
+     */
+    public function retire(Payment $payment, string $source = 'supersede'): Payment
+    {
+        $payment = $payment->fresh();
         if (! in_array($payment->status, PaymentStatus::open(), true)) {
+            return $this->settle($payment);
+        }
+        try {
+            $result = $payment->gateway_reference
+                ? $this->gateway->status($payment->gateway_reference)
+                : $this->gateway->statusByKey('payment:'.$payment->id);
+        } catch (GatewayUnavailable) {
+            Log::warning('Open payment not cancelled: the gateway could not be asked.', ['payment_id' => $payment->id, 'source' => $source]);
+
             return $payment;
+        }
+        if ($result !== null) {
+            $payment = $this->machine->apply($payment, GatewayOutcome::fromResult($result), 'reconcile');
+            if (! in_array($payment->status, PaymentStatus::open(), true)) {
+                return $this->settle($payment);
+            }
         }
         $this->cancelAtGateway($payment);
 
-        return $this->machine->apply($payment, GatewayOutcome::cancelled(), 'expiry');
+        return $this->machine->apply($payment, GatewayOutcome::cancelled(), $source);
+    }
+
+    /**
+     * Review H1: a cancelled attempt whose charge call never returned a reference is asked once more by key, so a
+     * charge the gateway did take is recorded (and then refunded, §6.4).
+     */
+    public function recheckCancelled(Payment $payment): Payment
+    {
+        if ($payment->status !== PaymentStatus::Cancelled || $payment->gateway_reference) {
+            return $payment;
+        }
+        try {
+            $result = $this->gateway->statusByKey('payment:'.$payment->id);
+        } catch (GatewayUnavailable) {
+            return $payment;
+        }
+        $payment->forceFill(['last_checked_at' => now()])->save();
+
+        return $result === null ? $payment : $this->settle($this->machine->apply($payment, GatewayOutcome::fromResult($result), 'reconcile'));
     }
 
     /**
@@ -142,9 +191,10 @@ class PaymentIntents
         if ($payment->fulfilment_status === FulfilmentStatus::Pending) {
             return $this->fulfilment->run($payment);
         }
-        if ($payment->fulfilment_status === FulfilmentStatus::NotApplicable && $payment->refundableCents() > 0
-            && ! $payment->refunds()->where('kind', RefundKind::SupersededAttempt)->exists()) {
-            $this->fulfilment->refundInFull($payment, RefundKind::SupersededAttempt);
+        // Money of a success that was never delivered goes back in full; a failed automatic refund is tried again (M3).
+        if (in_array($payment->fulfilment_status, [FulfilmentStatus::NotApplicable, FulfilmentStatus::Failed], true) && $payment->refundableCents() > 0) {
+            $this->fulfilment->refundInFull($payment, $payment->fulfilment_status === FulfilmentStatus::Failed
+                ? RefundKind::AcceptanceFailed : RefundKind::SupersededAttempt);
 
             return $payment->fresh();
         }
@@ -173,21 +223,11 @@ class PaymentIntents
         return [$token, $this->methods->describe($token)->toArray(), null];
     }
 
-    /**
-     * @return array{0: Payment, 1: list<Payment>} the new attempt and the older open attempts it replaced
-     */
-    private function insert(User $payer, PayableType $type, Model $payable, PaymentQuote $quote, PaymentInstrument $instrument, ?array $card, ?SavedPaymentMethod $saved, string $key, string $fingerprint): array
+    private function insert(User $payer, PayableType $type, Model $payable, PaymentQuote $quote, PaymentInstrument $instrument, ?array $card, ?SavedPaymentMethod $saved, string $key, string $fingerprint): Payment
     {
         User::query()->whereKey($payer->id)->lockForUpdate()->first(['id']);
         if (Payment::query()->where('user_id', $payer->id)->where('idempotency_key', $key)->lockForUpdate()->exists()) {
             throw new IdempotencyRace;
-        }
-
-        $open = Payment::query()->where('user_id', $payer->id)->where('payable_type', $type->value)->where('payable_id', $payable->getKey())
-            ->whereIn('status', PaymentStatus::open())->orderBy('id')->lockForUpdate()->get();
-        $superseded = [];
-        foreach ($open as $old) {
-            $superseded[] = $this->machine->apply($old, GatewayOutcome::cancelled(), 'supersede');
         }
 
         $ttl = $this->settings->intentTtlMinutes();
@@ -210,7 +250,7 @@ class PaymentIntents
             'expires_at' => $ttl !== null ? now()->addMinutes($ttl) : null,
         ]);
 
-        return [$payment, $superseded];
+        return $payment;
     }
 
     private function insertWithReference(array $attributes): Payment

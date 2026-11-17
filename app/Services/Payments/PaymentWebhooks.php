@@ -77,6 +77,12 @@ class PaymentWebhooks
     private function payment(WebhookEvent $event): WebhookResult
     {
         $payment = $event->gatewayReference ? Payment::query()->where('gateway_reference', $event->gatewayReference)->first() : null;
+        // Review H1: a charge whose call timed out has no gateway reference here yet; match it on our own reference,
+        // unless that payment is already tied to another charge.
+        if (! $payment && $event->merchantReference) {
+            $payment = Payment::query()->where('reference', $event->merchantReference)
+                ->where(fn ($q) => $q->whereNull('gateway_reference')->orWhere('gateway_reference', $event->gatewayReference))->first();
+        }
         if (! $payment) {
             return WebhookResult::Unmatched;
         }
