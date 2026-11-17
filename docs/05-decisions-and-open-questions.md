@@ -151,33 +151,230 @@ When a question is answered, move it to **Decided** with the date and source.
 | D147 | S9-D5 — promo code and checkout screens stay mocked; the cart's "Continue order" keeps opening the prototype checkout | Project owner (Slice 9, independent part) | 2026-11-16 |
 | D148 | S9-D6 — stock: a quantity is checked against the variant's current stock when set; nothing is reserved or deducted. Lines that later exceed stock or become unavailable are kept and flagged, never changed (Q64/Q65) | Project owner (Slice 9, independent part) | 2026-11-16 |
 | D149 | S9-D7 — carrier binding and the app fake API hookup waited for the Slice 8 merge; done in the Slice 9 merge (`SHIPPING_DRIVER`, fake only) | Project owner (Slice 9, independent part) | 2026-11-16 |
+| D150 | Q74 — an account deletion request does **not** change `users.status`; the pending state lives only in `account_deletion_requests` and is shown through `auth/me.deletion_request`. Nothing is restricted while it is pending (login, refresh, requests, offers, bookings, chat). `pending_deletion` stays unused. Answers the D28 note ("until Slice 12 defines otherwise") | Project owner, 2026-11-16 | 2026-11-16 |
+| D151 | Q75 — deletion reasons are the codes `not_using`, `privacy`, `experience`, `other_account`, `other` (enum); details optional for every reason, ≤ 1000 characters; a suspended account cannot request deletion in the app (support instead); she may withdraw a pending request and ask again later; one pending request per account (`409 DELETION_PENDING`) | Project owner, 2026-11-16 | 2026-11-16 |
+| D152 | Q77 — editable profile fields: client `name`, `email`, `city_id`, `birth_date`, `locale`; provider `email`, `birth_date`, `locale` (name and city read-only, changed through support, as D46). `birth_date` nullable and at least 18 years before today. The app language is synced to `users.locale` when signed in (push text follows it) | Project owner, 2026-11-16 | 2026-11-16 |
+| D153 | Q78 — in Slice 12a: client profile photo (`avatar` media attached to the user, no migration); change-phone screen in both apps on the Slice 1 API; devices screen on the real API (list + log out others; the per-device sign-out button is removed, no new endpoint) | Project owner, 2026-11-16 | 2026-11-16 |
+| D154 | Q79 — addresses polish: recipient name/phone fields in the app address form; deleting the default still leaves no default; no limit on saved addresses; no API change | Project owner, 2026-11-16 | 2026-11-16 |
+| D155 | Q76 (scope only) — deletion requests are stored and can be withdrawn, but **nobody processes them**: no staff queue, review, anonymization or `processed`/`rejected` transition, neither in Slice 12a nor in Slice 15, until the legal retention and deletion-processing rules are defined. **Superseded by D330–D338 (OD38, Slice 22, 2026-11-17)** | Project owner, 2026-11-16 | 2026-11-16 |
+| D157 | Slice 12b scope (Q80, Q85): mobile side only — a client or provider creates, lists and reads her own support tickets and replies; anyone reads the FAQs and pages of one app. No admin endpoints, staff replies, assignment, staff status changes or chat review (Slice 17); no FAQ/page editing (Slice 20). Reschedule is out of scope for now: until decided she uses chat or a support ticket linked to the booking; `reschedule_requests` not created (reschedule later decided by D240) | Project owner, 2026-11-16 | 2026-11-16 |
+| D158 | FAQs and pages are public (`auth.optional`); the app is chosen by a required `app=client\|provider` parameter, not by the token; active rows only; FAQs by `sort`, then id; unknown or inactive page → `404 NOT_FOUND` | Project owner, 2026-11-16 | 2026-11-16 |
+| D159 | Q82 — tickets at `shared/support-tickets`, client/provider only, every lookup scoped to the owner (foreign → 404); reference `TK-` + 7 random digits with collision retry (D72 pattern). Topics: `service_quality / late_arrival / payment / cancellation / account / other` (code enum). Optional link: client — own service requests and bookings; provider — her bookings and requests she received as a recipient; store-order links when `store_orders` exist | Project owner, 2026-11-16 | 2026-11-16 |
+| D160 | Q83 — ticket statuses `open / in_progress / waiting / resolved / closed`; new = `open`; otherwise moved only by Slice 17. Her reply: allowed unless `closed` (`409 INVALID_STATE`); `resolved → open`, `waiting → in_progress`. No user close; no auto-close (`app_settings` `support.auto_close_days` = `null`, not specified) | Project owner, 2026-11-16 | 2026-11-16 |
+| D161 | Q85 — staff are never named to the user: staff messages show as "Bliss aan support" (`from_staff: true`); internal messages and `assigned_to` are never returned to the mobile apps | Project owner, 2026-11-16 | 2026-11-16 |
+| D162 | Q84 — ticket create requires `Idempotency-Key` (replay; same key, different body → `409 DUPLICATE_REQUEST`); replies deduped by `client_uuid`. Limits: subject 1–80, message/reply 1–1000 characters; no attachments in 12b; no cap on open tickets; default API throttle only | Project owner, 2026-11-16 | 2026-11-16 |
+| D163 | Q81 — the app reads FAQs, terms and privacy from the API (prototype texts only as the debug mock fallback; a missing page shows "not available yet"). Page body = plain text with `## ` headings, `- ` bullets and blank-line paragraphs, parsed in the app (TOC from headings, no new package). The prototype legal text is not approved wording; the local seed stays `[DEMO]`. Terms acceptance stays on `policy_versions` (D28); pages carry no version link | Project owner, 2026-11-16 | 2026-11-16 |
+| D164 | `RolesAndPermissionsSeeder` is non-destructive: it creates missing permissions and roles, gives a newly created role its default mapping, gives an existing role only the default-mapping permissions created in that same run, never removes a permission from a role, keeps `super_admin` = all permissions, and never gives `requests.attachments.view` to any role but `super_admin` (D169). Replaces the old `syncPermissions()` on every run, which would erase dashboard role edits on re-seed. Later slices only append to the `Permission` enum and the mapping | Project owner, 2026-11-16 | 2026-11-16 |
+| D165 | Q86 — self-lockout: no staff member can change her own role or suspend herself (`409 OWN_ACCOUNT`); the last active `super_admin` can never be demoted or suspended (`409 LAST_SUPER_ADMIN`, checked under a row lock on the `super_admin` role); the `super_admin` permission set is fixed to all permissions and read-only in the dashboard. Recovery when no super admin is left = a developer-run artisan command (not built in Slice 14b) | Project owner, 2026-11-16 | 2026-11-16 |
+| D166 | Q87 — privilege escalation: only a `super_admin` may assign or remove the `super_admin` role or act on (role change, suspend, reactivate, edit) a staff member who holds it; any other holder of `roles.manage` may only grant permissions she holds herself, both in role edits and role assignment (`403 FORBIDDEN`) | Project owner, 2026-11-16 | 2026-11-16 |
+| D167 | Q88 — one role per staff member (`model_has_roles`, replaced on change); `auth/me` keeps returning a `roles` array | Project owner, 2026-11-16 | 2026-11-16 |
+| D168 | Q89 — custom roles: the dashboard may create roles (immutable key + AR/EN label + permission set), rename their label, and delete one only when no user (active or suspended) holds it (`409 ROLE_IN_USE`; the audit log keeps a snapshot). The 5 `AdminRole` system roles cannot be renamed or deleted; their permission sets are editable except `super_admin` (D165). Adds `roles.label` (JSON, nullable) and `roles.is_system` (boolean) | Project owner, 2026-11-16 | 2026-11-16 |
+| D169 | Q90 — recommendation **rejected**: `requests.attachments.view` stays restricted to `super_admin` only; D64 is unchanged. Granting it through the role editor (system or custom role, with a reason) does **not** count as approval. The API refuses it for any role other than `super_admin` on role create, role permission edit and impact preview (`422 PERMISSION_RESTRICTED`), even when a `super_admin` asks; the seeder never adds it elsewhere (D164); the dashboard shows it locked. No broadening of access to private client attachments in Slice 14b | Project owner, 2026-11-16 | 2026-11-16 |
+| D170 | Q91 — staff accounts: created with name + phone + optional email + one role; a phone already used by any account (any type, including soft-deleted) is refused (`422`), and client/provider accounts are never converted to staff; phone is not editable from the dashboard (suspend and re-create). Disable = suspend: user-visible reason + optional internal note, an `account_status_logs` row, all device sessions revoked at once, reversible by reactivate, never deleted (the same policy S15 applies to client suspension, Q94 / D173) | Project owner, 2026-11-16 | 2026-11-16 |
+| D171 | Q92 — suspending a client changes nothing automatically on her open requests, providers' offers on them, her bookings, chats or cart; everything keeps its history. The dashboard shows her open requests/bookings when suspending; staff resolve each one through operations (cancellation decisions now, interventions in Slice 17) | Project owner, 2026-11-16 | 2026-11-16 |
+| D172 | Q93, closes Q24 — a provider suspended at provider-status level keeps her `new` open-request recipient rows, live offers, bookings and chats as they are, and her sessions are not revoked; while suspended she cannot send offers (`409 INVALID_STATE`; offers already sent stay, clients still cannot accept them). Staff see her open items on the provider page | Project owner, 2026-11-16 | 2026-11-16 |
+| D173 | Q94 (owner changed the recommendation) — suspending a client revokes all her active sessions through the existing session-revocation path, including its device-token behaviour (`user_devices.revoked_at` set, `fcm_token` cleared); on reactivation she must sign in again (no session restored). Aligned with the staff suspension policy (Slice 14b). A `pending_deletion` account may be suspended; reactivation restores the status she had before (`active` or `pending_deletion`). Consequence: no push while suspended; notification rows are still stored (D135). Login while suspended answers `403 ACCOUNT_SUSPENDED` with the reason (D28) | Project owner, 2026-11-16 | 2026-11-16 |
+| D174 | Q95 — staff with `clients.edit` may change a client's name, email and city with a required reason, logged (status log + audit old/new); the phone is never editable by staff | Project owner, 2026-11-16 | 2026-11-16 |
+| D175 | Q96 — `providers.is_verified` and `is_featured` are set by staff with `providers.verify`, on `active` or `suspended` providers, with a required reason, logged, without notifying the provider; "verified" is a manual badge with no automatic rule; no cap on featured flags (home shows up to 10, D32) | Project owner, 2026-11-16 | 2026-11-16 |
+| D176 | Q97 — staff with `providers.review` may hide/restore a provider's portfolio item (hide needs a reason), logged; hidden items stay out of every public list; the provider API exposes `hidden_by_admin` / `hidden_reason` on her portfolio items, the provider app display is deferred | Project owner, 2026-11-16 | 2026-11-16 |
+| D177 | Slice 15 scope: admin clients list/detail/edit/suspend, providers list/detail, verification/featured flags and portfolio moderation on existing columns, reuse of `ProviderReview` and the existing session revocation; no new tables, columns or permissions (the `users.status_reason` widening to 1000 characters is not a new column); client deletion-request processing stays with Slice 12 (later Slice 22) | Project owner, 2026-11-16 | 2026-11-16 |
+| D178 | Q98 — Occasion tags (Req 15) and packages (Req 16) are not built in Slice 16. No tag/package tables, endpoints or dashboard pages in Slice 16. **Later:** packages built in Slice 24 (OD39, D350–D359); occasion tags are covered by the existing event types (OD39 note) | Project owner, 2026-11-17 | 2026-11-17 |
+| D179 | Q99 — Catalog inclusions are switched off, never deleted: new `service_inclusions.is_active` (default true); editing text keeps the id (new text shown to everyone, sent offers keep their copied text); an inclusion left out of the service's list is switched off and can be switched on again. Unlinking an add-on from a service removes only the `addon_service` row; providers' `provider_addons` / `provider_addon_service` rows are kept and hidden by D36; re-linking shows them again | Project owner, 2026-11-17 | 2026-11-17 |
+| D180 | Q100 — Stopping a category, service or add-on never touches work in flight: open requests stay open and still accept offers, accepted offers and bookings continue, snapshots unchanged. Only new requests, discovery and provider setup stop seeing it. Provider rows and prices are kept, so activation restores the previous state. A stop is never refused because of in-flight work; the dashboard shows the impact first. No provider-app change now | Project owner, 2026-11-17 | 2026-11-17 |
+| D181 | Q101 — Guide price: `reason` required on a change (and on every stop), audit-logged with before/after value and the number of default providers; allowed values `null` (not set, D16) or `> 0` with 2 decimals (`0` refused); no provider notification (not in D133); impact preview before saving; takes effect immediately | Project owner, 2026-11-17 | 2026-11-17 |
+| D182 | Q102 — Catalog permissions: `catalog.manage` covers all catalog reads and writes; no new permission and no change to the `RolesAndPermissionsSeeder` mapping; other roles get it through the role editor (Slice 14b) | Project owner, 2026-11-17 | 2026-11-17 |
+| D183 | Q103 — Slice 16 also manages event types (list, create, rename, stop/activate, reorder) and adds `addons.sort` for add-on reordering | Project owner, 2026-11-17 | 2026-11-17 |
+| D184 | Slice 16 contract (`docs/slice-16-contract.md` rev 2) and scope approved as written | Project owner, 2026-11-17 | 2026-11-17 |
+| D185 | OD1 (closes Q1): service bookings are paid in full (offer total), **pay first, then accept**. A successful payment runs the existing `OfferAcceptor` (same locks and checks); if acceptance fails, the payment is refunded in full automatically. No deposits. Behind `payments.booking_payment_required` (seeded `false` = D113 unchanged). An unpaid attempt holds nothing and expires | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D186 | OD2 (Q8 for payments): no vendor; `PaymentGateway` with the `fake` driver only; real vendor on the release checklist | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D187 | OD3: refunds started by staff with `refunds.process`, full or partial, required reason, through the gateway interface, audit row. No automatic cancellation-refund policy; the only automatic refunds = failed acceptance after payment and late successes of abandoned attempts | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D188 | OD4: saved methods are gateway tokens only (brand, last4, expiry); clients list and delete them; card data never stored | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D189 | OD5: webhooks signature-verified and idempotent on `(gateway, event_id)`; payment state decided by the server, never by the app redirect | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D190 | Design: one reusable payments core (`PaymentIntents`, `PaymentStateMachine`, `PayableHandler` per payable type, `PaymentRefunds`, after-commit events) — `slice-10-contract.md` §4; S9b and S11 build on it | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D191 | Q104: `payments.intent_ttl_minutes` seeded 30 in every environment (technical timeout); `null` = never expire on our side | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D192 | Q105: dashboard payments/refunds viewed with `finance.view`, refunds started with `refunds.process`; no new permission names | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D193 | Q106: clients may add a card without paying (gateway token only) and set a default card | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D194 | Q107: no payment notification events in S10 (D133 unchanged); revisit in Slice 17 | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D195 | Implementation: `payments.payable_type` stores the `PayableType` value resolved by `PayableRegistry` (no Eloquent morph map, so `Offer`'s morph class is unchanged); `save_method` saves a card only on a synchronous success (a 3-D Secure success via webhook does not keep the token) — `slice-10-contract.md` §16 | S10 implementation | 2026-11-17 |
+| D196 | Review fixes (orchestrator review, 2026-11-17): an attempt is cancelled (superseded or expired) only after the gateway answered about it; webhooks fall back to our payment reference; only a 4xx refusal from `fulfil()` refunds; failed automatic refunds are retried up to 3×; a late success after `failed` is refunded like after `cancelled`; staff refunds wait until the booking is confirmed — `slice-10-contract.md` §17 | S10 review fixes | 2026-11-17 |
+| D200 | Promo codes are for store orders only: percent or fixed amount, optional minimum order, validity window, total usage limit, per-client limit; minimal admin API + dashboard page (OD6; closes S3) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D201 | Staff choose internal delivery or a carrier per order after checkout (BRD rule 13); the client doesn't choose. Shipping fee = flat `store.shipping_fee` (`null` → checkout `409 NOT_CONFIGURED`; local demo seed may set a value) (OD7; closes C6) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D202 | Prices include VAT; `tax.vat_percent` default `null` = no VAT line; ZATCA e-invoicing out of scope, on the release checklist (OD8; closes S7) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D203 | Product reviews and store returns are out of scope (OD9; closes S4). **Amended 2026-11-17 (round 2):** store returns are built in Slice 23 (OD37, D340–D349); product reviews stay out (OD36) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D204 | Store orders are paid in full at checkout through the Slice 10 gateway; the order is confirmed on successful payment; no cash on delivery (OD10) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D205 | Unavailable and over-stock cart lines are kept and flagged; checkout is refused until they're fixed (OD11; closes Q64, Q65) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D206 | No exact stock numbers for clients; no guest cart (OD12; closes Q66, Q69) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D207 | Stock is deducted at order confirmation (paid) under row locks and restored when the order is cancelled before shipment; nothing is reserved in the cart (OD13; closes Q67) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D208 | Max quantity per cart line = `store.max_qty_per_line` (default `null` = current stock only) (OD14; closes Q68) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D209 | Products sorted by admin sort, then newest; out-of-stock products listed last; one image per product; card shows "from" the lowest active variant price (OD15; closes Q70, Q71, Q72) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D210 | Carts never expire; checkout uses live prices and tells the client when a price changed since the item was added (OD16; closes Q73) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D211 | Order states confirmed → preparing → shipped → delivered, or cancelled; staff (with permission) update order and shipment status; reorder copies lines into the cart subject to current stock and prices; tracking shows the status history (OD17) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D212 | Store order lifecycle: a successful payment that cannot confirm the order (stock gone, order expired or cancelled) is refunded in full automatically, and for stock the order is cancelled `stock_unavailable` (Q114); an unpaid order is `pending_payment`, hidden from lists, and becomes `expired` after `payments.intent_ttl_minutes` with no open attempt or at once when the client checks out again — one open order per client (Q115); promo uses are held at checkout, used at confirmation, released on expiry / stock cancellation (Q116); no client cancellation (Q117); a failed shipment puts the order back to preparing, no cancel while a shipment is live (Q118) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D213 | Store extras: transactional client push + list row for order confirmed / shipped / delivered / cancelled (Q119); no new permission names — promo codes `products.manage`, orders `orders.view` / `orders.update_status`, delivery officers `delivery.assigned` on their own internal shipments (Q120); the dashboard wires only the Slice 9b contract and drops prototype-only flows (returns, assignment scope/release, extra stages, max_discount, combinable) (Q121); one promo code per order, no percent cap, no stacking (Q122); a promo applies to the products subtotal only and `min_amount` is compared with it (Q123) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D214 | Design: store orders are the Slice 10 payable `store_order` (`StoreOrderPaymentHandler`, D190). Checkout creates the order snapshot (`pending_payment`); paying it is a separate call to `PaymentIntents::create`, so a declined card is retried on the same order; stock deduction and confirmation run in the handler's `fulfil`; a total of 0.00 is refused at checkout (S10 quotes must be > 0) — `slice-9b-contract.md` §7 | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D215 | OD18 — Commission = `payouts.commission_percent` (default `null` → earnings `409 NOT_CONFIGURED`). One `earning` ledger entry per paid and completed booking with gross, commission and net; available `payouts.hold_days` days after completion (default `null` → `NOT_CONFIGURED`) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D216 | OD19 — One payout account per provider (holder name + validated Saudi IBAN, stored encrypted). Payout requests from the available balance, minimum `payouts.min_amount` (default `null` = none). Manual staff processing only: mark paid with a transfer reference, or reject with a reason (no `processing`/`failed` states, no payout API). Integer cents, idempotent | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D217 | OD20 — The client wallet stays informational (D106/D114); nothing spends it | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D218 | Q124 (closes D116 / Q34) — Provider earnings live in the separate append-only `provider_ledger_entries` (types earning / refund_adjustment / payout / payout_reversal, plus `adjustment` from Slice 19; bigint cents, unique `entry_key`). `wallet_ledger_entries` stays unwritten; the wallet CRUD is unchanged | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D219 | Q125 (closes Q2) — Commission base = captured payment amount minus refunds already settled (VAT-inclusive, add-ons included); commission rounded half-up to the cent; percent snapshotted on each entry | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D220 | Q126 — A refund settled after the earning exists writes a negative `refund_adjustment` (refund minus its proportional commission). Available may go negative; a non-positive balance blocks payout requests | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D221 | Q127 (with D215/D216 closes Q4) — A request may be any amount from `min_amount` (or 0.01) up to the available balance; one open request per provider | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D222 | Q128 — The provider cannot cancel her own open payout request; staff reject it on her request | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D223 | Q129 — The full IBAN is shown only with `payouts.process` on the payout detail, each view audit-logged; masked everywhere else | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D224 | Q130 — New notification events E18 `payout_paid` and E19 `payout_rejected` to the provider (push + in-app) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D225 | Q131 — Earnings and payouts are readable by any provider for her own data; a payout request needs an active provider | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D226 | Slice 11 scope = `docs/slice-11-contract.md` rev 2 (rev 2.2 review fixes changed no rule) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D230 | S1 (Req 36) — Provider team members are records only (name, optional phone, optional photo, role label) and never log in. The provider can assign members to her bookings; the assignment is informational and visible to the provider only (not the client, not the admin dashboard). Nothing is deleted when a member is disabled (OD21) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D231 | S2 (Req 16) and Q98 / Req 15 — Packages and occasion tags are not built: there are no definitions or designs (OD22). **Superseded for packages by D350–D359 (OD39, Slice 24); occasion tags are covered by the existing event types (OD39 note)** | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D232 | Q134 — A booking's team can be changed while the booking is `confirmed` or `in_progress`; `completed` / `cancelled` bookings keep their last team read-only | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D233 | Q135 — A disabled team member stays on every booking she was assigned to, shown with a "disabled" mark; she can be unassigned but not newly assigned until enabled again | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D234 | Q136 — No business limit on team size or members per booking (the BRD gives no number); technical validation caps only (≤ 50 ids per request, field lengths) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D235 | Q137 — Team member photos are private: new upload context `team_photo` (providers only, `uploads.team_photo` seeded null), signed URLs, shown to the provider only (PDPL) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D236 | Q138 — The role label is required free text, 1–60 characters, shown as typed (no fixed list) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D237 | Slice 13 contract (`docs/slice-13-contract.md` rev 2) and scope approved as written, including the §9 defaults P1–P5 (phone optional Saudi mobile, not unique, E.164 in the API; no task/status per assignment; no idempotency key on member create; no member double-booking check because of D109) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D240 | C5 / Q80 — no structured reschedule. The parties agree in chat or a support ticket, then the booking is cancelled through the Slice 6 flow and a new request is made. Closes the reschedule item of row 12 (OD23) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D241 | Q11 — no distance sort. City filtering is the location filter. The app's "nearest" sort option is removed (with the mock-only distance captions, D254) (OD24) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D242 | Q14 — request attachment limits: 10 MB per file, at most 5 files per request, types jpg/jpeg/png/heic/pdf. Seeded by `AppSettingSeeder` as `uploads.request_attachment` / `requests.max_attachments` outside `local` (the values of newly created keys only; an existing row — an admin value or a deliberate `null` — is never touched; the settings cache is flushed after seeding). Local unchanged (`DemoSeeder`). Replaces D53's "not approved" (OD25) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D243 | Q15 — final AR/EN wording of the seven decline reasons (codes unchanged, D51) as in `slice-close-leftovers-contract.md` §3; `DeclineReasonSeeder` updates a row only while it still holds the old proposed text. Copy review on the release checklist (OD26) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D244 | Q17 — an open request whose recipients all declined stays `awaiting_offers` (no new status) until the client cancels or the event passes (OD27) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D245 | Q63 — the client is not notified when a provider withdraws her offer on an open request; E5 stays direct-only (keeps D76/D91) (OD28) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D246 | S5 — chat moderation is warning-only: a message body containing a phone number, an email or a URL is stored with `messages.flagged = true` (`ContactInfoDetector`), the sender is warned while typing and sees a caption on her own flagged message; nothing is blocked, no manual moderation. Detection rules in `slice-close-leftovers-contract.md` §1 (OD29) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D247 | S8 — the colour theme (palette) picker is hidden in release builds (`AppFeatures.palettePicker = !kReleaseMode`); release builds always use the default palette. It was a stakeholder preview (OD30) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D248 | S9 — no client web version; the landing site is outside this team's scope (OD31) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D249 | S12 — the seeded Arabic names of categories and event types are kept as they are (OD32) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D250 | C3 / C4 / C8 — add-ons, inclusions and services stay admin-only as the BRD says; the provider-created variants in the designs are not built (OD33) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D251 | C7 — response speed does not affect search ranking (not built) (OD34) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D252 | Roadmap row 5b corrected to Completed (pushed as `953aeca`) (OD35) | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D253 | Q141 — the S5 contact-info flag is visible to the sender only: `flagged` on her own messages, `null` for the other party; an inline hint while typing and a caption on her flagged message, no confirm dialog | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D254 | Q142 — with the "nearest" sort removed (D241), the mock-only distance captions ("2.1 km") on provider cards are removed (`ProviderCardModel.distanceKm`, mock `distance_km`, keys `sort_nearest` / `distance_km`); the API never sends a distance | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D255 | Slice 17 contract (`docs/slice-17-contract.md` rev 2) and scope approved as written | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D256 | Q146 — Staff interventions: cancel an open request; cancel a confirmed/in-progress booking (refused while a party's cancellation request is pending; stored as an accepted cancellation request with requester role `staff`); complete an in-progress booking; internal notes. Reason (3–1000) required and shown to the parties. No free status edits, no un-cancel, no staff start; staff talk to users only through tickets | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D257 | Q147 — Users are notified of staff actions (transactional): E20 `support_replied`, E21 `support_ticket_resolved` (closed variant `support_ticket_closed` when staff close an open ticket), E22 `request_cancelled_by_staff` (client and the providers still taking part), E23 `booking_cancelled_by_staff` (both), E24 `booking_completed_by_staff` (both). Staff never named | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D258 | Q148 — Staff ticket moves: open → in_progress/waiting/resolved/closed; in_progress ↔ waiting; in_progress/waiting → resolved/closed; resolved → closed or in_progress (reopen); closed final. Staff reply moves open/in_progress → waiting, refused on closed. Reason required only to close or reopen | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D259 | Q149 — `support.assign` assigns/unassigns to active staff holding `support.reply`; a `support.reply` holder may take an unassigned ticket, reply and add internal notes on any ticket; only the assignee reviews chats | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D260 | Q150 — Chat review (Req 42): `chats.view_for_ticket` + ticket assignee; ticket not closed and linked to a request/booking; only that record's conversations in which the ticket's user takes part; reason required; one `conversation_access_logs` row per page read; follow-up pages within `support.chat_access_minutes` (seeded 30, technical window, measured from the row that carried the reason — it never slides; null = reason on every page) reuse the reason; read-only; the user is not told | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D261 | Q151 — A hidden review leaves the public list, the provider's list/summary and the rating; the client still sees her review marked "Hidden by Bliss aan" without the reason; no notification | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D262 | Q152 — Content reports keep `open · handled` and gain `decision actioned · dismissed` + reason + internal note; actioned hides the review and closes its other open reports; the reporter is not told; targets stay `review` | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D263 | Q153 — Operations refunds only through Slice 10's `POST admin/payments/{id}/refunds` (cancellation link prefilled); no automatic refund on staff cancel (OD3); E25 `refund_issued` to the client when a staff refund settles `refunded` | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D264 | Q154 — No staff/dashboard notifications in Slice 17 (closes D140's deferral); `admin/nav-counts` stays mocked until Slice 21 | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D265 | Q155 — `support:auto-close` reads `support.auto_close_days` (null = off, no number set); no "duplicate complaint"; store-order ticket links are a follow-up after S9b | Orchestrator under owner delegation, 2026-11-17 | 2026-11-17 |
+| D270 | Slice 18 scope: admin categories, products, variants, stock adjustments + history, one image each; orders/shipments/delivery/promo = S9b; returns and product reviews out (OD9; returns later built in S23, D340); no Flutter change | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D271 | `products.manage` for every S18 endpoint/page; no new permission | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D272 | One image per product and category via `image_media_id` (own unattached `catalog_image` upload); null removes; old row detached, never deleted | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D273 | Variants: SKU `[A-Za-z0-9_-]` 2–64, upper-case, unique; options size/color {ar,en}; price > 0, 2 decimals; active variants of a product have distinct options; never deleted | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D274 | Stock changes only by adjustment: new count + `expected_stock` + reason (restock/stocktake/damaged/correction/other+note) under the variant row lock; moved count → `409 STOCK_CHANGED`; initial stock recorded | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D275 | `base_price` maintained by the server = lowest active variant price (else lowest of all) | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D276 | Stop (reason required) / activate (optional reason) for categories, products, variants; nothing deleted; carts flag, orders unchanged | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D277 | Categories move up/down (swap sort); products take an integer `sort` (S9b's column, D209) | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D278 | `store.low_stock_threshold` (null → no flag; `filter[low_stock]` → `409 NOT_CONFIGURED`) | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D279 | `stock_movements` table (initial/adjustment by S18; order/order_cancelled written by S9b's `StoreOrderLifecycle`, FK to `store_orders`; `store_return` by S23); product history = audit rows with the product as subject | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D280 | Lock order product → variants; adjustment locks only its variant row; no cycle with S9b's order → variants → promo | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D281 | Price changes reach carts at once (S9b D210 notice), never orders; audit-logged, no notification | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D282 | Input guards: names 2–60 / 2–120 both languages, category names unique, description ≤ 2000, ≤ 50 variants per create, stock 0–1,000,000 | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D283 | No notifications in Slice 18; E30–E34 unused and released | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D284 | Dashboard products/categories pages live; prototype gallery, `display_available`, inline stock edit and variant delete dropped | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D285 | Slice 19 scope: ledger adjustments, finance overview, provider balances, cross-provider ledger list, reconciliation. Payments / refunds / payouts screens stay S10 / S11 | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D286 | An adjustment is a `ledger_adjustments` record; posting writes exactly one append-only `provider_ledger_entries` row (`type adjustment`, `entry_key adjustment:{id}`). Never edited or deleted; a mistake is corrected by an opposite adjustment | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D287 | `finance.process` requests, approves and rejects adjustments; `finance.view` reads every finance view. No new permission name; seeder unchanged | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D288 | Limits are settings: `finance.adjustment_max_amount` (null → `409 NOT_CONFIGURED`), `finance.adjustment_approval_amount` (null → every adjustment needs a second approver; set → amounts ≥ it). Snapshotted on the adjustment | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D289 | Four-eyes: approver ≠ requester (`409 SELF_APPROVAL`); the requester may cancel her own pending request | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D290 | A debit may take available below zero (as D220); the dashboard warns | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D291 | A posted adjustment is available immediately (no hold) | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D292 | Reason categories: `payout_returned` (credit, a paid payout of hers, ≤ its amount, once — closes S11's "bounced transfer" note), `booking_correction` (booking of hers), `goodwill` (credit), `penalty` (debit), `other`. Free text internal | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D293 | Provider notified on posting only: E35 `ledger_credit_posted`, E36 `ledger_debit_posted` (amount + reference), target `earnings`. E37–E39 unused | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D294 | Finance periods are Riyadh calendar days, default current month; overview ≤ 366 days, daily ≤ 92 days | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D295 | Provider balances list only providers with a ledger entry or payout request | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D296 | Reconciliation = read-only checks + daily totals; no "reconciled" state, no automatic fix | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D297 | No exports in Slice 19 (Slice 21) | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D298 | Finance limits are shown read-only (`admin/finance/adjustment-limits`); editing settings is Slice 20 | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D299 | S19 reads/writes S10/S11 tables by their table contracts (no class imported); S11 accepts ledger type `adjustment` (contract §8.2) | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D300 | Slice 20 scope: admin API + dashboard for banners, pages, FAQs, broadcast campaigns, cities (+ read-only coverage counts), app settings, policy versions, document types. Not built: event types (S16), districts, provider-app banners, campaign deep links | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D301 | Banners/pages/FAQs visibility = `is_active`; created hidden; showing needs Arabic and English (`409 TRANSLATION_MISSING`); hiding needs a reason; a visible row cannot lose a language (422); nothing deleted; every write audit-logged | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D302 | Pages are per app (client / provider), slug `^[a-z0-9]+(-[a-z0-9]+)*$` ≤ 50 unique per app, changeable only while hidden | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D303 | FAQs per app with integer `sort` (omitted → last) | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D304 | Banners: client app only; required image = own unattached `banner` upload (`uploads.banner` limits); optional destination provider / provider_service / category / service (must exist), city, window; showing also needs an image and a window that has not ended | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D305 | Broadcast campaigns: draft → scheduled → sending → sent, draft/scheduled → cancelled (reason); audience = app + optional city (clients by `users.city_id`; providers active and covering the city); send now needs the confirmed live count (`409 AUDIENCE_CHANGED`) and ≥ 1 recipient (`409 NO_RECIPIENTS`); schedule = future time, started by `broadcasts:dispatch-due`; row lock on every move. Review fix (contract rev 2): stuck `sending` campaigns are retried by `broadcasts:dispatch-due` after 15 minutes; `recipients_count` is the count confirmed at send time | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D306 | Delivery via `Notifier` (E40 `broadcast`, target `broadcast`, dedupe `broadcast:{id}`); row always stored, push gated by `promotions` (D135); no deep link in the MVP | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D307 | App-settings editor: `SettingCatalog` lists every key the platform reads; list = catalogue ∪ stored rows; `null` = not configured; values validated by kind (integer, decimal, money string, boolean, integer list, upload limits, json); `null` allowed with a reason; `otp.length` (D3) and `offers.validity_days` (D5) read-only. Review fix (contract rev 2): sign-in settings (`otp.expiry_seconds`, `otp.max_attempts`, `otp.resend_cooldown_seconds`) can never be cleared and are ≥ 1; `payments.intent_ttl_minutes` and `requests.max_attachments` are ≥ 1 or not configured | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D308 | Cities: create / rename / sort / stop (reason) / activate; stopping hides the city from pickers and coverage editing only; impact counts (providers covering, clients, open requests). Review fix (contract rev 2): `shared/home` treats a stopped city as no city | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D309 | Document types: create / edit / stop / activate / impact; changes apply to the next upload or submit; uploaded documents unchanged | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D310 | Policy versions append-only: next version number under a lock, `effective_from` ≥ now, optional content {ar,en}, flat `values`, reason; no edit, no delete. Review fix (contract rev 2): a date-only `effective_from` is the start of that Riyadh day and may be today; a concurrent first publish is `409` | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D311 | Permissions: `content.manage`, `notifications.broadcast`, `settings.manage`; no new permission, no seeder change | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D312 | New error codes `TRANSLATION_MISSING`, `AUDIENCE_CHANGED`, `NO_RECIPIENTS` (409) | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D313 | Flutter: no change in Slice 20 (client home banners and FAQs/pages already read the API; broadcast notifications render server text) | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D314 | Event types stay with Slice 16 (D183) | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D315 | Slice 21 contract and scope (admin API + dashboard only; no new permission, notification event, vendor or Flutter change) | Session recommendation under owner delegation (S21), 2026-11-17 | 2026-11-17 |
+| D316 | KPIs = counts per status and money totals from the source records; period on `created_at` (Riyadh dates, inclusive), revenue on `paid_at` / `processed_at`; city only where the source has one, otherwise `null` ("not by city") | Session recommendation under owner delegation (S21), 2026-11-17 | 2026-11-17 |
+| D317 | Every KPI group, queue item, figure, trend, nav counter, drill-down and export follows the permission of the data it shows | Session recommendation under owner delegation (S21), 2026-11-17 | 2026-11-17 |
+| D318 | One isolated KPI source class per group (`KpiSourceRegistry`); sources over S9b/S10/S11 tables use the query builder by table contract (all live since the merge) | Session recommendation under owner delegation (S21), 2026-11-17 | 2026-11-17 |
+| D319 | Drill-down = paginated records behind one KPI item, each linking to its own page | Session recommendation under owner delegation (S21), 2026-11-17 | 2026-11-17 |
+| D320 | Low-stock overview item uses the setting `store.low_stock_threshold` (null → hidden; same key as D278) | Session recommendation under owner delegation (S21), 2026-11-17 | 2026-11-17 |
+| D321 | Read-only action log viewer (`audit.view`) with search, filters, detail + field changes; audit rows refuse Eloquent update/delete | Session recommendation under owner delegation (S21), 2026-11-17 | 2026-11-17 |
+| D322 | Synchronous in-request `.xlsx` exports (`reports.export` + dataset permission), request language, Riyadh dates, batch cell cache, formula-safe text cells, `reports.export_max_rows` (10 000) → `422 EXPORT_TOO_LARGE`, audit row `report_exported` per download | Session recommendation under owner delegation (S21), 2026-11-17 | 2026-11-17 |
+| D323 | Exports carry only what the list shows to that permission: no addresses, pins, IBANs, card tokens, internal notes, chats or attachments | Session recommendation under owner delegation (S21), 2026-11-17 | 2026-11-17 |
+| D324 | Admin payment receipt PDF for succeeded payments; payment receipt, not a tax invoice (ZATCA out, OD8); VAT line only when a VAT percent applies | Session recommendation under owner delegation (S21), 2026-11-17 | 2026-11-17 |
+| D325 | `payment_receipts`: one per payment, number `RC-#######`, VAT snapshot (store order's own, else `tax.vat_percent` at issue), issued on `PaymentSucceeded` or first download; reprints identical | Session recommendation under owner delegation (S21), 2026-11-17 | 2026-11-17 |
+| D326 | Client-app receipts not built in S21 (Flutter follow-up) | Session recommendation under owner delegation (S21), 2026-11-17 | 2026-11-17 |
+| D327 | `admin/nav-counts` live, one key per permitted queue whose table exists | Session recommendation under owner delegation (S21), 2026-11-17 | 2026-11-17 |
+| D328 | `admin/overview` keeps the mock's shape; `failedShipments` replaces `failedOrders`; `deletions` = pending account deletion requests | Session recommendation under owner delegation (S21), 2026-11-17 | 2026-11-17 |
+| D329 | Money totals per status for every money source + `revenue` group (collected / refunded / net) | Session recommendation under owner delegation (S21), 2026-11-17 | 2026-11-17 |
+| D330 | `account.deletion_grace_days` (initial 14, editable; null = no automatic processing); due = request + grace, read live (Q196); shown as `scheduled_for` | Orchestrator under owner delegation (OD38) + session recommendation, 2026-11-17 | 2026-11-17 |
+| D331 | Processing anonymises (name "Deleted user", phone `deleted-{id}`, email/birth date/city null, photo/addresses/saved cards/devices/favourites/preferences/notifications/cart removed, sessions revoked), status `deleted`; booking/order/payment/ledger/audit rows kept | Orchestrator under owner delegation (OD38) + session recommendation, 2026-11-17 | 2026-11-17 |
+| D332 | Provider: unlisted, services stopped, portfolio hidden, live offers withdrawn, open inbox closed, display name "Deleted provider"; her legal documents, payout account and ledger stay (retention, Q197); client: open requests cancelled (E3) | Orchestrator under owner delegation (OD38) + session recommendation, 2026-11-17 | 2026-11-17 |
+| D333 | Obligations that keep the account: active bookings, open store orders, open returns (S23), pending payouts, open tickets; recorded on the request (`blocked_by`, `checked_at`) | Orchestrator under owner delegation (OD38) + session recommendation, 2026-11-17 | 2026-11-17 |
+| D334 | The phone is free at once; login by the old phone → `ACCOUNT_NOT_FOUND` | Orchestrator under owner delegation (OD38) + session recommendation, 2026-11-17 | 2026-11-17 |
+| D335 | Daily `accounts:process-deletions` (03:00), user row → request row lock order, idempotent, audit `account_deleted` | Orchestrator under owner delegation (OD38) + session recommendation, 2026-11-17 | 2026-11-17 |
+| D336 | Staff queue + process now under `admin/clients/deletion-requests` (`clients.edit`, clients and providers), `409 DELETION_BLOCKED` | Orchestrator under owner delegation (OD38) + session recommendation, 2026-11-17 | 2026-11-17 |
+| D337 | No completion notification (nothing left to reach her); E50 `account_deletion_blocked` once per request on the scheduled path | Orchestrator under owner delegation (OD38) + session recommendation, 2026-11-17 | 2026-11-17 |
+| D338 | Owner's "middle solution": the account is anonymised but the name stays only in financial snapshots (store order recipient, payout holder name, and new receipt `payer_name` / `payer_phone` / `provider_name`, issued before anonymisation); removal after the legal retention period stays open as the Q76 remainder (Q212) | Owner via orchestrator | 2026-11-17 |
+| D340 | Store returns built end to end (API, dashboard, client app); product reviews stay out (OD36) | Orchestrator under owner delegation (OD37), 2026-11-17 | 2026-11-17 |
+| D341 | States requested → approved → received → refunded, or rejected (staff, reason shown to the client) / cancelled (client while requested); approved returns cannot be cancelled or rejected | OD37 + session recommendation, 2026-11-17 | 2026-11-17 |
+| D342 | Request = lines + quantities, reason code (damaged / wrong_item / not_as_described / changed_mind / other), required note, 0–3 private photos (`store_return_photo`, initial limits images 10 MB) | OD37 + session recommendation, 2026-11-17 | 2026-11-17 |
+| D343 | Only a delivered, paid order, until `delivered_at + store.return_window_days` (initial 7; null → `NOT_CONFIGURED`; past → `409 RETURN_WINDOW_CLOSED`); quantities ≤ purchased − held by live returns; several returns per order | OD37 + session recommendation, 2026-11-17 | 2026-11-17 |
+| D344 | Returns are snapshots with `RT-` references, Idempotency-Key + fingerprint, and the current `store_return` policy version id | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D345 | Refund = returned lines' paid share (promo discount prorated cumulatively, integer cents); shipping never refunded; through S10 `PaymentRefunds` (`RefundKind::StoreReturn`, key `store_return:{id}:{attempt}`), capped at the payment's remainder; failures stay `received` with `refund_error` and staff retry | OD37 + session recommendation, 2026-11-17 | 2026-11-17 |
+| D346 | Mark received restocks by default through S18 `StockAdjustments::record()` (source `store_return`); staff may turn it off for damaged items; the order status does not change | OD37 + session recommendation, 2026-11-17 | 2026-11-17 |
+| D347 | Permissions `orders.view` (read), `orders.update_status` (approve / reject), + `refunds.process` (receive / refund retry); activity events, audit rows and E55–E59 to the client on every move | OD37 + session recommendation, 2026-11-17 | 2026-11-17 |
+| D348 | Return policy text = `store_return` policy version (seeded v1 when none, `:days` filled in), public `GET shared/store/return-policy`, shown in the app | OD37 + session recommendation, 2026-11-17 | 2026-11-17 |
+| D349 | Lock order return → order → variants (id asc) → payment; the refund runs after the receive transaction commits | Session recommendation under owner delegation, 2026-11-17 | 2026-11-17 |
+| D350 | A package never has a price (no column, field or response value); providers price each service through offers. With D351–D359 supersedes D231 and the packages half of D178 | Session recommendation under owner delegation (S24, OD39), 2026-11-17 | 2026-11-17 |
+| D351 | Optional occasions (`event_type_package`); none = every occasion; the public event-type filter includes packages with none | Session recommendation under owner delegation (S24, OD39), 2026-11-17 | 2026-11-17 |
+| D352 | Shown to clients only while active with ≥1 visible service; only visible services listed; else 404; national (no city); Home = first 10 | Session recommendation under owner delegation (S24, OD39), 2026-11-17 | 2026-11-17 |
+| D353 | `service_requests.package_id` on open requests only, validated (visible package containing the service); matching, recipients, notifications and D56 privacy unchanged; fingerprint adds it only when sent; `package {id, name}` on client / provider / admin request responses | Session recommendation under owner delegation (S24, OD39), 2026-11-17 | 2026-11-17 |
+| D354 | One service per request: "Request this package" opens the open-request form on the package's services; the client requests the others one by one. No multi-service request. `package_items` rewritten on edit | Session recommendation under owner delegation (S24, OD39), 2026-11-17 | 2026-11-17 |
+| D355 | Package detail "starting from" = lowest current price among visible providers per service (+ providers_count), null when none; the bare guide price is never shown (keeps D34) | Session recommendation under owner delegation (S24, OD39), 2026-11-17 | 2026-11-17 |
+| D356 | Admin `admin/catalog/packages` under `catalog.manage`: CRUD without delete, stop reason on the row, move, `catalog_image`, 1–20 services, audit `catalog_package_*` | Session recommendation under owner delegation (S24, OD39), 2026-11-17 | 2026-11-17 |
+| D357 | Dashboard Catalog → Packages page; request detail shows the package | Session recommendation under owner delegation (S24, OD39), 2026-11-17 | 2026-11-17 |
+| D358 | Client app: Home packages block, package screen, request buttons, package on request details | Session recommendation under owner delegation (S24, OD39), 2026-11-17 | 2026-11-17 |
+| D359 | Slice 24 contract and scope; no new permission, error code, setting, notification (Q207: promote with S20 banners / broadcasts) | Session recommendation under owner delegation (S24, OD39), 2026-11-17 | 2026-11-17 |
+| D360 | `onboarding_slides` (app, title/text {ar,en}, sort, is_active, hidden_reason); created hidden at the end; never deleted | Session recommendation under owner delegation (S25), 2026-11-17 | 2026-11-17 |
+| D361 | Optional image = own unattached `onboarding_image` upload (public, staff, `uploads.onboarding_image`); replace detaches, `remove_image` detaches; no image → app's bundled photo | Session recommendation under owner delegation (S25), 2026-11-17 | 2026-11-17 |
+| D362 | Admin list not paginated, filter by app/status; app fixed at creation | Session recommendation under owner delegation (S25), 2026-11-17 | 2026-11-17 |
+| D363 | Reorder by `POST …/move {position}` (1-based, clamped) under the lock of the app's slides, renumbered 1..n, audited | Session recommendation under owner delegation (S25), 2026-11-17 | 2026-11-17 |
+| D364 | Public `GET shared/onboarding?app=` (`auth.optional`), visible slides in order, locale fallback, `app` validated | Session recommendation under owner delegation (S25), 2026-11-17 | 2026-11-17 |
+| D365 | Show/hide via Slice 20 `ContentVisibility` (both languages to show, reason to hide, stored in `hidden_reason`); `content.manage`; every write audited | Session recommendation under owner delegation (S25), 2026-11-17 | 2026-11-17 |
+| D366 | Dashboard page Content → Onboarding with client/provider tabs, upload, preview, show/hide, up/down | Session recommendation under owner delegation (S25), 2026-11-17 | 2026-11-17 |
+| D367 | App: one `OnboardingView`/bloc in `features/shared/onboarding`, role from `AuthSession.role`, one request per opening, loader, bundled fallback on failure/empty; splash → account type → onboarding (first time per role) → client home / provider login; per-role flag (`client_onboarded` kept, `provider_onboarded` new); signed-in sessions skip it | Session recommendation under owner delegation (S25), 2026-11-17 | 2026-11-17 |
+| D368 | `OnboardingSlideSeeder` seeds 3 visible client + 3 visible provider slides only when that app has none | Session recommendation under owner delegation (S25), 2026-11-17 | 2026-11-17 |
+| D369 | No new permission, error code or notification event in Slice 25 | Session recommendation under owner delegation (S25), 2026-11-17 | 2026-11-17 |
+| D370 | (renumbered from S26-D1) Mock data is debug-only: `MockStore`, `MockAccount`, `MockWalletSource` and `MockPayoutsSource` are registered only when `MockMode.enabled` (`kDebugMode`). The prototype preview is `MockMode.preview` = debug and no session. Every reader is gated; the string-id routes (`RN-…`, `Q-…`) and the prototype chat open a neutral "not available" page in release | Session recommendation under owner delegation (S26), 2026-11-17 | 2026-11-17 |
+| D371 | (renumbered from S26-D2) Home sections the API never sends are removed, not added: `featured_services`, `nearby_providers` and `testimonials` (UI, state and widgets deleted). `ShowHomeController` is unchanged | Session recommendation under owner delegation (S26), 2026-11-17 | 2026-11-17 |
+| D372 | (renumbered from S26-D3) Provider dashboard earnings show her lifetime net (`provider/earnings` → `lifetime.net`); the API keeps no monthly series, so the live card has no month bars and no "growth" tag. `409 NOT_CONFIGURED` shows a notice | Session recommendation under owner delegation (S26), 2026-11-17 | 2026-11-17 |
+| D373 | (renumbered from S26-D4) Tab badges: provider new requests = `meta.total` of `provider/service-requests?filter[status]=new`; client = `meta.total` of `client/service-requests?filter[status]=offers_received`; unread messages = sum of `unread_count` over the newest 50 active conversations (no total endpoint exists) | Session recommendation under owner delegation (S26), 2026-11-17 | 2026-11-17 |
+| D374 | (renumbered from S26-D5) Provider account stats: completed bookings (`meta.total` of `provider/bookings` completed), rating average and review count. The prototype's "96 % recommend" and "1 h response" are dropped (no API source) | Session recommendation under owner delegation (S26), 2026-11-17 | 2026-11-17 |
+| D375 | (renumbered from S26-D6) Settings: the auto-accept switch has no API setting (`quick_offer_enabled` is not exposed), so it shows only in the debug preview. The open-requests switch shows her stored `accepts_open_requests` | Session recommendation under owner delegation (S26), 2026-11-17 | 2026-11-17 |
+| D376 | (renumbered from S26-D7) Location: providers have no stored coordinates; `ProviderProfileResource` sends none, and the screen shows a "no exact location" state with her coverage instead of a hardcoded Riyadh pin. `banner_url` and `facts` were dropped from the app model (never returned) | Session recommendation under owner delegation (S26), 2026-11-17 | 2026-11-17 |
+| D377 | (renumbered from S26-D8) About page stats removed (invented figures); the support hero uses the neutral gradient | Session recommendation under owner delegation (S26), 2026-11-17 | 2026-11-17 |
+| D378 | (renumbered from S26-D9) `ClientLayoutBloc` kept, wired live: the audit called it unused, but the client tab bar reads it | Session recommendation under owner delegation (S26), 2026-11-17 | 2026-11-17 |
+| D379 | (renumbered from S26-D10) Card tokenizer: `FakePaymentTokenizer` (D186) is selected through `AppFeatures.fakeCardTokens` only. API side of Slice 26: `GET provider/profile` also returns `city` `{id, name}` or `null`, `started_year` and `is_verified` (additive) | Session recommendation under owner delegation (S26), 2026-11-17 | 2026-11-17 |
 
-## Open — blocking (needed before the related slice)
+## Open — blocking (needed before the related slice or the release)
 
 | # | Question | Blocks slice |
 |---|---|---|
-| Q2 | Commission: rate, base (add-ons, discounts, VAT?), the event that creates it, when it is deducted | 11 |
-| Q3 | Cancellation & refund policy per party and stage; refund method and timing (Slice 6 moves no money, D113: the policy is shown as "not determined") | 10 |
-| Q4 | Payout rules: when earnings become available, timing, method | 11 |
-| Q6 | Required provider documents per account type (CR, freelance document, ID, authorization) and file limits | 3 |
-| Q8 | Which SMS provider, payment gateway, shipping carrier, maps provider? (Slice 1 ships with the fake SMS driver) | 1 (go-live), 9, 10 |
-| Q11 | Provider location for the "nearest" sort (BRD Req 11, designs): a map pin per provider (public or private?), per coverage area, or distance by city only? Until then there is no distance sort | 2 (nearest sort) |
+| Q6 | Required provider documents per account type (CR, freelance document, ID, authorization) and file limits (document types are now managed in the dashboard, D309; which are required is still undecided) | 3 |
 | Q10 | OTP expiry, max wrong attempts and resend cooldown (`app_settings` `otp.*`, D22). Also: a daily send cap per phone? | 1 (go-live) |
-| Q14 | Production attachment limits: max file size, max files per request, allowed extensions/MIME types, HEIC, other restrictions (D53) | 4 (go-live) |
-| Q15 | Final Arabic and English wording of the seven decline reasons (D51; codes are fixed) | 4 (seed text) |
-| Q17 | Open request whose recipients all decline: does the request change status (e.g. `declined`) or stay `awaiting_offers`? No transition until answered | 4 |
-| Q24 | A provider suspended while a recipient of open requests: close her `new` recipient rows or leave them? | 4/15 |
-| Q63 | Slice 8: may a client be notified when a provider withdraws her offer on an **open** request (E5)? D76/D91 keep open-request withdrawals internal and clients never see `withdrawn` (`OfferStatus::clientVisible()`), so the approved E5 is implemented for **direct** requests only until this is answered | 8 |
-| Q64 | Slice 9: a cart line whose variant, product or category is switched off — remove it, keep it flagged, block checkout? Now: kept, `available: false`, excluded from `subtotal` | 9 |
-| Q65 | Slice 9: stock drops below a line's quantity — lower it automatically, keep it flagged, refuse at checkout? Now: kept, `exceeds_stock: true` | 9 |
-| Q66 | Slice 9: may clients see exact stock ("only 2 left")? Now: only `in_stock`; `OUT_OF_STOCK` carries no number | 9 |
-| Q67 | Slice 9: when is stock reserved / deducted (add to cart, checkout, payment, order confirmation) and released? Now: never | 9 |
-| Q68 | Slice 9: maximum quantity per line / per order? Now: only current stock | 9 |
-| Q69 | Slice 9: guest cart kept on the device and merged at sign-in? Now: no (D145) | 9 |
-| Q70 | Slice 9: product order in the list (admin sort, newest, popularity) and whether out-of-stock products are listed. Now: by id, out-of-stock listed and flagged | 9 |
-| Q71 | Slice 9: one image per product or a gallery? Per-variant images? Now: one `image` | 9 |
-| Q72 | Slice 9: card price when variants differ — base price or "from" lowest variant price? Now: `base_price` | 9 |
-| Q73 | Slice 9: cart expiry / abandoned carts; telling her when a price changed. Now: no expiry, live prices only | 9 |
+| Q212 | Q76 remainder (D338): the legal retention period after which the names kept in financial snapshots (store order recipient, payout holder name, receipt `payer_name` / `payer_phone` / `provider_name`) and the anonymised rows (Q199) are removed; also whether a deleted provider's IBAN / documents / ledger are erased then (Q197). To be set with legal counsel | Release (legal) |
 
 ## Resolved questions (kept for traceability)
 
@@ -200,7 +397,7 @@ When a question is answered, move it to **Decided** with the date and source.
 | Q18 | May a provider decline after sending an offer (`offer_sent → declined`)? Not allowed in Slice 4 | D91 (for 5b) |
 | Q32 | Request status when an open request has no live offer left (all withdrawn/expired) | D105 |
 | Q33 | Wallet: which information is editable? | D115 (label only) |
-| Q34 | Wallet ledger: shared per wallet or a separate provider ledger? | D116 (deferred to Slice 11) |
+| Q34 | Wallet ledger: shared per wallet or a separate provider ledger? | D116 (deferred to Slice 11) → D218 (Slice 11, separate `provider_ledger_entries`) |
 | Q35 | Wallet: created explicitly or automatically at registration? | D115 (explicitly) |
 | Q36 | Chat: who may open a conversation? | D117 |
 | Q37 | Chat: when is a conversation active / read-only? | D117 |
@@ -223,11 +420,132 @@ When a question is answered, move it to **Decided** with the date and source.
 | Q60 | Slice 8: staff notifications | D140 (Slice 17) |
 | Q61 | Slice 8: push text privacy | D141 |
 | Q62 | Slice 8: chat notifications | D142 |
-| Q1 | Service payment plan: full payment or deposit? Amount/timing? Is payment required to confirm a booking? Payment deadline? | D106 (scope for 5c: wallet CRUD only, no payments) |
+| Q1 | Service payment plan: full payment or deposit? Amount/timing? Is payment required to confirm a booking? Payment deadline? | D106 (scope for 5c: wallet CRUD only, no payments); D185 (OD1, Slice 10: full payment, pay first then accept, behind `payments.booking_payment_required`) |
 | Q5 | Booking time model: buffers/travel time, simultaneous capacity per provider | D107–D113 |
 | Q30 | Client availability (`slice-5a-contract.md` §7): is a date listed as unavailable when a block covers only part of it (API time-range blocks, D83)? (a) yes, when any part is blocked; (b) only when the whole date is blocked | D92 |
 | Q31 | May guests (no token) read a provider's unavailable dates (`shared/providers/{id}/availability`, like the rest of discovery), or is a client token required? | D93 |
 | REF | Request reference format (sequential id, counter or random) | D72 |
+| Q2 | Commission: rate, base (add-ons, discounts, VAT?), the event that creates it, when it is deducted (moved from "Open — blocking", 2026-11-17) | D215, D219 (OD18) |
+| Q3 | Cancellation & refund policy per party and stage; refund method and timing (moved from "Open — blocking", 2026-11-17) | D187 (OD3: no automatic cancellation-refund policy; staff refund full or partial with a reason through the gateway) |
+| Q4 | Payout rules: when earnings become available, timing, method (moved from "Open — blocking", 2026-11-17) | D215, D216, D221 (OD18, OD19) |
+| Q8 | Which SMS provider, payment gateway, shipping carrier, maps provider? (moved from "Open — blocking", 2026-11-17) | D186 / OD2 — no vendor now, fake drivers behind the interfaces; choosing the real vendors is on the release checklist (`04-…`) |
+| Q11 | Provider location for the "nearest" sort (moved from "Open — blocking", 2026-11-17) | D241 (OD24, no distance sort) |
+| Q14 | Production attachment limits (moved from "Open — blocking", 2026-11-17) | D242 (OD25) |
+| Q15 | Final wording of the seven decline reasons (moved from "Open — blocking", 2026-11-17) | D243 (OD26) |
+| Q17 | Open request whose recipients all decline (moved from "Open — blocking", 2026-11-17) | D244 (OD27, stays `awaiting_offers`) |
+| Q24 | A provider suspended while a recipient of open requests: close her `new` recipient rows or leave them? (moved from "Open — blocking") | D172 |
+| Q63 | Slice 8: client notified of an open-request offer withdrawal (E5)? (moved from "Open — blocking", 2026-11-17) | D245 (OD28, no) |
+| Q64 | Slice 9: cart line whose variant/product/category is switched off | D205 (OD11) |
+| Q65 | Slice 9: stock drops below a line's quantity | D205 (OD11) |
+| Q66 | Slice 9: exact stock shown to clients? | D206 (OD12, no) |
+| Q67 | Slice 9: when stock is reserved / deducted / released | D207 (OD13) |
+| Q68 | Slice 9: maximum quantity per line / order | D208 (OD14) |
+| Q69 | Slice 9: guest cart | D206 (OD12, no) |
+| Q70 | Slice 9: product order and out-of-stock listing | D209 (OD15) |
+| Q71 | Slice 9: one image or a gallery | D209 (OD15, one image) |
+| Q72 | Slice 9: card price when variants differ | D209 (OD15, "from" lowest active variant) |
+| Q73 | Slice 9: cart expiry, price-change notice | D210 (OD16) |
+| Q74 | Slice 12a: does a deletion request change the account state or restrict anything while pending? | D150 |
+| Q75 | Slice 12a: deletion reasons, details rule, suspended accounts, withdraw | D151 |
+| Q76 | Account deletion processing: who reviews requests, what "processed" does to the account, PDPL retention, whether the same phone may register again, whether the user is notified (kept open by D155 until 2026-11-17) | D330–D338 (OD38, Slice 22) — **except the remainder**: when the names kept in financial snapshots (D338) are removed after the legal retention period → still open as **Q212** |
+| Q77 | Slice 12a: editable profile fields per user type, 18+, language sync | D152 |
+| Q78 | Slice 12a: client photo, change-phone screen, devices on the real API | D153 |
+| Q79 | Slice 12a: addresses polish scope | D154 |
+| Q80 | Slice 12b: reschedule (Req 26, C5) in this part? — out of scope for 12b (chat or a booking-linked ticket meanwhile); reschedule itself then decided by D240 | D157; D240 (OD23) |
+| Q81 | Slice 12b: page body format and legal text source | D163 |
+| Q82 | Slice 12b: ticket topics and allowed links | D159 |
+| Q83 | Slice 12b: effect of her reply on ticket status; user close; auto-close | D160 |
+| Q84 | Slice 12b: ticket limits, attachments, caps, rate limit | D162 |
+| Q85 | Slice 12b: admin endpoint in 12b; how staff are shown | D157, D161 |
+| Q86 | Slice 14b: self-lockout, last super admin, fixed `super_admin` permission set | D165 |
+| Q87 | Slice 14b: privilege escalation by non-super-admin holders of `roles.manage` | D166 |
+| Q88 | Slice 14b: one role or several per staff member | D167 |
+| Q89 | Slice 14b: custom roles (create / rename / delete) | D168 |
+| Q90 | Slice 14b: does granting a sensitive permission (`requests.attachments.view`, D64) in the role editor count as approval? | D169 (no — `super_admin` only, enforced by the API) |
+| Q91 | Slice 14b: staff account fields, phone collisions, phone edit, disable = suspend | D170 |
+| Q92 | Slice 15: client suspended with open requests / offers / bookings / chats / cart: change anything automatically? | D171 |
+| Q93 | Slice 15: provider suspended at provider-status level with open recipients / live offers / bookings; may she still send offers? | D172 |
+| Q94 | Slice 15: client suspension mechanics: sessions, push, `pending_deletion`, what reactivation restores | D173 |
+| Q95 | Slice 15: may staff edit a client's name / email / city? | D174 |
+| Q96 | Slice 15: verification badge and featured flag: permission, statuses, reason, notification | D175 |
+| Q97 | Slice 15: admin hide/restore of portfolio items | D176 |
+| Q98 | Slice 16: occasion tags (Req 15) and packages (Req 16) | D178 (not in S16); packages D350–D359 (OD39); tags = event types |
+| Q99 | Slice 16: removing inclusions and add-on links | D179 |
+| Q100 | Slice 16: stopping catalog items with work in flight | D180 |
+| Q101 | Slice 16: guide price change rules | D181 |
+| Q102 | Slice 16: catalog permissions | D182 |
+| Q103 | Slice 16: event-type management and `addons.sort` | D183 |
+| Q104 | Slice 10: unpaid attempt lifetime | D191 |
+| Q105 | Slice 10: dashboard permissions for payments | D192 |
+| Q106 | Slice 10: add a card without paying + default card | D193 |
+| Q107 | Slice 10: payment push notifications | D194 |
+| Q114 | Slice 9b: paid order whose stock is gone at confirmation, or a late payment for an expired order | D212 (cancel for stock + automatic full refund) |
+| Q115 | Slice 9b: unpaid checkouts | D212 (`pending_payment` → `expired`; one open order per client) |
+| Q116 | Slice 9b: when a promo use counts | D212 (held / used / released) |
+| Q117 | Slice 9b: client cancellation of a paid order | D212 (not offered) |
+| Q118 | Slice 9b: failed delivery / cancel after shipment | D212 (back to preparing; no cancel while a shipment is live) |
+| Q119 | Slice 9b: order notifications | D213 (confirmed / shipped / delivered / cancelled) |
+| Q120 | Slice 9b: permissions | D213 (existing names) |
+| Q121 | Slice 9b: dashboard scope | D213 (contract only; prototype-only flows removed) |
+| Q122 | Slice 9b: percent cap / stacking | D213 (not built) |
+| Q123 | Slice 9b: what a promo applies to | D213 (products subtotal only) |
+| Q124 | Slice 11: provider earnings ledger: `provider_ledger_entries` or `wallet_ledger_entries`? | D218 |
+| Q125 | Slice 11: commission base and rounding | D219 |
+| Q126 | Slice 11: refund after the earning is recorded | D220 |
+| Q127 | Slice 11: payout amount and number of open requests | D221 |
+| Q128 | Slice 11: can the provider cancel her own payout request? | D222 |
+| Q129 | Slice 11: who sees the full IBAN? | D223 |
+| Q130 | Slice 11: payout notifications | D224 |
+| Q131 | Slice 11: payout requests by a non-active provider | D225 |
+| Q134 | Slice 13: booking states in which the team can be changed | D232 |
+| Q135 | Slice 13: a disabled member's assignments | D233 |
+| Q136 | Slice 13: limits on team size / members per booking | D234 |
+| Q137 | Slice 13: member photo privacy | D235 |
+| Q138 | Slice 13: role label free text or list | D236 |
+| Q141 | SFIX: who sees the S5 contact-info flag | D253 (sender only) |
+| Q142 | SFIX: remove the mock-only distance captions | D254 (yes) |
+| Q146 | Slice 17: staff interventions on requests/bookings | D256 |
+| Q147 | Slice 17: user notifications for staff actions | D257 |
+| Q148 | Slice 17: staff ticket status moves, staff reply effect | D258 |
+| Q149 | Slice 17: ticket assignment and replies | D259 |
+| Q150 | Slice 17: chat review rules (Req 42) | D260 |
+| Q151 | Slice 17: hidden review effects | D261 |
+| Q152 | Slice 17: content report decisions | D262 |
+| Q153 | Slice 17: refunds in operations, refund event (D194) | D263 |
+| Q154 | Slice 17: staff notifications / nav counts (D140) | D264 |
+| Q155 | Slice 17: auto-close, duplicate complaint, store-order links | D265 |
+| Q196 | Slice 22: should the grace period be snapshotted on the request? | D330 (no, read live; `scheduled_for` shows the current rule) |
+| Q197 | Slice 22: should a provider's unpaid balance, payout account (IBAN) or legal documents block deletion or be erased? | D332 (not blocking, kept for financial / legal retention; revisit with the legal retention rules — release checklist) |
+| Q198 | Slice 22: should chat messages, reviews she wrote and request free text be scrubbed? | D331 (no; kept as history, name is now "Deleted user") |
+| Q199 | Slice 22: how long are anonymised rows kept? | Indefinitely for now, no purge job (`slice-22-contract.md` §9); a purge after the legal retention period is on the release checklist (with Q212) |
+| Q200 | Slice 23: partial / repeated returns? | D343 (allowed while quantities remain) |
+| Q201 | Slice 23: shipping and promo discount? | D345 (shipping never refunded; discount prorated; return shipping arranged by the store team outside the app) |
+| Q202 | Slice 23: order already refunded by hand? | D345 (capped at the remainder; nothing left → `refund_error NOTHING_REFUNDABLE`) |
+| Q203 | Slice 23: damaged items back in stock? | D346 (staff choose; `restock` default on) |
+| Q204 | Slice 24: does "Request this package" create one request with several services, or one per service? | D354 (one per service) |
+| Q205 | Slice 24: can a package carry a price or a discount? | D350 (no) |
+| Q206 | Slice 24: are packages per city? | D352 (no, national; matching decides) |
+| Q207 | Slice 24: are clients notified about new packages? | D359 (no automatic notification; S20 banners / broadcasts) |
+| Q208 | Slice 25: image required to show a slide? | No (D361) |
+| Q209 | Slice 25: re-show onboarding after admin edits? | No, once per role per device (D367) |
+| Q210 | Slice 25: show it once to already signed-in users? | No (D367) |
+| Q211 | Slice 25: reorder by sort number or position? | Position (`move`, D363) |
+| C3 | Add-ons (Req 33): BRD admin catalog only vs designs provider-created (moved from "Open — design vs BRD conflicts", 2026-11-17) | D250 (OD33, admin-only) |
+| C4 | Service inclusions (Req 10, 55): admin-owned vs provider items (moved, 2026-11-17) | D250 (OD33, admin-only) |
+| C5 | Rescheduling (Req 26): structured propose/accept/reject vs no screens (moved, 2026-11-17) | D240 (OD23, no structured reschedule; 12b deferral D157) |
+| C6 | Store delivery method (Rule 13): admin decides vs client chooses (moved, 2026-11-17) | D201 (OD7: staff choose per order after checkout; neither the BRD's "admin decides internal" only nor the designs' client choice) |
+| C7 | Search ranking by fast replies (moved, 2026-11-17) | D251 (OD34, not built) |
+| C8 | New provider services reviewed by admin (moved, 2026-11-17) | D250 (OD33, admin-only catalog) |
+| S1 | Do provider team members log in? Which app and which actions? (Req 36) (moved from "Open — scope", 2026-11-17) | D230 (OD21: no login; records + informational assignments) |
+| S2 | Packages (Req 16): admin bundles with a price, or a grouping only? (+ occasion tags, D178) (moved, 2026-11-17) | D231 (OD22) then **OD39 / Slice 24: D350–D359** (admin bundle of catalog services, no price); occasion tags = event types |
+| S3 | Promo codes: store only, or also services/shipping? (moved, 2026-11-17) | D200 (OD6, store orders only) |
+| S4 | Product reviews and store returns: in scope? (moved, 2026-11-17) | Product reviews out (OD36, D203/D340); store returns built (OD37, Slice 23, D340–D349) |
+| S5 | Message moderation (Req 41) (moved, 2026-11-17) | D246 (OD29, warning only), D253 |
+| S7 | VAT / ZATCA e-invoicing requirements for receipts? (moved, 2026-11-17) | D202 (OD8: prices include VAT, `tax.vat_percent`; ZATCA on the release checklist) |
+| S8 | Colour theme picker: real feature or stakeholder preview? (moved, 2026-11-17) | D247 (OD30, hidden in release) |
+| S9 | Client web version / landing site? (moved, 2026-11-17) | D248 (OD31, no) |
+| S11 | Confirm the default role → permission mapping in `RolesAndPermissionsSeeder` (moved, 2026-11-17) | Editable in the dashboard (Slice 14b, D164/D168), except `super_admin` (D165) and `requests.attachments.view` (D169) |
+| S12 | Arabic names of the seeded categories and event types (moved, 2026-11-17) | D249 (OD32, kept) |
 
 ## Open — design vs BRD conflicts
 
@@ -235,29 +553,64 @@ When a question is answered, move it to **Decided** with the date and source.
 |---|---|---|---|---|
 | C1 | Completing a service (Req 21) | Completion code/proof; client not forced to confirm early | Provider taps "Confirm completion" alone | 6 — D125 (provider confirms alone) |
 | C2 | Quick offer (Req 30, 43) | Never sent without a deliberate review | One-tap send at starting price + setting | 5 — 5b: D104 (no one-tap send) |
-| C3 | Add-ons (Req 33) | From the admin catalog only | Provider creates own add-ons (name, price, image) + suggestions | 3 |
-| C4 | Service inclusions (Req 10, 55) | Admin-owned | Provider can add own items | 3 |
-| C5 | Rescheduling (Req 26) | Structured propose/accept/reject | No screens; terms say changes via chat | 6/12 |
-| C6 | Store delivery method (Rule 13) | Admin decides internal delivery | Client chooses carrier vs internal at checkout | 9 |
-| C7 | Search ranking | Not mentioned | Fast replies raise ranking (provider terms 3.1) | 2 |
-| C8 | New provider services | Providers only pick from catalog | "New services are reviewed by admin" (provider terms 2.3) | 3 |
 
 ## Open — scope / clarification
 
 | # | Question |
 |---|---|
-| S1 | Do provider team members log in? Which app and which actions? (Req 36) |
-| S2 | Packages (Req 16): admin bundles with a price, or a grouping only? |
-| S3 | Promo codes: store only, or also services/shipping? |
-| S4 | Product reviews and store returns: in scope? |
-| S5 | Message moderation (Req 41): what is blocked (phone numbers, links?), automatic or manual? **Blocks the sensitive-content warning of Slice 7** (deferred; `messages.flagged` exists, never set) |
 | S6 | Notification channels: push only, or also SMS/email? Which events? **Resolved 2026-11-16 → D132 (channels), D133 (events)** |
-| S7 | VAT / ZATCA e-invoicing requirements for receipts? |
-| S8 | Is the color theme picker in settings a real user feature or a stakeholder preview? |
-| S9 | Client web version needed? Landing site in scope for this team? |
-| S11 | Confirm the default role → permission mapping in `RolesAndPermissionsSeeder` (derived from role descriptions in `01-…` §2; editable later in Slice 14) |
-| S12 | Confirm the Arabic names of the seeded categories and event types against the designs |
 | S10 | Missing designs: search filters, cart with items, order tracking, address form, account deletion, devices, provider coverage/hours, team, payout flow, reschedule, admin dashboard (all) |
+
+## Orchestrator decisions under owner delegation (OD1–OD39)
+
+Source: "Orchestrator under owner delegation, 2026-11-17". The owner delegated the open decisions ("لو فيه حاجه مفتوحه او
+محتاجه قرار خده انت بحيث ننتهي بسرعه"); round 2 (OD36–OD39) followed the owner's instruction to review account deletion,
+packages, product reviews and returns against the analysis file and build the best solution. The owner can reverse any of
+them. Guiding rule: a business number is an `app_settings` value (initial values set later by the owner's "initial values,
+editable in Settings" instruction); vendors stay behind interfaces with fake drivers. Full text:
+`orchestrator-decisions-2026-11-17.md` and `orchestrator-decisions-2026-11-17b.md` (project root, outside this repo).
+
+| # | Topic | Decision (short) | Recorded as |
+|---|---|---|---|
+| OD1 | Q1 service payment plan | Full payment of the offer total, pay first, then accept; failed acceptance → automatic full refund; no deposits; behind `payments.booking_payment_required` (default false = D113) | D185 |
+| OD2 | Q8 vendors | No vendor chosen; gateway, carrier, SMS, maps stay behind interfaces with fake drivers; real vendors on the release checklist | D186 |
+| OD3 | Refunds | Staff-started, full or partial, required reason, through the gateway, audited; no automatic cancellation-refund policy | D187 |
+| OD4 | Saved methods | Gateway tokens only (brand, last4, expiry); list and delete; card data never stored | D188 |
+| OD5 | Webhooks | Signature-verified, idempotent on the gateway event id; server decides payment state | D189 |
+| OD6 | S3 promo codes | Store orders only; percent or fixed, minimum order, window, total and per-client limits; minimal admin API + page | D200 |
+| OD7 | C6 delivery | Staff choose internal or carrier per order after checkout; flat `store.shipping_fee` | D201 |
+| OD8 | S7 VAT / ZATCA | Prices include VAT; `tax.vat_percent`; ZATCA out of scope, on the release checklist | D202 |
+| OD9 | S4 | Product reviews and store returns out of scope (returns later reversed by OD37) | D203 |
+| OD10 | Store payment | Full payment at checkout through the Slice 10 gateway; confirmed on payment; stock deducted then | D204 |
+| OD11 | Q64 / Q65 | Unavailable / over-stock lines kept and flagged; checkout refused until fixed | D205 |
+| OD12 | Q66 / Q69 | No exact stock numbers; no guest cart | D206 |
+| OD13 | Q67 | Stock deducted at confirmation under row locks, restored on cancellation before shipment; nothing reserved | D207 |
+| OD14 | Q68 | `store.max_qty_per_line` (null = current stock only) | D208 |
+| OD15 | Q70 / Q71 / Q72 | Admin sort then newest, out-of-stock last; one image; card "from" lowest active variant | D209 |
+| OD16 | Q73 | Carts never expire; live prices with a price-changed notice | D210 |
+| OD17 | Orders | confirmed → preparing → shipped → delivered / cancelled; staff update; reorder; tracking history | D211 |
+| OD18 | Commission | `payouts.commission_percent`; earning entry per paid + completed booking; available after `payouts.hold_days` | D215 |
+| OD19 | Payouts | One payout account (holder + Saudi IBAN); requests from available balance, `payouts.min_amount`; manual staff processing | D216 |
+| OD20 | Client wallet | Stays informational; nothing spends it | D217 |
+| OD21 | S1 team | Members are records only, never log in; informational booking assignment, provider-only | D230 |
+| OD22 | S2 packages, occasion tags | Not built (no definitions or designs) — packages later reversed by OD39 | D231 |
+| OD23 | C5 reschedule (Q80) | No structured reschedule: agree in chat / ticket, cancel (Slice 6), new request | D240 |
+| OD24 | Q11 nearest sort | No distance sort; city filter is the location filter | D241 |
+| OD25 | Q14 attachment limits | 10 MB, 5 files, jpg/jpeg/png/heic/pdf, seeded outside local | D242 |
+| OD26 | Q15 decline wording | AR/EN text written by SFIX; copy review on the release checklist | D243 |
+| OD27 | Q17 | All recipients declined → stays `awaiting_offers` | D244 |
+| OD28 | Q63 | No client notice for an open-request offer withdrawal | D245 |
+| OD29 | S5 chat moderation | Warning only (phone / email / URL flagged), nothing blocked | D246 |
+| OD30 | S8 theme picker | Hidden in release builds | D247 |
+| OD31 | S9 web | No client web version; landing site outside this team | D248 |
+| OD32 | S12 seed names | Seeded Arabic names kept | D249 |
+| OD33 | C3 / C4 / C8 | Add-ons, inclusions, services admin-only; provider-created variants not built | D250 |
+| OD34 | C7 ranking | Response speed does not affect ranking (not built) | D251 |
+| OD35 | 5b roadmap row | Corrected to Completed (pushed as `953aeca`) | D252 |
+| OD36 | Product reviews (S4) | Not among the 62 requirements → not built, recorded as out of scope | D203 (amended), D340 |
+| OD37 | Store returns (S4, Req 58) | Built as Slice 23: window `store.return_window_days`, lines + reason + note + ≤ 3 photos, staff approve / reject / receive, refund of the lines' paid amount through Slice 10 (shipping not refunded), restock through S18, `store_return` policy version, client notifications | D340–D349 |
+| OD38 | Account deletion processing (Q76) | Built as Slice 22: after `account.deletion_grace_days` a scheduled job or staff "process now" anonymises the account unless an obligation remains; financial / legal rows kept; provider unlisted; phone freed. Retention-period remainder stays open (Q212) | D330–D338 |
+| OD39 | Packages (S2, Req 16) | Built minimally as Slice 24: admin-curated bilingual bundle of catalog services with image, description, optional event types, sort, **no price**; "Request this package" uses the open-request flow; `package_id` snapshot; stopped / activated, never deleted. Occasion tags (Req 15) are covered by the existing event types — nothing new | D350–D359 |
 
 ## Document notes
 
@@ -281,3 +634,27 @@ When a question is answered, move it to **Decided** with the date and source.
   (D52) will be added with Slice 4; `OUT_OF_COVERAGE` and `DUPLICATE_REQUEST` are listed there but not yet in
   `ErrorCode` (added in Slice 4).
 - Slice 9 ids (2026-11-16): the contract's local ids map to the register as S9-D1…D7 → D143–D149 and Q-S9-1…10 → Q64–Q73. Checkout, orders, payments and shipping stay blocked by Q1, Q8, C6, S3, S4, S7, S10.
+- Consolidation of the slice sessions (2026-11-17): the register text of S9b, S10, S11, S12a, S12b, S13, S14b, S15, S16, S17,
+  S18, S19, S20, S21, S22, S23, S24, S25, S26 and SFIX (formerly `docs/pending/*.md`) and the orchestrator decisions
+  OD1–OD39 are merged above. Id ranges per session: S12a D150–D156 / Q74–Q79, S12b D157–D163 / Q80–Q85, S14b D164–D170 /
+  Q86–Q91, S15 D171–D177 / Q92–Q97, S16 D178–D184 / Q98–Q103, S10 D185–D199 / Q104–Q113, S9b D200–D214 / Q114–Q123,
+  S11 D215–D229 / Q124–Q133, S13 D230–D239 / Q134–Q140, SFIX D240–D254 / Q141–Q145, S17 D255–D265 / Q146–Q155,
+  S18 D270–D284 / Q156–Q165, S19 D285–D299 / Q166–Q175, S20 D300–D314, S21 D315–D329 / Q186–Q195, S22 D330–D339 /
+  Q196–Q199, S23 D340–D349 / Q200–Q203, S24 D350–D359 / Q204–Q207, S25 D360–D369 / Q208–Q211. No two sessions used the
+  same id. **Unused ids:** D156 (reserved for the 12a closure, not needed), D197–D199, D227–D229, D238–D239, D266–D269,
+  D339; Q108–Q113, Q132–Q133, Q139–Q140, Q143–Q145, Q156–Q195.
+- S26 numbered its decisions `S26-D1`…`S26-D10` to avoid the parallel sessions' ranges; they are recorded as **D370–D379**
+  (renumbered from S26-D1…D10, same order). Q212 is the next free question id, used for the Q76 remainder.
+- Sources: "Orchestrator under owner delegation, 2026-11-17" = an OD decision or an orchestrator approval of a session
+  contract; "Session recommendation under owner delegation, 2026-11-17" = a slice session's recommendation taken under the
+  same delegation (S18–S21, S23–S26). The S18, S19, S20 and S25 rows had no source/date columns in their session text; the
+  session's stated source and 2026-11-17 were filled in.
+- Superseded by later decisions (rows kept for history): D155 → D330–D338 (OD38); D203 returns half → D340–D349 (OD37);
+  D231 and the packages half of D178 → D350–D359 (OD39); D53 "not approved" → D242; D116 → D218.
+- Slice 12b: owner approved the rev 1 recommendations as written; Q80–Q85 answers are folded into D157–D163 (no extra ids).
+  Q80 answered only the 12b scope; reschedule was then decided by D240.
+- `03-api-conventions.md` follow-ups suggested by the sessions (not edited in this consolidation): add `DELETION_PENDING`
+  (S12a), `STOCK_CHANGED` (S18), `TRANSLATION_MISSING` / `AUDIENCE_CHANGED` / `NO_RECIPIENTS` (S20), `DELETION_BLOCKED`
+  (S22) and `RETURN_WINDOW_CLOSED` (S23) to the 409 examples; `EXPORT_TOO_LARGE` (S21) to the 422 examples.
+- `01-requirements-summary.md` still marks Req 36 / the team-member role `[?]`; the decided rule is "records only, no
+  login" (D230).
