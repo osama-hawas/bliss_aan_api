@@ -79,4 +79,7 @@ return [
     'message_type' => ['text' => 'نص', 'image' => 'صورة', 'file' => 'ملف', 'voice' => 'رسالة صوتية', 'offer_card' => 'عرض', 'system' => 'النظام'],
     'execution_place' => ['event_location' => 'في موقع المناسبة', 'provider_location' => 'في موقع مقدمة الخدمة'],
     'guest_count_mode' => ['hidden' => 'غير مطلوب', 'optional' => 'اختياري', 'required' => 'إلزامي'],
+    // Slice 12b (support tickets)
+    'ticket_status' => ['open' => 'مفتوحة', 'in_progress' => 'قيد المعالجة', 'waiting' => 'بانتظار ردّك', 'resolved' => 'تم الحل', 'closed' => 'مغلقة'],
+    'ticket_topic' => ['service_quality' => 'جودة الخدمة', 'late_arrival' => 'تأخر الوصول', 'payment' => 'الدفع', 'cancellation' => 'الإلغاء', 'account' => 'الحساب', 'other' => 'أخرى'],
 ];

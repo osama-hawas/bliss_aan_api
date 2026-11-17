@@ -18,4 +18,7 @@ return [
     'review_published' => 'تم نشر التقييم',
     'wallet_created' => 'تم إنشاء المحفظة',
     'wallet_closed' => 'تم إغلاق المحفظة',
+    // Slice 12b
+    'ticket_opened' => 'فُتحت تذكرة دعم',
+    'ticket_replied' => 'أُرسل رد إلى الدعم',
 ];

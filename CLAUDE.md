@@ -225,3 +225,14 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
 - `composer dev` — server, queue, logs, vite
 - `php artisan test` — run tests
 - `./vendor/bin/pint` — code style
+
+## Support tickets, FAQs, pages (Slice 12b)
+
+- Contract: `docs/slice-12b-contract.md` (D157–D163). Public `GET shared/faqs?app=` and `GET shared/pages/{slug}?app=`
+  (`auth.optional`, `Services\Content\PublicContent`; translations fall back to the other language via
+  `Http\Resources\Concerns\ResolvesTranslation`). Page bodies are plain text with `## ` headings and `- ` items (D163).
+- `shared/support-tickets` (client/provider): `Services\Support\SupportTickets` — scoped to the owner (foreign → 404),
+  `TK-` references (`TicketReferenceGenerator`, retried), create idempotent by `Idempotency-Key`, replies by
+  `client_uuid` under the ticket row lock; her reply: `resolved → open`, `waiting → in_progress`, `closed` → 409 (D160).
+  Staff are shown only as "Bliss aan support"; internal messages and `assigned_to` never reach mobile (D161).
+  No admin endpoints (Slice 17). Tests: `tests/Feature/Support/*`, `tests/Feature/Database/TicketReplyLockingTest.php`.

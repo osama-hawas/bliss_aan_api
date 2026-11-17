@@ -79,4 +79,7 @@ return [
     'message_type' => ['text' => 'Text', 'image' => 'Image', 'file' => 'File', 'voice' => 'Voice note', 'offer_card' => 'Offer', 'system' => 'System'],
     'execution_place' => ['event_location' => 'At the event location', 'provider_location' => "At the provider's location"],
     'guest_count_mode' => ['hidden' => 'Not asked', 'optional' => 'Optional', 'required' => 'Required'],
+    // Slice 12b (support tickets)
+    'ticket_status' => ['open' => 'Open', 'in_progress' => 'In progress', 'waiting' => 'Waiting for your reply', 'resolved' => 'Resolved', 'closed' => 'Closed'],
+    'ticket_topic' => ['service_quality' => 'Service quality', 'late_arrival' => 'Late arrival', 'payment' => 'Payment', 'cancellation' => 'Cancellation', 'account' => 'Account', 'other' => 'Other'],
 ];

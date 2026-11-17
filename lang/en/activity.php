@@ -18,4 +18,7 @@ return [
     'review_published' => 'Review published',
     'wallet_created' => 'Wallet created',
     'wallet_closed' => 'Wallet closed',
+    // Slice 12b
+    'ticket_opened' => 'Support ticket opened',
+    'ticket_replied' => 'Reply sent to support',
 ];
