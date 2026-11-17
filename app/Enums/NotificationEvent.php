@@ -54,6 +54,12 @@ enum NotificationEvent: string
     case Broadcast = 'broadcast';                             // E40
     // S22 (D337): her deletion request is due but open obligations keep the account (once per request).
     case AccountDeletionBlocked = 'account_deletion_blocked'; // E50
+    // S23 — store returns (OD37, D347), client, transactional.
+    case StoreReturnRequested = 'store_return_requested';     // E55
+    case StoreReturnApproved = 'store_return_approved';       // E56
+    case StoreReturnRejected = 'store_return_rejected';       // E57
+    case StoreReturnReceived = 'store_return_received';       // E58
+    case StoreReturnRefunded = 'store_return_refunded';       // E59
 
     /**
      * The D26 key that can switch off the push (D135). Null = transactional, always pushed.

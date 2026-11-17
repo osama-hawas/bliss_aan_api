@@ -49,6 +49,8 @@ class AppSettingSeeder extends Seeder
             // hidden while it is null.
             // S22 (D330): grace period before an account deletion request is processed (initial value, editable).
             'account.deletion_grace_days' => 14, // days
+            // S23 — store returns (OD37, D343): days after delivery a client may ask for a return (initial value, editable).
+            'store.return_window_days' => 7,
         ];
 
         foreach (UploadContext::cases() as $context) {
@@ -56,6 +58,8 @@ class AppSettingSeeder extends Seeder
         }
 
         $settings = [...$settings, ...$this->requestAttachmentLimits()];
+        // S23 (D342): return photos get initial limits (images, 10 MB) like D242; editable in Settings.
+        $settings[UploadContext::StoreReturnPhoto->settingKey()] = ['mimes' => ['jpg', 'jpeg', 'png', 'heic', 'webp'], 'max_kb' => 10240];
 
         foreach ($settings as $key => $value) {
             AppSetting::query()->firstOrCreate(['key' => $key], ['value' => $value]);

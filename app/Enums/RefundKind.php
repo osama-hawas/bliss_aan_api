@@ -14,4 +14,5 @@ enum RefundKind: string
     case AcceptanceFailed = 'acceptance_failed';
     case SupersededAttempt = 'superseded_attempt';
     case Staff = 'staff';
+    case StoreReturn = 'store_return'; // S23 (D345): a received store return, started by staff
 }

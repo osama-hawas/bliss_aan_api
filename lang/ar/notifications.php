@@ -49,5 +49,11 @@ return [
         'broadcast' => ['title' => ':title', 'body' => ':body'],
         // S22 (E50).
         'account_deletion_blocked' => ['title' => 'حذف الحساب معلّق', 'body' => 'لم نتمكن من حذف حسابك بعد: لا يزال لديك حجز أو طلب أو مرتجع أو تحويل أو تذكرة مفتوحة. سيُحذف الحساب بعد إغلاقها.'],
+        // S23 — إرجاع المتجر (E55–E59).
+        'store_return_requested' => ['title' => 'تم استلام طلب الإرجاع', 'body' => 'وصلنا طلب الإرجاع :reference وسنراجعه قريبًا.'],
+        'store_return_approved' => ['title' => 'تم قبول الإرجاع', 'body' => 'تم قبول طلب الإرجاع :reference. افتحيه لمعرفة طريقة إعادة المنتجات.'],
+        'store_return_rejected' => ['title' => 'لم يُقبل الإرجاع', 'body' => 'لم يُقبل طلب الإرجاع :reference. افتحيه لمعرفة السبب.'],
+        'store_return_received' => ['title' => 'تم استلام المرتجع', 'body' => 'استلمنا منتجات طلب الإرجاع :reference، وجارٍ استرداد المبلغ.'],
+        'store_return_refunded' => ['title' => 'تم استرداد المبلغ', 'body' => 'تم استرداد :amount لطلب الإرجاع :reference.'],
     ],
 ];

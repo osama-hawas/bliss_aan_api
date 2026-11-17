@@ -13,7 +13,9 @@ use App\Integrations\Shipping\FakeCarrier;
 use App\Integrations\Sms\FakeSmsGateway;
 use App\Integrations\Sms\SmsGateway;
 use App\Listeners\Operations\NotifyRefundIssued;
+use App\Listeners\Store\SettleStoreReturnRefund;
 use App\Models\StoreOrder;
+use App\Models\StoreReturn;
 use App\Services\Payments\Handlers\OfferPaymentHandler;
 use App\Services\Payments\PayableRegistry;
 use App\Services\Settings\AppSettings;
@@ -91,6 +93,10 @@ class AppServiceProvider extends ServiceProvider
         // S9b (Slice 9b store orders): the store order is the Slice 10 payable `store_order` (D214); its handler is
         // registered in the PayableRegistry block above.
         Relation::morphMap(['store_order' => StoreOrder::class]);
+        // --- S23 (store returns): history / audit subject type. ---
+        Relation::morphMap(['store_return' => StoreReturn::class]);
+        Event::listen('App\\Events\\Payments\\RefundSettled', [SettleStoreReturnRefund::class, 'handle']);
+        // --- end S23 ---
         // --- S17 (Slice 17, D263): E25 on a settled staff refund. Bound by class name: Slice 10 owns the event. ---
         Event::listen('App\\Events\\Payments\\RefundSettled', [NotifyRefundIssued::class, 'handle']);
         // --- end S17 ---

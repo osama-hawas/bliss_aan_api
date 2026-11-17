@@ -55,4 +55,12 @@ return [
             'stock_adjusted' => 'Stock updated.',
         ],
     ],
+    // S23 — store returns.
+    'returns' => [
+        'not_returnable' => 'Only a delivered order can be returned.',
+        'not_in_order' => 'This item is not in the order.',
+        'quantity_max' => 'You can return at most :max of this item.',
+        'photo_invalid' => 'Choose photos you uploaded for this return.',
+        'refund_reason' => 'Store return :reference',
+    ],
 ];

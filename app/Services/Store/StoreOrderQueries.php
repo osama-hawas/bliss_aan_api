@@ -98,6 +98,7 @@ class StoreOrderQueries
     {
         return [
             'items.variant.product.image', 'latestShipment',
+            'returns:id,store_order_id,reference,status,created_at', // S23
             'activity' => fn ($a) => $a->where('visibility', 'all')->whereNotNull('to_status')->orderBy('id'),
         ];
     }

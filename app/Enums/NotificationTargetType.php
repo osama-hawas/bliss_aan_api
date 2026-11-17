@@ -19,4 +19,5 @@ enum NotificationTargetType: string
     case Earnings = 'earnings'; // Slice 19 (S19): the provider's earnings screen, no id
     case Account = 'account'; // S22 (E50): opens her account deletion screen, no id
     case Broadcast = 'broadcast'; // S20 (D306): no deep link, opens the list
+    case StoreReturn = 'store_return'; // S23 (E55–E59)
 }

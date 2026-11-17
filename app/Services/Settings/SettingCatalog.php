@@ -50,6 +50,8 @@ final class SettingCatalog
         'store.low_stock_threshold' => [SettingKind::Integer, 'items', 'D278'],
         // S22 (D330): days between a deletion request and its automatic processing; null = no automatic processing.
         'account.deletion_grace_days' => [SettingKind::Integer, 'days', 'D330'],
+        // S23 — store returns (OD37).
+        'store.return_window_days' => [SettingKind::Integer, 'days', 'D343'],
         // --- later slices: append above this line in a marked block ---
     ];
 
@@ -68,6 +70,8 @@ final class SettingCatalog
         'payments.intent_ttl_minutes' => ['nullable' => true, 'min' => 1],
         // 0 would refuse every attachment while still looking "configured".
         'requests.max_attachments' => ['nullable' => true, 'min' => 1],
+        // S23 (D343): 0 would close every return window at delivery; null = returns not offered (NOT_CONFIGURED).
+        'store.return_window_days' => ['nullable' => true, 'min' => 1],
     ];
 
     /**

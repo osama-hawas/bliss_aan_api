@@ -78,4 +78,6 @@ return [
     // S21 (D322).
     'DELETION_BLOCKED' => 'This account still has open obligations (bookings, orders, returns, payouts or tickets). It can be deleted once they are closed.',
     'EXPORT_TOO_LARGE' => 'This export has more rows than one file can hold. Narrow the period or filters and try again.',
+    // S23 (D343).
+    'RETURN_WINDOW_CLOSED' => 'The return period for this order has ended.',
 ];

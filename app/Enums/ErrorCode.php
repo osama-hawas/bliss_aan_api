@@ -74,6 +74,7 @@ enum ErrorCode: string
 
     // S21 — reports (D322).
     case ExportTooLarge = 'EXPORT_TOO_LARGE';
+    case ReturnWindowClosed = 'RETURN_WINDOW_CLOSED'; // S23 (D343)
 
     // S22 — account deletion processing (D333): open obligations keep the account (409).
     case DeletionBlocked = 'DELETION_BLOCKED';
@@ -103,6 +104,7 @@ enum ErrorCode: string
             self::TranslationMissing, self::AudienceChanged, self::NoRecipients => 409, // Slice 20
             self::ExportTooLarge => 422, // S21 (D322)
             self::DeletionBlocked => 409, // S22 (D333)
+            self::ReturnWindowClosed => 409, // S23 (D343)
         };
     }
 

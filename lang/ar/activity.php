@@ -61,4 +61,17 @@ return [
     'team_member_unassigned' => 'أُزيلت عضوة فريق',
     'team_member_disabled' => 'أُوقفت عضوة فريق',
     'team_member_enabled' => 'فُعّلت عضوة فريق',
+    // S23 — إرجاع المتجر.
+    'return_requested' => 'تم طلب الإرجاع',
+    'return_approved' => 'تم قبول الإرجاع',
+    'return_rejected' => 'تم رفض الإرجاع',
+    'return_received' => 'تم استلام المنتجات',
+    'return_refunded' => 'تم استرداد المبلغ',
+    'return_cancelled' => 'تم إلغاء الإرجاع',
+    'return_note' => 'ملاحظة الفريق',
+    'order_return_requested' => 'طُلب إرجاع',
+    'order_return_approved' => 'قُبل الإرجاع',
+    'order_return_rejected' => 'رُفض الإرجاع',
+    'order_return_received' => 'استُلمت المنتجات المرتجعة',
+    'order_return_cancelled' => 'أُلغي الإرجاع',
 ];

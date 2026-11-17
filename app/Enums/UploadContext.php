@@ -23,6 +23,7 @@ enum UploadContext: string
     case Avatar = 'avatar';
     case RequestAttachment = 'request_attachment';
     case TeamPhoto = 'team_photo'; // Slice 13: private, provider only (D235)
+    case StoreReturnPhoto = 'store_return_photo'; // S23: private, client only (D342)
 
     public function visibility(): MediaVisibility
     {
@@ -45,6 +46,7 @@ enum UploadContext: string
             self::Avatar => [UserType::Client, UserType::Provider],
             self::RequestAttachment => [UserType::Client],
             self::TeamPhoto => [UserType::Provider],
+            self::StoreReturnPhoto => [UserType::Client],
         };
     }
 
