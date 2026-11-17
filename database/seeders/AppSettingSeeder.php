@@ -24,6 +24,9 @@ class AppSettingSeeder extends Seeder
             'bookings.buffer_minutes' => 0, // D108
             'bookings.start_early_minutes' => 60, // D126
             'support.auto_close_days' => null, // D160 (S12b): no auto-close until decided
+            // Slice 10 (S10).
+            'payments.booking_payment_required' => false, // D185: off = D113 (accept confirms at once)
+            'payments.intent_ttl_minutes' => 30, // D191: unpaid attempt lifetime (technical timeout)
         ];
 
         foreach (UploadContext::cases() as $context) {

@@ -1149,6 +1149,153 @@
           }
         }
       ]
+    },
+    {
+      "name": "Payments & refunds (S10)",
+      "item": [
+        {
+          "name": "List payments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/payments?filter[status]=succeeded&sort=-created_at",
+            "description": "finance.view (D192). Filters status, payable_type, refund (none/partial/full); q = PY/BK reference, gateway reference, client phone or name."
+          }
+        },
+        {
+          "name": "Show payment",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/payments/1",
+            "description": "finance.view. Adds refunds (newest first) and history."
+          }
+        },
+        {
+          "name": "Refund a payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/payments/1/refunds",
+            "description": "refunds.process (D187). Full or partial, reason required. 422 REFUND_AMOUNT_EXCEEDED, 409 INVALID_STATE.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": \"100.00\",\n  \"reason\": \"Goodwill agreed with the client\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List refunds",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": "{{base_url}}/admin/refunds?filter[kind]=staff",
+            "description": "finance.view or refunds.process. Filters status, kind."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payment webhook (S10, fake)",
+      "item": [
+        {
+          "name": "Fake gateway webhook",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Signs the body like FakePaymentGateway::webhook(). Set env `payment_webhook_secret` = PAYMENT_WEBHOOK_SECRET.",
+                  "const t = Math.floor(Date.now() / 1000).toString();",
+                  "const body = pm.request.body.raw;",
+                  "const sig = CryptoJS.HmacSHA256(t + '.' + body, pm.environment.get('payment_webhook_secret')).toString();",
+                  "pm.request.headers.upsert({ key: 'X-Fake-Signature', value: `t=${t},v1=${sig}` });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/../../webhooks/payments/fake",
+            "description": "D189. Outside /api/v1, no auth: the signature is the authentication. Types payment.succeeded / payment.failed / payment.cancelled / refund.succeeded / refund.failed. `data.reference` = the gateway reference.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"evt_postman_1\",\n  \"type\": \"payment.succeeded\",\n  \"data\": {\n    \"reference\": \"fake_ch_...\"\n  }\n}"
+            }
+          }
+        }
+      ]
     }
   ]
 }

@@ -43,6 +43,13 @@ enum ErrorCode: string
     case RoleInUse = 'ROLE_IN_USE';
     case PermissionRestricted = 'PERMISSION_RESTRICTED';
 
+    // Slice 10 — payments (D185, D188, D189).
+    case PaymentRequired = 'PAYMENT_REQUIRED';
+    case PaymentNotRequired = 'PAYMENT_NOT_REQUIRED';
+    case PaymentMethodInvalid = 'PAYMENT_METHOD_INVALID';
+    case RefundAmountExceeded = 'REFUND_AMOUNT_EXCEEDED';
+    case InvalidSignature = 'INVALID_SIGNATURE';
+
     public function status(): int
     {
         return match ($this) {
@@ -56,6 +63,9 @@ enum ErrorCode: string
             self::ServerError => 500,
             self::LastSuperAdmin, self::OwnAccount, self::RoleInUse => 409, // Slice 14b
             self::PermissionRestricted => 422, // Slice 14b
+            self::PaymentRequired, self::PaymentNotRequired => 409, // Slice 10
+            self::PaymentMethodInvalid, self::RefundAmountExceeded => 422, // Slice 10
+            self::InvalidSignature => 401, // Slice 10
         };
     }
 

@@ -16,6 +16,7 @@ use App\Enums\UserStatus;
 use App\Exceptions\ApiException;
 use App\Models\Booking;
 use App\Models\Offer;
+use App\Models\Payment;
 use App\Models\Provider;
 use App\Models\ServiceRequest;
 use App\Models\ServiceRequestRecipient;
@@ -26,6 +27,7 @@ use App\Services\Availability\ProviderAvailability;
 use App\Services\Notifications\Notifier;
 use App\Services\ServiceRequests\IdempotencyRace;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -36,6 +38,10 @@ use Illuminate\Support\Facades\Log;
  * then every rule is re-checked on the locked rows. A deadlock re-runs the whole attempt (D98). The unique keys on
  * `bookings.service_request_id` / `offer_id` are the last guard (→ 409 ALREADY_BOOKED). The wallet (D106) is not
  * involved.
+ *
+ * Slice 10 (D185): with `payments.booking_payment_required` on, the client pays first and PaymentFulfilment calls
+ * accept() with the payment (key `payment:{id}`); the booking is then `paid` and keeps `payment_id`. precheck() runs the
+ * same rules without locks before anything is charged.
  */
 class OfferAcceptor
 {
@@ -56,24 +62,38 @@ class OfferAcceptor
     /**
      * @return array{0: Booking, 1: bool} the booking and whether it was created now (false = replay)
      */
-    public function accept(User $client, Offer $offer, string $key): array
+    public function accept(User $client, Offer $offer, string $key, ?Payment $payment = null): array
     {
         $fingerprint = hash('sha256', 'offer:'.$offer->id);
 
-        return $this->retry->run(function () use ($client, $offer, $key, $fingerprint) {
+        return $this->retry->run(function () use ($client, $offer, $key, $fingerprint, $payment) {
             if ($existing = $this->replay($client, $key, $fingerprint)) {
                 return [$existing, false];
             }
 
             try {
-                return [DB::transaction(fn () => $this->store($client, $offer, $key, $fingerprint)), true];
+                return [DB::transaction(fn () => $this->store($client, $offer, $key, $fingerprint, $payment)), true];
             } catch (IdempotencyRace) {
                 return [$this->replay($client, $key, $fingerprint) ?? throw new ApiException(ErrorCode::ServerError), false];
             }
         }, 'offer.accept', ['user_id' => $client->id, 'offer_id' => $offer->id, 'idempotency_key' => $key]);
     }
 
-    private function store(User $client, Offer $offer, string $key, string $fingerprint): Booking
+    /**
+     * Slice 10: the acceptance rules on unlocked rows, before a payment is charged (slice-10-contract.md §3). The
+     * locked re-check in store() stays the real guard.
+     */
+    public function precheck(User $client, Offer $offer): void
+    {
+        $request = ServiceRequest::query()->whereKey($offer->service_request_id)->where('client_id', $client->id)->firstOrFail();
+        $offer = Offer::query()->whereKey($offer->id)->firstOrFail();
+        $provider = Provider::query()->whereKey($offer->provider_id)->firstOrFail();
+        $recipients = ServiceRequestRecipient::query()->where('service_request_id', $request->id)->get();
+
+        $this->validate($request, $offer, $provider, $recipients);
+    }
+
+    private function store(User $client, Offer $offer, string $key, string $fingerprint, ?Payment $payment = null): Booking
     {
         // 1. Client: her accepts run one at a time; the key is looked up again with a locking read.
         User::query()->whereKey($client->id)->lockForUpdate()->first(['id']);
@@ -89,6 +109,65 @@ class OfferAcceptor
         $recipients = ServiceRequestRecipient::query()->where('service_request_id', $request->id)->orderBy('id')->lockForUpdate()->get();
 
         // Re-validate on the locked rows (contract §3, order matters).
+        $this->validate($request, $offer, $provider, $recipients);
+
+        $now = now();
+        $booking = $this->insert([
+            'service_request_id' => $request->id,
+            'offer_id' => $offer->id,
+            'client_id' => $client->id,
+            'provider_id' => $provider->id,
+            'service_id' => $request->service_id,
+            'execution_place' => $request->execution_place,
+            'starts_at' => $request->starts_at,
+            'ends_at' => $request->ends_at,
+            'address' => $request->address,
+            'title' => $offer->title,
+            'total' => $offer->total,
+            'status' => BookingStatus::Confirmed,
+            'payment_status' => $payment ? BookingPaymentStatus::Paid : BookingPaymentStatus::NotRequired, // D185 / D113
+            'payment_id' => $payment?->id,
+            'policy_version_id' => $offer->policy_version_id,
+            'confirmed_at' => $now,
+            'idempotency_key' => $key,
+            'idempotency_fingerprint' => $fingerprint,
+        ]);
+
+        // D4: the accepted offer is selected, every other offer still in play is not selected.
+        $offer->update(['status' => OfferStatus::Selected]);
+        // D134: providers whose offer was still live are told it was not selected.
+        $liveOthers = $offers->where('id', '!=', $offer->id)->filter(fn (Offer $o) => $o->effectiveStatus() === OfferStatus::Active)->values();
+        $offers->where('id', '!=', $offer->id)
+            ->filter(fn (Offer $o) => in_array($o->status, [OfferStatus::Active, OfferStatus::Expired], true))
+            ->each(fn (Offer $o) => $o->update(['status' => OfferStatus::NotSelected, 'closed_at' => $now]));
+        // Other providers' copies close (they lose attachment access, D52); the winner stays offer_sent.
+        $recipients->where('provider_id', '!=', $provider->id)
+            ->filter(fn (ServiceRequestRecipient $r) => $r->status->isActive())
+            ->each(fn (ServiceRequestRecipient $r) => $r->update(['status' => RecipientStatus::Closed, 'closed_at' => $now]));
+
+        $from = $request->status;
+        $request->update(['status' => ServiceRequestStatus::Confirmed]);
+        $this->activity->record($request, 'booking_confirmed', $from, ServiceRequestStatus::Confirmed, $client, ActivityVisibility::All, array_filter(['booking_id' => $booking->id, 'offer_id' => $offer->id, 'provider_id' => $provider->id, 'payment_id' => $payment?->id]));
+        // E8 / E9 (D133, D134), after commit.
+        $this->notifier->send((int) $provider->user_id, NotificationEvent::OfferAccepted,
+            Notifier::bookingParams($booking, $request, Notifier::firstName($client->name)), NotificationTargetType::Booking, $booking->id,
+            'offer_accepted:'.$booking->id, $client);
+        $losers = Provider::query()->whereKey($liveOthers->pluck('provider_id')->all())->pluck('user_id', 'id');
+        foreach ($liveOthers as $other) {
+            $this->notifier->send((int) $losers[$other->provider_id], NotificationEvent::OfferNotSelected, Notifier::requestParams($request, null),
+                NotificationTargetType::Request, $request->id, 'offer_not_selected:'.$other->id, $client);
+        }
+
+        return $booking;
+    }
+
+    /**
+     * The acceptance rules of slice-5c-contract.md §3, in order.
+     *
+     * @param  Collection<int, ServiceRequestRecipient>  $recipients
+     */
+    private function validate(ServiceRequest $request, Offer $offer, Provider $provider, Collection $recipients): void
+    {
         if ($request->status === ServiceRequestStatus::Confirmed || Booking::query()->where('service_request_id', $request->id)->exists()) {
             throw new ApiException(ErrorCode::AlreadyBooked);
         }
@@ -111,54 +190,6 @@ class OfferAcceptor
         if ($this->availability->isBusy($provider->id, $request->starts_at, $request->ends_at)) {
             throw new ApiException(ErrorCode::SlotUnavailable); // D109, D110
         }
-
-        $now = now();
-        $booking = $this->insert([
-            'service_request_id' => $request->id,
-            'offer_id' => $offer->id,
-            'client_id' => $client->id,
-            'provider_id' => $provider->id,
-            'service_id' => $request->service_id,
-            'execution_place' => $request->execution_place,
-            'starts_at' => $request->starts_at,
-            'ends_at' => $request->ends_at,
-            'address' => $request->address,
-            'title' => $offer->title,
-            'total' => $offer->total,
-            'status' => BookingStatus::Confirmed,
-            'payment_status' => BookingPaymentStatus::NotRequired, // D113
-            'policy_version_id' => $offer->policy_version_id,
-            'confirmed_at' => $now,
-            'idempotency_key' => $key,
-            'idempotency_fingerprint' => $fingerprint,
-        ]);
-
-        // D4: the accepted offer is selected, every other offer still in play is not selected.
-        $offer->update(['status' => OfferStatus::Selected]);
-        // D134: providers whose offer was still live are told it was not selected.
-        $liveOthers = $offers->where('id', '!=', $offer->id)->filter(fn (Offer $o) => $o->effectiveStatus() === OfferStatus::Active)->values();
-        $offers->where('id', '!=', $offer->id)
-            ->filter(fn (Offer $o) => in_array($o->status, [OfferStatus::Active, OfferStatus::Expired], true))
-            ->each(fn (Offer $o) => $o->update(['status' => OfferStatus::NotSelected, 'closed_at' => $now]));
-        // Other providers' copies close (they lose attachment access, D52); the winner stays offer_sent.
-        $recipients->where('provider_id', '!=', $provider->id)
-            ->filter(fn (ServiceRequestRecipient $r) => $r->status->isActive())
-            ->each(fn (ServiceRequestRecipient $r) => $r->update(['status' => RecipientStatus::Closed, 'closed_at' => $now]));
-
-        $from = $request->status;
-        $request->update(['status' => ServiceRequestStatus::Confirmed]);
-        $this->activity->record($request, 'booking_confirmed', $from, ServiceRequestStatus::Confirmed, $client, ActivityVisibility::All, ['booking_id' => $booking->id, 'offer_id' => $offer->id, 'provider_id' => $provider->id]);
-        // E8 / E9 (D133, D134), after commit.
-        $this->notifier->send((int) $provider->user_id, NotificationEvent::OfferAccepted,
-            Notifier::bookingParams($booking, $request, Notifier::firstName($client->name)), NotificationTargetType::Booking, $booking->id,
-            'offer_accepted:'.$booking->id, $client);
-        $losers = Provider::query()->whereKey($liveOthers->pluck('provider_id')->all())->pluck('user_id', 'id');
-        foreach ($liveOthers as $other) {
-            $this->notifier->send((int) $losers[$other->provider_id], NotificationEvent::OfferNotSelected, Notifier::requestParams($request, null),
-                NotificationTargetType::Request, $request->id, 'offer_not_selected:'.$other->id, $client);
-        }
-
-        return $booking;
     }
 
     private function insert(array $attributes): Booking
@@ -170,7 +201,7 @@ class OfferAcceptor
                 if (str_contains($e->getMessage(), self::IDEMPOTENCY_INDEX)) {
                     throw new IdempotencyRace;
                 }
-                if (str_contains($e->getMessage(), 'bookings_service_request_id_unique') || str_contains($e->getMessage(), 'bookings_offer_id_unique')) {
+                if (str_contains($e->getMessage(), 'bookings_service_request_id_unique') || str_contains($e->getMessage(), 'bookings_offer_id_unique') || str_contains($e->getMessage(), 'bookings_payment_id_unique')) {
                     throw new ApiException(ErrorCode::AlreadyBooked);
                 }
                 if (! str_contains($e->getMessage(), self::REFERENCE_INDEX)) {

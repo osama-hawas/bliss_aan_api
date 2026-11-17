@@ -15,7 +15,7 @@ class BookingQueries
 {
     public const SORTS = ['starts_at', '-starts_at', 'confirmed_at', '-confirmed_at'];
 
-    public const CLIENT_WITH = ['provider.avatar', 'service', 'offer.items', 'serviceRequest.eventType', 'serviceRequest.city', 'cancellationRequests', 'review'];
+    public const CLIENT_WITH = ['provider.avatar', 'service', 'offer.items', 'serviceRequest.eventType', 'serviceRequest.city', 'cancellationRequests', 'review', 'payment.refunds'];
 
     public const PROVIDER_WITH = ['client', 'service', 'offer.items', 'serviceRequest.eventType', 'serviceRequest.city', 'cancellationRequests', 'review'];
 

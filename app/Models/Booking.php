@@ -22,6 +22,7 @@ class Booking extends Model
         'starts_at', 'ends_at', 'address', 'title', 'total', 'status', 'payment_status', 'policy_version_id',
         'confirmed_at', 'started_at', 'started_by', 'completed_at', 'completed_by', 'cancelled_at', 'idempotency_key',
         'idempotency_fingerprint',
+        'payment_id', // Slice 10 (D185)
     ];
 
     protected function casts(): array
@@ -85,6 +86,14 @@ class Booking extends Model
     public function review(): HasOne
     {
         return $this->hasOne(Review::class);
+    }
+
+    /**
+     * Slice 10 (D185): the payment that confirmed this booking, null when no payment was required.
+     */
+    public function payment(): BelongsTo
+    {
+        return $this->belongsTo(Payment::class);
     }
 
     public function startedBy(): BelongsTo
