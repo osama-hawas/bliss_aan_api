@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Storage;
 
 /**
  * FAKE local-development store data (Slice 9): [DEMO] product categories, products and variants.
- * Not the real catalogue, prices or stock. Never seeded in staging/production (called from DatabaseSeeder's local block).
+ * Not the real catalogue, prices or stock. Local, or staging on purpose; never in production (guarded below).
  * Idempotent: rows are matched by SKU / name.
  */
 class StoreDemoSeeder extends Seeder
@@ -58,6 +58,11 @@ class StoreDemoSeeder extends Seeder
 
     public function run(): void
     {
+        if (app()->environment('production')) {
+            $this->command?->warn('StoreDemoSeeder skipped: [DEMO] data is never seeded in production.');
+
+            return;
+        }
         foreach (self::STORE as $sort => [$en, $ar, $products]) {
             $category = ProductCategory::query()->where('name->en', $en)->first()
                 ?? ProductCategory::query()->create(['name' => ['en' => $en, 'ar' => $ar], 'is_active' => true, 'sort' => $sort + 1]);

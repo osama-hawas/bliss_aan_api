@@ -27,12 +27,18 @@ use Illuminate\Support\Facades\Storage;
 
 /**
  * FAKE local-development data. Not the real catalog, prices, texts or limits.
- * Everything here is marked [DEMO] and must never be seeded in staging/production.
+ * Everything here is marked [DEMO]. Seeded locally, and on the staging test server on purpose
+ * (`php artisan db:seed --class=DemoSeeder --force`, owner 2026-11-17); never in production (guarded below).
  */
 class DemoSeeder extends Seeder
 {
     public function run(): void
     {
+        if (app()->environment('production')) {
+            $this->command?->warn('DemoSeeder skipped: [DEMO] data is never seeded in production.');
+
+            return;
+        }
         $this->users();
         $this->catalog();
         $this->providers();
