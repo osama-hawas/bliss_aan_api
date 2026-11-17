@@ -15,7 +15,8 @@ the body changed.
 
 Implementation notes (2026-11-17, no rule change): the Account row "My team" shows a fixed description instead of the
 member count (§7; the count would need an extra call on every account load). `active_assignments_count` counts her
-`confirmed` / `in_progress` bookings. The team-event labels live in `lang/{ar,en}/activity.php`.
+`confirmed` / `in_progress` bookings. Review fix L2: `phone` is E.164 (as `auth/me` and the admin resources), not a
+"display format" — §4 corrected; the provider app formats it. The team-event labels live in `lang/{ar,en}/activity.php`.
 
 **Not in this slice:** team-member login, accounts, permissions or app (D230; `user_id` stays nullable and unused,
 `02-…` §12); packages (Req 16) and occasion tags (Req 15) (D231 — no tables, endpoints or screens); task text or status
@@ -84,7 +85,7 @@ id is a `404` before anything else runs. A new `TeamMemberPolicy` is not needed 
 - No `Idempotency-Key` (not in the conventions list; a duplicate add is visible and can be disabled, §9 P4).
 
 `TeamMemberResource` (provider only):
-`id, name, phone (display format or null), title, photo: {id, url} | null` (signed URL, `MediaService::url`, the
+`id, name, phone (E.164 such as +9665XXXXXXXX, or null, like every other phone in the API; the app shows 05XXXXXXXX), title, photo: {id, url} | null` (signed URL, `MediaService::url`, the
 provider is the authorized viewer), `status, status_label, is_active, disabled_at, active_assignments_count` (her
 bookings in `confirmed`/`in_progress` that list this member), `created_at, updated_at`.
 

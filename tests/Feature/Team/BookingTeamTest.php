@@ -199,10 +199,22 @@ class BookingTeamTest extends TestCase
         $request = $this->asClient()->getJson("/api/v1/client/service-requests/{$booking->service_request_id}")->assertOk();
         $this->assertStringNotContainsString('team_member', $request->getContent());
 
-        $admin = $this->actingAsApi($this->staff(AdminRole::OperationsSupport))
+        $staff = $this->staff(AdminRole::OperationsSupport);
+        $admin = $this->actingAsApi($staff)
             ->getJson("/api/v1/admin/service-requests/{$booking->service_request_id}")->assertOk();
         $this->assertStringNotContainsString('team_member', $admin->getContent());
         $this->assertStringNotContainsString('Reem', $admin->getContent());
+
+        // Slice 17's admin booking list and detail (bookings.view) never carry the team or its history either.
+        $list = $this->actingAsApi($staff)->getJson('/api/v1/admin/bookings')->assertOk();
+        $this->assertSame($booking->id, $list->json('data.0.id'));
+        $detail = $this->actingAsApi($staff)->getJson("/api/v1/admin/bookings/{$booking->id}")->assertOk();
+        foreach ([$list, $detail] as $res) {
+            $this->assertStringNotContainsString('"team"', $res->getContent());
+            $this->assertStringNotContainsString('team_member', $res->getContent());
+            $this->assertStringNotContainsString('Reem', $res->getContent());
+        }
+        $this->assertArrayNotHasKey('team', $detail->json('data'));
     }
 
     public function test_list_and_calendar_carry_the_team(): void
