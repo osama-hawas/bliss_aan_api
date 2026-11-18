@@ -85,13 +85,13 @@ class AttachmentConfigurationTest extends TestCase
         $this->assertNull($this->setting('uploads.request_attachment'));
     }
 
-    public function test_local_seeding_leaves_the_keys_to_the_demo_seeder(): void
+    public function test_local_seeding_gets_the_same_initial_values(): void
     {
         $this->app->detectEnvironment(fn () => 'local');
         $this->seed(AppSettingSeeder::class);
 
-        $this->assertNull($this->setting('requests.max_attachments'));
-        $this->assertNull($this->setting('uploads.request_attachment'));
+        $this->assertSame(5, $this->setting('requests.max_attachments'));
+        $this->assertSame(10240, $this->setting('uploads.request_attachment')['max_kb']);
     }
 
     public function test_seeded_limits_are_enforced_end_to_end(): void

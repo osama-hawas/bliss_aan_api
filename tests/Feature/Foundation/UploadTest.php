@@ -127,6 +127,7 @@ class UploadTest extends TestCase
 
     public function test_unspecified_limits_are_not_configured(): void
     {
+        app(AppSettings::class)->set('uploads.chat_image', null); // an admin cleared the initial value
         $this->actingAsApi(User::factory()->client()->create())->postJson('/api/v1/shared/uploads', [
             'context' => 'chat_image',
             'file' => UploadedFile::fake()->image('a.png'),

@@ -200,7 +200,8 @@ class ChatTest extends TestCase
 
     public function test_uploads_follow_the_configured_limits_only(): void
     {
-        // Q14: limits not set → 409 NOT_CONFIGURED, nothing invented.
+        // Q14: limits cleared → 409 NOT_CONFIGURED, nothing invented.
+        app(AppSettings::class)->set(UploadContext::ChatImage->settingKey(), null);
         $this->upload($this->client, UploadContext::ChatImage, UploadedFile::fake()->image('a.jpg'))->assertStatus(409)->assertJsonPath('code', 'NOT_CONFIGURED');
 
         $this->allowChatUploads();

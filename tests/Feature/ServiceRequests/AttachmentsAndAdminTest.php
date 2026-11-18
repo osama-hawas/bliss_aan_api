@@ -55,6 +55,7 @@ class AttachmentsAndAdminTest extends TestCase
         Storage::fake('local');
         Storage::fake('public');
         $file = UploadedFile::fake()->image('ref.jpg');
+        app(AppSettings::class)->set('uploads.request_attachment', null);
 
         $this->actingAsApi($this->client)->postJson('/api/v1/shared/uploads', ['context' => 'request_attachment', 'file' => $file])
             ->assertStatus(409)->assertJsonPath('code', 'NOT_CONFIGURED');
@@ -67,6 +68,7 @@ class AttachmentsAndAdminTest extends TestCase
     public function test_attachments_need_the_count_setting(): void
     {
         $file = $this->attachmentUpload();
+        app(AppSettings::class)->set('requests.max_attachments', null);
 
         $this->submit($this->openBody(['media_ids' => [$file->id]]))->assertStatus(409)->assertJsonPath('code', 'NOT_CONFIGURED');
         $this->submit($this->openBody())->assertCreated(); // without files nothing changes

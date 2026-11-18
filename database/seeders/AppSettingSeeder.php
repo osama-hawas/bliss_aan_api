@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Enums\UploadContext;
 use App\Models\AppSetting;
 use App\Services\Settings\AppSettings;
 use Illuminate\Database\Seeder;
@@ -17,11 +16,9 @@ class AppSettingSeeder extends Seeder
     {
         $settings = [
             'otp.length' => 4,               // D3
-            'otp.expiry_seconds' => null,
-            'otp.max_attempts' => null,
-            'otp.resend_cooldown_seconds' => null,
+            // Initial values (owner instruction 2026-11-17, editable in Settings): without them nobody can sign in.
+            ...InitialSettings::OTP,
             'offers.validity_days' => [3, 7, 14], // D5
-            'requests.max_attachments' => null, // D53; outside local: D242 below
             'bookings.buffer_minutes' => 0, // D108
             'bookings.start_early_minutes' => 60, // D126
             // Initial values (owner instruction 2026-11-17: "حط قيم مبدأيه والادمن يقدر يغيرها في اي وقت من الاعدادات").
@@ -53,13 +50,8 @@ class AppSettingSeeder extends Seeder
             'store.return_window_days' => 7,
         ];
 
-        foreach (UploadContext::cases() as $context) {
-            $settings[$context->settingKey()] = null; // file limits undecided (BRD M8)
-        }
-
-        $settings = [...$settings, ...$this->requestAttachmentLimits()];
-        // S23 (D342): return photos get initial limits (images, 10 MB) like D242; editable in Settings.
-        $settings[UploadContext::StoreReturnPhoto->settingKey()] = ['mimes' => ['jpg', 'jpeg', 'png', 'heic', 'webp'], 'max_kb' => 10240];
+        // Initial upload limits (owner instruction 2026-11-17, editable in Settings): with none, every upload is refused.
+        $settings = [...$settings, ...InitialSettings::uploads()];
 
         foreach ($settings as $key => $value) {
             AppSetting::query()->firstOrCreate(['key' => $key], ['value' => $value]);
@@ -67,24 +59,5 @@ class AppSettingSeeder extends Seeder
 
         // Settings are cached forever: drop the cache so a deploy's seed is read at once.
         app(AppSettings::class)->flush();
-    }
-
-    /**
-     * D242 (Q14, SFIX): request attachment limits outside `local` — 10 MB per file, 5 files, jpg/jpeg/png/heic/pdf.
-     * They are the values a key gets when it is **created**; an existing row is never touched, so an admin's value —
-     * including a deliberate `null` — survives re-seeding. Local keeps `null` here and `DemoSeeder`'s values.
-     *
-     * @return array<string, mixed>
-     */
-    private function requestAttachmentLimits(): array
-    {
-        if (app()->environment('local')) {
-            return [];
-        }
-
-        return [
-            UploadContext::RequestAttachment->settingKey() => ['mimes' => ['jpg', 'jpeg', 'png', 'heic', 'pdf'], 'max_kb' => 10240],
-            'requests.max_attachments' => 5,
-        ];
     }
 }

@@ -37,7 +37,9 @@ class SeederTest extends TestCase
         $this->assertFalse(Role::findByName('delivery_officer', 'api')->hasPermissionTo(PermissionName::FinanceView->value));
 
         $this->assertSame(4, AppSetting::where('key', 'otp.length')->value('value'));
-        $this->assertNull(AppSetting::where('key', 'uploads.chat_image')->value('value'));
+        // Initial values so a fresh server can sign in and upload without the demo data (editable in Settings).
+        $this->assertSame(300, AppSetting::where('key', 'otp.expiry_seconds')->value('value'));
+        $this->assertSame(10240, AppSetting::where('key', 'uploads.chat_image')->value('value')['max_kb']);
     }
 
     public function test_seeders_are_idempotent(): void
