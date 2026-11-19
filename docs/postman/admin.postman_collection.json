@@ -31,6 +31,50 @@
           }
         },
         {
+          "name": "Create provider (draft application)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/provider-applications",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "provider-applications"
+              ]
+            },
+            "description": "`providers.review`. A provider account added from the dashboard. It starts as a draft application (D25): she signs in to the provider app with OTP on that phone, completes her data and documents and submits for review. 201 with the application detail; audit `provider_created`.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Noura Salon\",\n  \"phone\": \"05XXXXXXXX\",\n  \"email\": null,\n  \"city_id\": null,\n  \"account_type\": \"individual\",\n  \"reason\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
           "name": "Show application",
           "request": {
             "method": "GET",
@@ -865,6 +909,50 @@
             ],
             "url": "{{base_url}}/admin/clients?q=&filter[status]=&filter[city_id]=&sort=-created_at&page=1&per_page=15",
             "description": "clients.view. Only users.type=client. q = name, email or phone. filter[status] ∈ active · suspended · pending_deletion. sort ∈ created_at, name, bookings_count (± prefix). orders_count is null until store orders exist. 422 on an unknown filter/sort."
+          }
+        },
+        {
+          "name": "Create client",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/clients",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "clients"
+              ]
+            },
+            "description": "`clients.edit`. A client account added from the dashboard; she signs in to the client app with OTP on that phone (no password). Phone must be a Saudi mobile not used by any account (422). 201 with the client detail; adds a `client_created` account action and audit row.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sara\",\n  \"phone\": \"05XXXXXXXX\",\n  \"email\": null,\n  \"city_id\": null,\n  \"reason\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         },
         {

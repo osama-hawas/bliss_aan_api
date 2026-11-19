@@ -50,8 +50,9 @@ class ProviderOnboarding
 
     /**
      * The draft application created with the provider account (D25). She fills in the rest before submitting.
+     * `$actor` is the staff member when the account was added from the dashboard.
      */
-    public function createDraft(User $user): Provider
+    public function createDraft(User $user, ?User $actor = null): Provider
     {
         $provider = Provider::query()->create([
             'user_id' => $user->id,
@@ -60,7 +61,7 @@ class ProviderOnboarding
             'city_id' => $user->city_id,
             'status' => ProviderStatus::Draft,
         ]);
-        $this->activity->record($provider, 'application_created', to: ProviderStatus::Draft, actor: $user, visibility: ActivityVisibility::Internal);
+        $this->activity->record($provider, 'application_created', to: ProviderStatus::Draft, actor: $actor ?? $user, visibility: ActivityVisibility::Internal);
 
         return $provider;
     }

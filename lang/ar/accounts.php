@@ -3,6 +3,7 @@
 // Slice 15: dashboard account history labels and messages (clients and providers).
 return [
     'actions' => [
+        'client_created' => 'إضافة الحساب من لوحة التحكم',
         'client_suspended' => 'تعليق الحساب',
         'client_reactivated' => 'إعادة تفعيل الحساب',
         'client_updated' => 'تعديل بيانات الحساب',
@@ -17,6 +18,8 @@ return [
         'portfolio_restored' => 'إظهار صورة من الأعمال',
     ],
     'messages' => [
+        'client_created' => 'تمت إضافة العميلة، وتسجّل الدخول برمز التحقق على رقم الجوال.',
+        'provider_created' => 'تمت إضافة مقدمة الخدمة كطلب انضمام مسودة، تسجّل الدخول برمز التحقق وتكمل الطلب وترسله للمراجعة.',
         'client_updated' => 'تم حفظ بيانات العميلة.',
         'client_suspended' => 'تم تعليق الحساب وتسجيل خروجها من جميع الأجهزة.',
         'client_reactivated' => 'تمت إعادة تفعيل الحساب، وعليها تسجيل الدخول من جديد.',
