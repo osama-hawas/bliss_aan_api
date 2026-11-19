@@ -6,7 +6,8 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 /**
- * A predefined reason and a written explanation, both required (D51).
+ * A predefined reason (required) and an explanation. The explanation is required for a plain decline (D51) and
+ * optional when she withdraws her offer and declines (owner decision 2026-11-19, changes D91); the service checks which.
  */
 class DeclineServiceRequestRequest extends FormRequest
 {
@@ -14,7 +15,7 @@ class DeclineServiceRequestRequest extends FormRequest
     {
         return [
             'decline_reason_id' => ['required', 'integer', Rule::exists('decline_reasons', 'id')->where('is_active', true)],
-            'explanation' => ['required', 'string', 'max:500'],
+            'explanation' => ['nullable', 'string', 'max:500'],
         ];
     }
 }

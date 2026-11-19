@@ -42,6 +42,7 @@ final class InitialSettings
             $out[$context->settingKey()] = $limits[$context->value];
         }
         $out['requests.max_attachments'] = 5; // D242
+        $out['requests.max_distance_from_city_km'] = 60; // QA BUG-006
 
         return $out;
     }

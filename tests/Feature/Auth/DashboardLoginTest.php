@@ -97,7 +97,7 @@ class DashboardLoginTest extends TestCase
     public function test_each_app_signs_in_only_its_own_user_type(): void
     {
         $this->admin(AdminRole::SuperAdmin);
-        $this->login('client')->assertForbidden()->assertJsonPath('code', 'FORBIDDEN');
+        $this->login('client')->assertForbidden()->assertJsonPath('code', 'WRONG_ACCOUNT_TYPE')->assertJsonPath('errors.account_type', 'admin'); // BUG-017
         $this->login('provider')->assertForbidden();
 
         User::query()->forceDelete();

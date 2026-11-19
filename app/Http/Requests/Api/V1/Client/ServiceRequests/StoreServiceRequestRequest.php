@@ -4,6 +4,7 @@ namespace App\Http\Requests\Api\V1\Client\ServiceRequests;
 
 use App\Enums\ExecutionPlace;
 use App\Enums\ServiceRequestType;
+use App\Services\Locations\CityRadius;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -74,6 +75,10 @@ class StoreServiceRequestRequest extends FormRequest
                 }
                 if ($hasId && $hasAddress) {
                     $validator->errors()->add('address', __('validation.custom.address.prohibited_with_id'));
+                }
+                if ($hasAddress && ! $validator->errors()->hasAny(['address.city_id', 'address.lat', 'address.lng'])
+                    && ! app(CityRadius::class)->allows((int) $this->input('address.city_id'), (float) $this->input('address.lat'), (float) $this->input('address.lng'))) {
+                    $validator->errors()->add('address.lat', __('validation.custom.address.outside_city'));
                 }
             } else {
                 if ($hasId) {

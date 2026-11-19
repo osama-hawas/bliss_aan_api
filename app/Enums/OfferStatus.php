@@ -19,6 +19,8 @@ enum OfferStatus: string
     case Closed = 'closed';
     case Selected = 'selected';
     case NotSelected = 'not_selected';
+    // QA fix 2026-11-19 (BUG-012): the client rejected it.
+    case Rejected = 'rejected';
 
     /**
      * Statuses a client may see: never a replaced or withdrawn offer (§3.6).
@@ -27,6 +29,6 @@ enum OfferStatus: string
      */
     public static function clientVisible(): array
     {
-        return [self::Active->value, self::Expired->value, self::Closed->value, self::Selected->value, self::NotSelected->value];
+        return [self::Active->value, self::Expired->value, self::Closed->value, self::Selected->value, self::NotSelected->value, self::Rejected->value];
     }
 }

@@ -220,7 +220,7 @@ return [
             'pin' => 'The selected address has no location pin. Add a pin to the address first.',
             'provider_location' => 'No address is needed when the service is at the provider\'s location.',
         ],
-        'address' => ['prohibited_with_id' => 'Send either a saved address or a new address, not both.'],
+        'address' => ['prohibited_with_id' => 'Send either a saved address or a new address, not both.', 'outside_city' => 'This location is outside the selected city. Choose a place in the city.'],
         'start_time' => ['future' => 'The event start must be in the future.'],
         'guests_count' => [
             'hidden' => 'This service does not ask for the number of guests.',
@@ -261,6 +261,7 @@ return [
     */
 
     'attributes' => [
+        'explanation' => 'explanation',
         'media_ids' => 'attachments',
         'at_provider_location' => 'service at your location',
         'execution_places' => 'service places',

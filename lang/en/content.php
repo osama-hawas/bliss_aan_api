@@ -45,6 +45,7 @@ return [
             'otp__resend_cooldown_seconds' => 'Wait before resending a code',
             'offers__validity_days' => 'Offer validity options',
             'requests__max_attachments' => 'Attachments per request',
+            'requests__max_distance_from_city_km' => 'Furthest an address may be from its city',
             'bookings__buffer_minutes' => 'Gap between bookings',
             'bookings__start_early_minutes' => 'Start a booking early by up to',
             'support__auto_close_days' => 'Auto-close resolved tickets after',

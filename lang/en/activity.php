@@ -7,6 +7,8 @@ return [
     'request_declined' => 'Request declined by the provider',
     'recipient_declined' => 'A provider declined',
     'offer_sent' => 'Offer received',
+    'offer_rejected' => 'A client rejected an offer',
+    'request_awaiting_offers' => 'Back to awaiting offers',
     'offer_withdrawn' => 'A provider withdrew her offer',
     'booking_confirmed' => 'Offer accepted, booking confirmed',
     'booking_started' => 'Service started',

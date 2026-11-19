@@ -3,8 +3,10 @@
 namespace App\Http\Requests\Api\V1\Client\Addresses;
 
 use App\Rules\SaudiMobile;
+use App\Services\Locations\CityRadius;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 /**
  * A saved address (§6.2). District is free text (D59); the pin is optional on the address itself but required when
@@ -25,6 +27,19 @@ class StoreAddressRequest extends FormRequest
             'recipient_phone' => ['nullable', new SaudiMobile],
             'is_default' => ['sometimes', 'boolean'],
         ];
+    }
+
+    /** A pinned address must be in its city (QA BUG-006). */
+    public function after(): array
+    {
+        return [function (Validator $validator) {
+            if ($validator->errors()->hasAny(['city_id', 'lat', 'lng']) || ! $this->filled('lat') || ! $this->filled('lng') || ! $this->filled('city_id')) {
+                return;
+            }
+            if (! app(CityRadius::class)->allows((int) $this->input('city_id'), (float) $this->input('lat'), (float) $this->input('lng'))) {
+                $validator->errors()->add('lat', __('validation.custom.address.outside_city'));
+            }
+        }];
     }
 
     /**

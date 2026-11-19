@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Concerns;
 
 use App\Models\ActivityEvent;
+use App\Models\DeclineReason;
 use Illuminate\Support\Collection;
 
 /**
@@ -16,6 +17,11 @@ trait DescribesStaffHistory
      */
     protected function staffHistory(Collection $events): array
     {
+        // BUG-019: a decline stores the reason's code in meta; show its label, not `fully_booked`.
+        $codes = $events->filter(fn (ActivityEvent $e) => $e->event === 'recipient_declined' && isset($e->meta['reason']))
+            ->map(fn (ActivityEvent $e) => $e->meta['reason'])->unique()->values()->all();
+        $labels = $codes === [] ? collect() : DeclineReason::query()->whereIn('code', $codes)->get()->mapWithKeys(fn (DeclineReason $r) => [$r->code => $r->name]);
+
         return $events->map(fn (ActivityEvent $e) => [
             'id' => $e->id,
             'event' => $e->event,
@@ -24,7 +30,7 @@ trait DescribesStaffHistory
             'to_status' => $e->to_status,
             'visibility' => $e->visibility->value,
             'actor' => $e->actor_id ? ['id' => $e->actor_id, 'name' => $e->actor?->name, 'role' => $e->actor_role] : null,
-            'note' => $e->meta['note'] ?? $e->meta['reason'] ?? null,
+            'note' => $e->meta['note'] ?? (isset($e->meta['reason']) ? ($labels[$e->meta['reason']] ?? $e->meta['reason']) : null),
             'at' => $this->dateTime($e->created_at),
         ])->values()->all();
     }

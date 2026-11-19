@@ -13,6 +13,7 @@ return [
         'request_declined' => ['title' => 'Request declined', 'body' => ':name declined request :reference.'],
         'offer_expired' => ['title' => 'Offer expired', 'body' => 'Your offer on request :reference has expired.'],
         'offer_accepted' => ['title' => 'Offer accepted', 'body' => ':name accepted your offer. Booking :reference is confirmed.'],
+        'offer_rejected' => ['title' => 'Offer rejected', 'body' => 'The client rejected your offer on request :reference. You can send a new offer.'],
         'offer_not_selected' => ['title' => 'Offer not selected', 'body' => 'Another offer was chosen for request :reference.'],
         'booking_started' => ['title' => 'Service started', 'body' => ':name started booking :reference.'],
         'booking_completed' => ['title' => 'Service completed', 'body' => 'Booking :reference is complete. Rate your experience with :name.'],

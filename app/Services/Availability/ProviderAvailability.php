@@ -5,6 +5,7 @@ namespace App\Services\Availability;
 use App\Models\AvailabilityBlock;
 use App\Models\Booking;
 use App\Models\Provider;
+use App\Models\ProviderWorkingHour;
 use App\Models\ServiceRequestRecipient;
 use App\Services\Settings\AppSettings;
 use App\Support\RiyadhCalendar;
@@ -48,7 +49,54 @@ class ProviderAvailability
      */
     public function isBusy(int $providerId, DateTimeInterface $from, DateTimeInterface $to): bool
     {
-        return $this->isBlocked($providerId, $from, $to) || $this->isBooked($providerId, $from, $to);
+        return $this->isBlocked($providerId, $from, $to) || $this->isBooked($providerId, $from, $to)
+            || $this->isOutsideWorkingHours($providerId, $from, $to);
+    }
+
+    /**
+     * Her weekly hours by weekday (0 = Sunday) as `[opens, closes]` in `H:i`, or null when she has set none (then the
+     * hours restrict nothing). QA fix 2026-11-19 (BUG-007) supersedes D82: hours now restrict availability.
+     *
+     * @return array<int, array{0: string, 1: string}>|null
+     */
+    public function workingHours(int $providerId): ?array
+    {
+        $rows = ProviderWorkingHour::query()->where('provider_id', $providerId)->get(['weekday', 'opens_at', 'closes_at']);
+        if ($rows->isEmpty()) {
+            return null;
+        }
+
+        return $rows->mapWithKeys(fn (ProviderWorkingHour $h) => [
+            $h->weekday => [substr((string) $h->opens_at, 0, 5), substr((string) $h->closes_at, 0, 5)],
+        ])->all();
+    }
+
+    /**
+     * [from, to) is not inside one of her open days' hours (Riyadh time). A window ending at midnight counts as ending
+     * at 24:00 of its start day. No hours set = always inside.
+     */
+    public function isOutsideWorkingHours(int $providerId, DateTimeInterface $from, DateTimeInterface $to): bool
+    {
+        $hours = $this->workingHours($providerId);
+        if ($hours === null) {
+            return false;
+        }
+        $start = Carbon::instance($from)->setTimezone(RiyadhCalendar::TIMEZONE);
+        $end = Carbon::instance($to)->setTimezone(RiyadhCalendar::TIMEZONE);
+        $day = $hours[$start->dayOfWeek] ?? null;
+        if ($day === null) {
+            return true; // closed weekday
+        }
+        [$opens, $closes] = $day;
+        $endTime = $end->format('H:i');
+        if ($end->toDateString() !== $start->toDateString()) {
+            if (! ($endTime === '00:00' && $end->copy()->subDay()->toDateString() === $start->toDateString())) {
+                return true; // runs past the day
+            }
+            $endTime = '24:00';
+        }
+
+        return $start->format('H:i') < $opens || $endTime > ($closes === '23:59' ? '24:00' : $closes);
     }
 
     /**
@@ -149,13 +197,15 @@ class ProviderAvailability
             ->values();
 
         $dates = [];
-        if ($blocks->isEmpty()) {
+        $hours = $this->workingHours($provider->id);
+        if ($blocks->isEmpty() && $hours === null) {
             return $dates;
         }
 
         for ($day = Carbon::createFromFormat('!Y-m-d', $from); $day->format('Y-m-d') <= $to; $day->addDay()) {
             $date = $day->format('Y-m-d');
-            if ($this->coversDay($blocks, $date)) {
+            // A weekday she does not work (no row in her hours, BUG-007) is unavailable like a fully blocked day.
+            if (($hours !== null && ! isset($hours[$day->dayOfWeek])) || $this->coversDay($blocks, $date)) {
                 $dates[] = $date;
             }
         }

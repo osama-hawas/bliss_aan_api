@@ -121,7 +121,7 @@ class VerifyOtpTest extends TestCase
         User::factory()->provider()->create(['phone' => self::PHONE]);
         $otp = $this->plantOtp(self::PHONE, OtpPurpose::Login);
 
-        $this->login()->assertForbidden()->assertJsonPath('code', 'FORBIDDEN');
+        $this->login()->assertForbidden()->assertJsonPath('code', 'WRONG_ACCOUNT_TYPE'); // BUG-017
         $this->assertNull($otp->fresh()->consumed_at);
 
         $this->login(['app' => 'provider'])->assertOk()->assertJsonPath('data.user.type', 'provider');

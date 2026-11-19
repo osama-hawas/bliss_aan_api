@@ -116,4 +116,20 @@ class AddressesTest extends TestCase
     {
         $this->getJson(self::URL)->assertUnauthorized()->assertJsonPath('code', 'UNAUTHENTICATED');
     }
+
+    // QA BUG-006: a pin far from its city is refused; without a city center or the setting there is no limit.
+    public function test_a_pin_outside_the_city_is_refused(): void
+    {
+        $this->riyadh->update(['center_lat' => 24.7136, 'center_lng' => 46.6753]);
+        \App\Models\AppSetting::query()->updateOrCreate(['key' => 'requests.max_distance_from_city_km'], ['value' => 60]);
+        app(\App\Services\Settings\AppSettings::class)->flush();
+
+        $body = ['city_id' => $this->riyadh->id, 'details' => 'Street 1', 'lat' => 24.1658623, 'lng' => 47.282862]; // Al Kharj
+        $this->as()->postJson(self::URL, $body)->assertUnprocessable()->assertJsonValidationErrors(['lat'], 'errors');
+        $this->as()->postJson(self::URL, [...$body, 'lat' => 24.80, 'lng' => 46.61])->assertCreated(); // Al Malqa, Riyadh
+
+        \App\Models\AppSetting::query()->where('key', 'requests.max_distance_from_city_km')->update(['value' => null]);
+        app(\App\Services\Settings\AppSettings::class)->flush();
+        $this->as()->postJson(self::URL, $body)->assertCreated();
+    }
 }

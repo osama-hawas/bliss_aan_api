@@ -156,7 +156,8 @@ class AuthService
         }
 
         if ($user->type !== $app->userType()) {
-            throw new ApiException(ErrorCode::Forbidden);
+            // BUG-017: say which app the number belongs to instead of a generic "not allowed".
+            throw new ApiException(ErrorCode::WrongAccountType, __('errors.wrong_account_type.'.$user->type->value), ['account_type' => $user->type->value]);
         }
 
         if ($user->status === UserStatus::Suspended) {

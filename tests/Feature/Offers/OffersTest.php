@@ -214,7 +214,9 @@ class OffersTest extends TestCase
         $offer = Offer::query()->sole();
         $this->assertSame(OfferStatus::Withdrawn, $offer->status);
         $this->assertNotNull($offer->withdrawn_at);
-        $this->assertSame('offers_received', $request->fresh()->status->value);
+        // Owner decision 2026-11-19 (BUG-013, supersedes D105): no live offer left → awaiting offers again.
+        $this->assertSame('awaiting_offers', $request->fresh()->status->value);
+        $this->assertDatabaseHas('activity_events', ['event' => 'request_awaiting_offers', 'from_status' => 'offers_received', 'to_status' => 'awaiting_offers']);
         $this->assertDatabaseHas('activity_events', ['event' => 'offer_withdrawn', 'visibility' => 'internal']);
         $this->assertDatabaseHas('activity_events', ['event' => 'recipient_declined', 'from_status' => 'offer_sent', 'visibility' => 'internal']);
 
@@ -242,13 +244,45 @@ class OffersTest extends TestCase
         $this->assertContains('offer_withdrawn', $events);
     }
 
-    public function test_withdraw_needs_a_reason_and_an_explanation(): void
+    public function test_withdraw_needs_a_reason_but_the_explanation_is_optional(): void
     {
         $request = $this->created($this->openBody());
         $this->send($this->noura, $request)->assertCreated();
-        $this->actingAsApi($this->noura->user)->postJson(self::PROVIDER."/{$request->id}/decline", [])
-            ->assertUnprocessable()->assertJsonValidationErrors(['decline_reason_id', 'explanation']);
+        $url = self::PROVIDER."/{$request->id}/decline";
+        $this->actingAsApi($this->noura->user)->postJson($url, [])
+            ->assertUnprocessable()->assertJsonValidationErrors(['decline_reason_id'])->assertJsonMissingValidationErrors(['explanation']);
         $this->assertSame(OfferStatus::Active, Offer::query()->sole()->status);
+
+        // Owner decision 2026-11-19 (changes D91): a reason alone withdraws.
+        $reason = DeclineReason::query()->where('code', 'fully_booked')->sole();
+        $this->actingAsApi($this->noura->user)->postJson($url, ['decline_reason_id' => $reason->id])->assertOk();
+        $this->assertSame(OfferStatus::Withdrawn, Offer::query()->sole()->status);
+    }
+
+    // ── Client rejects (QA BUG-012) ─────────────────────────────────────────────────────────
+
+    public function test_the_client_rejects_an_offer_and_the_provider_may_send_again(): void
+    {
+        $request = $this->created($this->openBody());
+        $this->send($this->noura, $request)->assertCreated();
+        $offer = Offer::query()->sole();
+
+        $this->asClient()->postJson("/api/v1/client/offers/{$offer->id}/reject", ['reason' => 'Over budget'])
+            ->assertOk()->assertJsonPath('data.status', 'rejected');
+        $offer->refresh();
+        $this->assertSame(OfferStatus::Rejected, $offer->status);
+        $this->assertSame('Over budget', $offer->rejection_reason);
+        $this->assertSame('awaiting_offers', $request->fresh()->status->value);
+        $this->assertDatabaseHas('activity_events', ['event' => 'offer_rejected', 'visibility' => 'all']);
+        $this->assertDatabaseHas('notifications', ['notifiable_id' => $this->noura->user_id, 'type' => 'offer_rejected']);
+
+        // Twice → no longer live.
+        $this->asClient()->postJson("/api/v1/client/offers/{$offer->id}/reject")->assertStatus(409)->assertJsonPath('code', 'INVALID_STATE');
+        // Another client cannot see it.
+        $this->asClient(User::factory()->create())->postJson("/api/v1/client/offers/{$offer->id}/reject")->assertNotFound();
+        // She may send a new offer.
+        $this->send($this->noura, $request)->assertCreated();
+        $this->assertSame('offers_received', $request->fresh()->status->value);
     }
 
     // ── Client ──────────────────────────────────────────────────────────────────────────────

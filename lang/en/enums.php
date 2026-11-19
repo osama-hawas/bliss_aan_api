@@ -67,7 +67,7 @@ return [
         'declined' => 'Declined',
     ],
     'recipient_status' => ['new' => 'New', 'offer_sent' => 'Offer sent', 'declined' => 'Declined', 'closed' => 'Closed'],
-    'offer_status' => ['active' => 'Active', 'superseded' => 'Replaced by a newer offer', 'withdrawn' => 'Withdrawn', 'expired' => 'Expired', 'closed' => 'Closed', 'selected' => 'Accepted', 'not_selected' => 'Not selected'],
+    'offer_status' => ['active' => 'Active', 'superseded' => 'Replaced by a newer offer', 'withdrawn' => 'Withdrawn', 'expired' => 'Expired', 'closed' => 'Closed', 'selected' => 'Accepted', 'not_selected' => 'Not selected', 'rejected' => 'Rejected by the client'],
     'booking_status' => ['confirmed' => 'Confirmed', 'in_progress' => 'In progress', 'completed' => 'Completed', 'cancelled' => 'Cancelled'],
     'cancellation_status' => ['under_review' => 'Under review', 'accepted' => 'Cancellation approved', 'rejected' => 'Cancellation not approved', 'withdrawn' => 'Withdrawn'],
     'cancellation_requester_role' => ['client' => 'Client', 'provider' => 'Provider', 'staff' => 'Bliss aan support'],

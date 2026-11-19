@@ -78,13 +78,15 @@ enum ErrorCode: string
 
     // S22 — account deletion processing (D333): open obligations keep the account (409).
     case DeletionBlocked = 'DELETION_BLOCKED';
+    // QA fix 2026-11-19 (BUG-017): the phone belongs to another account type (client / provider / staff).
+    case WrongAccountType = 'WRONG_ACCOUNT_TYPE';
 
     public function status(): int
     {
         return match ($this) {
             self::ValidationFailed, self::OtpInvalid, self::OtpExpired, self::OutOfCoverage, self::NoMatchingProviders, self::OutOfStock => 422,
             self::Unauthenticated, self::TokenExpired => 401,
-            self::Forbidden, self::AccountSuspended => 403,
+            self::Forbidden, self::AccountSuspended, self::WrongAccountType => 403,
             self::NotFound, self::AccountNotFound => 404,
             self::MethodNotAllowed => 405,
             self::InvalidState, self::NotConfigured, self::DuplicateRequest, self::SlotUnavailable, self::BlockOverlap, self::OfferExpired, self::AlreadyBooked, self::WalletExists, self::CancellationPending, self::StartTooEarly, self::AlreadyReviewed, self::AlreadyReported, self::DeletionPending => 409,

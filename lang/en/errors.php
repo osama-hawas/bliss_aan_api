@@ -18,6 +18,8 @@ return [
     'OUT_OF_COVERAGE' => 'This provider does not serve the selected city.',
     'NO_MATCHING_PROVIDERS' => 'No provider is available for this request in the selected city right now.',
     'DUPLICATE_REQUEST' => 'This request was already sent with different details.',
+    'WRONG_ACCOUNT_TYPE' => 'This number belongs to another account type.',
+    'wrong_account_type' => ['client' => 'This number is registered as a client account. Choose "Client" to sign in.', 'provider' => 'This number is registered as a service provider account. Choose "Service provider" to sign in.', 'admin' => 'This number belongs to a staff account. Sign in from the dashboard.'],
     'SLOT_UNAVAILABLE' => 'This provider is not available at the selected time. Please choose another date or time.',
     'BLOCK_OVERLAP' => 'This period overlaps a block you already have.',
     'OFFER_EXPIRED' => 'This offer has expired.',

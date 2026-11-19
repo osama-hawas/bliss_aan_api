@@ -227,7 +227,9 @@ class RequestLifecycleTest extends TestCase
         $request = $this->created($this->openBody());
         $url = self::PROVIDER."/{$request->id}/decline";
 
-        $this->asProvider($this->noura)->postJson($url, [])->assertJsonValidationErrors(['decline_reason_id', 'explanation'], 'errors');
+        $this->asProvider($this->noura)->postJson($url, [])->assertJsonValidationErrors(['decline_reason_id'], 'errors');
+        // A plain decline still needs an explanation (D51); only a withdrawal may skip it (owner decision 2026-11-19).
+        $this->asProvider($this->noura)->postJson($url, ['decline_reason_id' => $this->reason()->id])->assertJsonValidationErrors(['explanation'], 'errors');
         $this->reason('other')->update(['is_active' => false]);
         $this->asProvider($this->noura)->postJson($url, ['decline_reason_id' => $this->reason('other')->id, 'explanation' => 'x'])->assertJsonValidationErrors('decline_reason_id', 'errors');
 

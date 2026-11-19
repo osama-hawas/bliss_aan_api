@@ -60,6 +60,8 @@ enum NotificationEvent: string
     case StoreReturnRejected = 'store_return_rejected';       // E57
     case StoreReturnReceived = 'store_return_received';       // E58
     case StoreReturnRefunded = 'store_return_refunded';       // E59
+    // QA fix 2026-11-19 (BUG-012): the client rejected her offer → the provider.
+    case OfferRejected = 'offer_rejected';                    // E60
 
     /**
      * The D26 key that can switch off the push (D135). Null = transactional, always pushed.
@@ -68,7 +70,7 @@ enum NotificationEvent: string
     {
         return match ($this) {
             self::DirectRequestReceived, self::OpenRequestReceived => NotificationPreferenceKey::NewRequests,
-            self::OfferReceived, self::OfferWithdrawn => NotificationPreferenceKey::Offers,
+            self::OfferReceived, self::OfferWithdrawn, self::OfferRejected => NotificationPreferenceKey::Offers,
             self::ChatMessage => NotificationPreferenceKey::Messages,
             self::Broadcast => NotificationPreferenceKey::Promotions, // S20 (D306)
             default => null,

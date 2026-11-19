@@ -176,10 +176,25 @@ class PublicAvailabilityAndDirectRequestsTest extends TestCase
         $this->assertSame(1, ServiceRequest::query()->count());
     }
 
-    public function test_working_hours_never_refuse_a_request(): void
+    // QA fix 2026-11-19 (BUG-007, supersedes D82): her weekly hours restrict direct requests and unavailable dates.
+    public function test_working_hours_refuse_requests_outside_them(): void
     {
-        $this->noura->workingHours()->create(['weekday' => 0, 'opens_at' => '09:00', 'closes_at' => '10:00']);
-        $this->submit($this->directAt($this->noura, '2026-12-06', '22:00'))->assertCreated(); // a Sunday, outside hours
+        $this->noura->workingHours()->create(['weekday' => 0, 'opens_at' => '09:00', 'closes_at' => '23:00']);
+        $this->submit($this->directAt($this->noura, '2026-12-06', '22:30'))->assertStatus(409)->assertJsonPath('code', 'SLOT_UNAVAILABLE'); // Sunday, ends 23:30 after closing
+        $this->submit($this->directAt($this->noura, '2026-12-07', '19:00'))->assertStatus(409)->assertJsonPath('code', 'SLOT_UNAVAILABLE'); // Monday: closed
+        $this->submit($this->directAt($this->noura, '2026-12-06', '19:00'))->assertCreated();
+    }
+
+    public function test_closed_weekdays_are_unavailable_dates(): void
+    {
+        $this->noura->workingHours()->create(['weekday' => 0, 'opens_at' => '09:00', 'closes_at' => '23:00']);
+        $dates = app(\App\Services\Availability\ProviderAvailability::class)->unavailableDates($this->noura, '2026-12-06', '2026-12-08');
+        $this->assertSame(['2026-12-07', '2026-12-08'], $dates);
+    }
+
+    public function test_no_working_hours_means_no_limit(): void
+    {
+        $this->submit($this->directAt($this->noura, '2026-12-07', '22:00'))->assertCreated();
     }
 
     public function test_hidden_provider_is_still_the_visibility_422_first(): void

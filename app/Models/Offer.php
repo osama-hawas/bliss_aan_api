@@ -15,7 +15,7 @@ class Offer extends Model
 {
     protected $fillable = [
         'reference', 'service_request_id', 'provider_id', 'title', 'total', 'validity_days', 'valid_until', 'notes',
-        'is_quick', 'status', 'policy_version_id', 'sent_at', 'withdrawn_at', 'closed_at', 'idempotency_key',
+        'is_quick', 'status', 'policy_version_id', 'sent_at', 'withdrawn_at', 'rejected_at', 'rejection_reason', 'closed_at', 'idempotency_key',
         'idempotency_fingerprint',
     ];
 
@@ -29,6 +29,7 @@ class Offer extends Model
             'valid_until' => 'datetime',
             'sent_at' => 'datetime',
             'withdrawn_at' => 'datetime',
+            'rejected_at' => 'datetime',
             'closed_at' => 'datetime',
         ];
     }

@@ -7,6 +7,8 @@ return [
     'request_declined' => 'اعتذرت مقدمة الخدمة عن الطلب',
     'recipient_declined' => 'اعتذرت مقدمة خدمة',
     'offer_sent' => 'تم استلام عرض',
+    'offer_rejected' => 'رفضت العميلة عرضًا',
+    'request_awaiting_offers' => 'عاد الطلب لانتظار العروض',
     'offer_withdrawn' => 'سحبت مقدمة خدمة عرضها',
     'booking_confirmed' => 'تم قبول العرض وتأكيد الحجز',
     'booking_started' => 'بدأ تنفيذ الخدمة',

@@ -12,6 +12,7 @@ return [
         'request_declined' => ['title' => 'اعتذار عن الطلب', 'body' => 'اعتذرت :name عن الطلب :reference.'],
         'offer_expired' => ['title' => 'انتهت صلاحية العرض', 'body' => 'انتهت صلاحية عرضكِ على الطلب :reference.'],
         'offer_accepted' => ['title' => 'قُبل عرضكِ', 'body' => 'قبلت :name عرضكِ، وتأكد الحجز :reference.'],
+        'offer_rejected' => ['title' => 'رُفض عرضكِ', 'body' => 'رفضت العميلة عرضكِ على الطلب :reference. يمكنكِ إرسال عرض جديد.'],
         'offer_not_selected' => ['title' => 'لم يُختر عرضكِ', 'body' => 'اختير عرض آخر للطلب :reference.'],
         'booking_started' => ['title' => 'بدأت الخدمة', 'body' => 'بدأت :name تنفيذ الحجز :reference.'],
         'booking_completed' => ['title' => 'اكتملت الخدمة', 'body' => 'اكتمل الحجز :reference. قيّمي تجربتكِ مع :name.'],

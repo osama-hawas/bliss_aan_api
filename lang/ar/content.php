@@ -45,6 +45,7 @@ return [
             'otp__resend_cooldown_seconds' => 'الانتظار قبل إعادة إرسال الرمز',
             'offers__validity_days' => 'خيارات مدة صلاحية العرض',
             'requests__max_attachments' => 'عدد مرفقات الطلب',
+            'requests__max_distance_from_city_km' => 'أقصى بعد للعنوان عن مركز مدينته',
             'bookings__buffer_minutes' => 'الفاصل بين الحجوزات',
             'bookings__start_early_minutes' => 'بدء الحجز مبكرًا بحد أقصى',
             'support__auto_close_days' => 'الإغلاق التلقائي للتذاكر المحلولة بعد',

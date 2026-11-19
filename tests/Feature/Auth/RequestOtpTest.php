@@ -98,7 +98,7 @@ class RequestOtpTest extends TestCase
         User::factory()->admin()->create(['phone' => '+966512345679']);
 
         $this->postJson(self::URL, ['phone' => '0512345678', 'purpose' => 'login', 'app' => 'client'])
-            ->assertForbidden()->assertJsonPath('code', 'FORBIDDEN');
+            ->assertForbidden()->assertJsonPath('code', 'WRONG_ACCOUNT_TYPE'); // BUG-017
         $this->postJson(self::URL, ['phone' => '0512345679', 'purpose' => 'login', 'app' => 'provider'])
             ->assertForbidden();
 

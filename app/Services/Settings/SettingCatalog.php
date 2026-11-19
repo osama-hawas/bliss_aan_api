@@ -54,6 +54,8 @@ final class SettingCatalog
         'store.return_window_days' => [SettingKind::Integer, 'days', 'D343'],
         // Slice 25 (S25).
         'uploads.onboarding_image' => [SettingKind::UploadLimits, null, 'D361'],
+        // QA fix round 2026-11-19 (BUG-006): how far an address may be from its city's center.
+        'requests.max_distance_from_city_km' => [SettingKind::Integer, 'km', null],
         // --- later slices: append above this line in a marked block ---
     ];
 

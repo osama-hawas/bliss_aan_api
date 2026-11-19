@@ -12,7 +12,7 @@ class City extends Model
 
     public array $translatable = ['name'];
 
-    protected $fillable = ['name', 'is_active', 'sort'];
+    protected $fillable = ['name', 'is_active', 'sort', 'center_lat', 'center_lng'];
 
     protected function casts(): array
     {

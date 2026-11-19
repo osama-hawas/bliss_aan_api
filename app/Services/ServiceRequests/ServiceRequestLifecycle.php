@@ -21,6 +21,7 @@ use App\Services\Audit\ActivityRecorder;
 use App\Services\Notifications\Notifier;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Slice 4 moves after creation (§3, §4): the client cancels; a recipient declines. Lock order everywhere: the
@@ -29,7 +30,11 @@ use Illuminate\Support\Facades\DB;
  */
 class ServiceRequestLifecycle
 {
-    public function __construct(private readonly ActivityRecorder $activity, private readonly Notifier $notifier) {}
+    public function __construct(
+        private readonly ActivityRecorder $activity,
+        private readonly Notifier $notifier,
+        private readonly RequestOfferStatus $requestStatus,
+    ) {}
 
     /**
      * Before an offer is accepted only. Every recipient still taking part is closed, and every offer still `active`
@@ -70,7 +75,7 @@ class ServiceRequestLifecycle
      * slice-5b-contract.md §3.4). A direct request becomes `declined` (D68); an open one is unchanged, even when every
      * recipient declined or no live offer is left (D244). Open-request entries stay internal (D76).
      */
-    public function decline(Provider $provider, ServiceRequest $request, DeclineReason $reason, string $explanation): ServiceRequestRecipient
+    public function decline(Provider $provider, ServiceRequest $request, DeclineReason $reason, ?string $explanation): ServiceRequestRecipient
     {
         return DB::transaction(function () use ($provider, $request, $reason, $explanation) {
             $request = $this->lock($request);
@@ -85,6 +90,10 @@ class ServiceRequestLifecycle
 
             $from = $recipient->status;
             $wasOfferSent = $from === RecipientStatus::OfferSent;
+            // D51: a plain decline needs an explanation; withdrawing an offer may skip it (owner decision 2026-11-19).
+            if (! $wasOfferSent && trim((string) $explanation) === '') {
+                throw ValidationException::withMessages(['explanation' => __('validation.required', ['attribute' => __('validation.attributes.explanation')])]);
+            }
             $visibility = $request->type === ServiceRequestType::Direct ? ActivityVisibility::All : ActivityVisibility::Internal;
             if ($from === RecipientStatus::OfferSent) {
                 Offer::query()->where('service_request_id', $request->id)->where('provider_id', $provider->id)
@@ -98,10 +107,15 @@ class ServiceRequestLifecycle
             $recipient->update([
                 'status' => RecipientStatus::Declined,
                 'decline_reason_id' => $reason->id,
-                'decline_explanation' => $explanation,
+                'decline_explanation' => trim((string) $explanation) === '' ? null : $explanation,
                 'declined_at' => now(),
             ]);
             $this->activity->record($request, 'recipient_declined', $from, RecipientStatus::Declined, $provider->user, ActivityVisibility::Internal, ['provider_id' => $provider->id, 'reason' => $reason->code]);
+
+            if ($request->type !== ServiceRequestType::Direct && $wasOfferSent) {
+                // Owner decision 2026-11-19 (BUG-013, supersedes D105): no live offer left → awaiting offers again.
+                $this->requestStatus->backToAwaitingIfNoLiveOffer($request, $provider->user);
+            }
 
             if ($request->type === ServiceRequestType::Direct) {
                 $from = $request->status;
