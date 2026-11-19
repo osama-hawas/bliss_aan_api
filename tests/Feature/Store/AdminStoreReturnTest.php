@@ -5,11 +5,13 @@ namespace Tests\Feature\Store;
 use App\Enums\AdminRole;
 use App\Enums\RefundKind;
 use App\Enums\StoreReturnStatus;
+use App\Models\AppSetting;
 use App\Models\Payment;
 use App\Models\Refund;
 use App\Models\StockMovement;
 use App\Models\StoreReturn;
 use App\Services\Payments\PaymentRefunds;
+use App\Services\Settings\AppSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\Concerns\BuildsStoreReturns;
@@ -148,6 +150,9 @@ class AdminStoreReturnTest extends TestCase
 
     public function test_a_failed_refund_keeps_the_return_received_and_can_be_retried(): void
     {
+        // Card refunds through the gateway (owner decision 2026-11-19 sends them to the wallet by default).
+        AppSetting::query()->updateOrCreate(['key' => 'payments.refunds_to_wallet'], ['value' => 0]);
+        app(AppSettings::class)->flush();
         $return = $this->requested('tok_fake_visa_0051_1230'); // fake refunds fail for last4 0051
         $this->act($return, 'approve')->assertOk();
 

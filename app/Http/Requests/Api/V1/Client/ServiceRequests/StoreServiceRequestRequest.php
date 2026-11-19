@@ -43,7 +43,8 @@ class StoreServiceRequestRequest extends FormRequest
             'address.lng' => ['required_with:address', 'numeric', 'between:-180,180'],
             'address.label' => ['nullable', 'string', 'max:60'],
             'address.district' => ['nullable', 'string', 'max:100'],
-            'guests_count' => ['nullable', 'integer', 'min:1'],
+            // BUG-015 (owner 2026-11-19): no business limit, only a technical one so the column never overflows.
+            'guests_count' => ['nullable', 'integer', 'min:1', 'max:100000'],
             'addon_ids' => ['nullable', 'array'],
             'addon_ids.*' => ['integer', 'distinct'],
             'notes' => ['nullable', 'string', 'max:1000'],

@@ -20,12 +20,13 @@ class PayOfferRequest extends FormRequest
     public function rules(): array
     {
         $card = $this->input('method') === PaymentMethodType::Card->value;
+        $wallet = $this->input('method') === PaymentMethodType::Wallet->value;
 
         return [
             'idempotency_key' => ['required', 'uuid'],
             'method' => ['required', Rule::enum(PaymentMethodType::class)],
             'payment_method_id' => [$card ? 'required_without:token' : 'prohibited', 'nullable', 'integer', 'prohibits:token'],
-            'token' => [$card ? 'required_without:payment_method_id' : 'required', 'nullable', 'string', 'max:255'],
+            'token' => [$wallet ? 'prohibited' : ($card ? 'required_without:payment_method_id' : 'required'), 'nullable', 'string', 'max:255'],
             'save_method' => [$card && $this->filled('token') ? 'nullable' : 'prohibited', 'boolean'],
             'number' => ['prohibited'],
             'card_number' => ['prohibited'],

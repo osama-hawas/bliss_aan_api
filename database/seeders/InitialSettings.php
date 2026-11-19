@@ -43,6 +43,7 @@ final class InitialSettings
         }
         $out['requests.max_attachments'] = 5; // D242
         $out['requests.max_distance_from_city_km'] = 60; // QA BUG-006
+        $out['wallet.direct_top_up'] = true; // owner decision 2026-11-19 (ignored in production)
 
         return $out;
     }

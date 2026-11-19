@@ -18,7 +18,7 @@ class RegisterRequest extends FormRequest
         return [
             'registration_token' => ['required', 'string', 'size:64'],
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255'],
+            'email' => ['nullable', 'email', 'regex:/^[^@\s]+@[^@\s]+\.[^@\s]+$/', 'max:255'],
             'city_id' => ['nullable', 'integer', Rule::exists('cities', 'id')->where('is_active', true)],
             'terms_accepted' => ['accepted'],
             'app' => $this->appRules(),

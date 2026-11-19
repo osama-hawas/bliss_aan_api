@@ -7,12 +7,14 @@ use App\Enums\BookingPaymentStatus;
 use App\Enums\RefundKind;
 use App\Enums\RefundStatus;
 use App\Integrations\Payments\WebhookEvent;
+use App\Models\AppSetting;
 use App\Models\Booking;
 use App\Models\CancellationRequest;
 use App\Models\Payment;
 use App\Models\Refund;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\Settings\AppSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
@@ -95,6 +97,9 @@ class RefundTest extends TestCase
 
     public function test_a_failed_refund_releases_the_reserved_amount(): void
     {
+        // Card refunds through the gateway (owner decision 2026-11-19 sends them to the wallet by default).
+        AppSetting::query()->updateOrCreate(['key' => 'payments.refunds_to_wallet'], ['value' => 0]);
+        app(AppSettings::class)->flush();
         $payment = $this->paid($this->offerFrom($this->matchingProvider('Huda Studio'), null, '500'), '0051');
         $this->refund(['amount' => '500', 'reason' => 'Full refund'], null, null, $payment)->assertCreated()
             ->assertJsonPath('data.status', 'failed')->assertJsonPath('data.failure_code', 'gateway_error');

@@ -8,7 +8,7 @@ return [
         'confirmed' => 'مؤكد',
         'in_progress' => 'قيد التنفيذ',
         'completed' => 'مكتمل',
-        'cancelled' => 'ملغي',
+        'cancelled' => 'ملغى',
         'declined' => 'مرفوض',
         'under_review' => 'قيد المراجعة',
         'accepted' => 'مقبول',

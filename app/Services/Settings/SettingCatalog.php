@@ -56,6 +56,10 @@ final class SettingCatalog
         'uploads.onboarding_image' => [SettingKind::UploadLimits, null, 'D361'],
         // QA fix round 2026-11-19 (BUG-006): how far an address may be from its city's center.
         'requests.max_distance_from_city_km' => [SettingKind::Integer, 'km', null],
+        // Owner decision 2026-11-19: client wallet top-ups added directly until a gateway is connected (never in production).
+        'wallet.direct_top_up' => [SettingKind::Boolean, null, null],
+        // Owner decision 2026-11-19: refunds go to the client's wallet (empty = on); off sends card refunds to the gateway.
+        'payments.refunds_to_wallet' => [SettingKind::Boolean, null, null],
         // --- later slices: append above this line in a marked block ---
     ];
 

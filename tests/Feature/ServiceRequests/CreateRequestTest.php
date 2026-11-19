@@ -260,6 +260,14 @@ class CreateRequestTest extends TestCase
 
     // ── Guest count (D54) ───────────────────────────────────────────────────────────────────
 
+    // BUG-015 (owner 2026-11-19): no business limit, but an 11-digit count is refused with 422, never a 500.
+    public function test_guest_count_has_a_technical_cap(): void
+    {
+        $this->matchingProvider();
+        $this->submit($this->openBody(['guests_count' => 99999999999]))->assertJsonValidationErrors('guests_count', 'errors');
+        $this->submit($this->openBody(['guests_count' => 100000]))->assertCreated();
+    }
+
     public function test_guest_count_follows_the_service_mode(): void
     {
         $this->matchingProvider();

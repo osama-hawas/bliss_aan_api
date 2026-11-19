@@ -8,7 +8,9 @@ use App\Enums\FulfilmentStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\RefundKind;
 use App\Enums\RefundStatus;
+use App\Enums\UserType;
 use App\Exceptions\ApiException;
+use App\Integrations\Payments\GatewayResult;
 use App\Integrations\Payments\GatewayUnavailable;
 use App\Integrations\Payments\PaymentGateway;
 use App\Models\Payment;
@@ -18,6 +20,8 @@ use App\Services\Audit\ActivityRecorder;
 use App\Services\Audit\AuditLogger;
 use App\Services\Availability\DeadlockRetry;
 use App\Services\ServiceRequests\IdempotencyRace;
+use App\Services\Settings\AppSettings;
+use App\Services\Wallets\WalletLedger;
 use App\Support\Money;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
@@ -41,6 +45,8 @@ class PaymentRefunds
         private readonly ActivityRecorder $activity,
         private readonly AuditLogger $audit,
         private readonly DeadlockRetry $retry,
+        private readonly WalletLedger $walletLedger,
+        private readonly AppSettings $settings,
     ) {}
 
     /**
@@ -75,6 +81,15 @@ class PaymentRefunds
     public function send(Refund $refund): Refund
     {
         $payment = Payment::query()->findOrFail($refund->payment_id);
+        // Owner decision 2026-11-19: every refund goes back to the client's wallet at once (wallet and card payments).
+        // `payments.refunds_to_wallet` = false sends card refunds to the gateway again; wallet payments always return
+        // to the wallet.
+        $toWallet = $payment->gateway === 'wallet' || (bool) ($this->settings->get('payments.refunds_to_wallet') ?? true);
+        if ($refund->status === RefundStatus::InProgress && $toWallet && $payment->user?->type === UserType::Client) {
+            $this->walletLedger->credit($payment->user, $refund->amount, WalletLedger::REFUND, $refund, ['payment_id' => $payment->id], 'refund:'.$refund->id);
+
+            return $this->machine->apply($refund, new GatewayResult(GatewayResult::SUCCEEDED, 'wallet:refund:'.$refund->id), 'wallet');
+        }
         try {
             $result = $refund->gateway_reference
                 ? $this->gateway->refundStatus($refund->gateway_reference)

@@ -47,6 +47,12 @@ class RegisterTest extends TestCase
         ]);
     }
 
+    // BUG-003: the same email rule as the profile (a dot in the domain).
+    public function test_an_email_without_a_domain_dot_is_refused(): void
+    {
+        $this->register(['email' => 'test@p'])->assertUnprocessable()->assertJsonValidationErrors(['email'], 'errors');
+    }
+
     public function test_client_registers_and_gets_a_session(): void
     {
         $city = City::query()->first();

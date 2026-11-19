@@ -85,6 +85,10 @@ class WalletService
         DB::transaction(function () use ($user) {
             $wallet = Wallet::query()->where('active_owner_id', $user->id)->lockForUpdate()->first()
                 ?? throw new ApiException(ErrorCode::NotFound);
+            // Money is never closed away: a wallet with a balance stays open (owner decision 2026-11-19).
+            if (Money::toCents($this->balance($wallet)) !== 0) {
+                throw new ApiException(ErrorCode::InvalidState, __('wallet.close_has_balance'));
+            }
 
             $wallet->update(['status' => WalletStatus::Closed, 'closed_at' => now(), 'active_owner_id' => null]);
             $this->activity->record($wallet, 'wallet_closed', WalletStatus::Active, WalletStatus::Closed, $user, ActivityVisibility::Internal);

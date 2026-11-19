@@ -18,6 +18,7 @@ use App\Models\SavedPaymentMethod;
 use App\Models\User;
 use App\Services\Availability\DeadlockRetry;
 use App\Services\ServiceRequests\IdempotencyRace;
+use App\Services\Wallets\WalletLedger;
 use App\Support\Money;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -46,6 +47,7 @@ class PaymentIntents
         private readonly PaymentReferenceGenerator $references,
         private readonly PaymentSettings $settings,
         private readonly DeadlockRetry $retry,
+        private readonly WalletLedger $walletLedger,
     ) {}
 
     /**
@@ -67,6 +69,9 @@ class PaymentIntents
         // The quote runs after the older attempts settled: if one of them just confirmed the payable, nothing is charged.
         $handler = $this->registry->for($type);
         $quote = $handler->quote($payer, $payable);
+        if ($instrument->type === PaymentMethodType::Wallet) {
+            return $this->payFromWallet($payer, $type, $payable, $quote, $instrument, $idempotencyKey, $fingerprint);
+        }
         [$token, $card, $saved] = $this->resolve($payer, $instrument);
 
         try {
@@ -97,12 +102,41 @@ class PaymentIntents
     }
 
     /**
+     * Owner decision 2026-11-19: paid from her wallet, no gateway. The payment row and the wallet debit are written in
+     * one transaction (wallet row locked: `409 INSUFFICIENT_BALANCE` when it does not cover the total), then the payment
+     * is settled like a gateway success, so fulfilment, earnings and refunds work the same way.
+     *
+     * @return array{0: Payment, 1: bool}
+     */
+    private function payFromWallet(User $payer, PayableType $type, Model $payable, PaymentQuote $quote, PaymentInstrument $instrument, string $key, string $fingerprint): array
+    {
+        try {
+            $payment = $this->retry->run(fn () => DB::transaction(function () use ($payer, $type, $payable, $quote, $instrument, $key, $fingerprint) {
+                $payment = $this->insert($payer, $type, $payable, $quote, $instrument, null, null, $key, $fingerprint);
+                $payment->forceFill(['gateway' => 'wallet'])->save();
+                $this->walletLedger->debit($payer, $payment->amount, WalletLedger::PAYMENT, $payment, ['payable' => $type->value, 'payable_id' => $payable->getKey()]);
+
+                return $payment;
+            }), 'payment.wallet', ['user_id' => $payer->id, 'payable' => $type->value.':'.$payable->getKey()]);
+        } catch (IdempotencyRace) {
+            return [$this->refresh($this->replay($payer, $key, $fingerprint) ?? throw new ApiException(ErrorCode::ServerError)), false];
+        }
+
+        $outcome = new GatewayOutcome(PaymentStatus::Succeeded, 'wallet:'.$payment->id);
+
+        return [$this->settle($this->machine->apply($payment, $outcome, 'wallet')), true];
+    }
+
+    /**
      * Asks the gateway when a payment is still open and was not checked in the last few seconds; retries a pending
      * fulfilment. Used by `GET client/payments/{id}` and the reconcile command.
      */
     public function refresh(Payment $payment, bool $force = false): Payment
     {
         $payment = $payment->fresh();
+        if ($payment->gateway === 'wallet') {
+            return $this->settle($payment); // nothing to ask: wallet payments are final at once
+        }
         $stale = $force || $payment->last_checked_at === null || $payment->last_checked_at->lte(now()->subSeconds(self::REFRESH_AFTER_SECONDS));
         if (in_array($payment->status, PaymentStatus::open(), true) && $stale) {
             try {
@@ -138,6 +172,9 @@ class PaymentIntents
     public function retire(Payment $payment, string $source = 'supersede'): Payment
     {
         $payment = $payment->fresh();
+        if ($payment->gateway === 'wallet') {
+            return $this->settle($payment);
+        }
         if (! in_array($payment->status, PaymentStatus::open(), true)) {
             return $this->settle($payment);
         }

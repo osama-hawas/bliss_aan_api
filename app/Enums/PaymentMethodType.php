@@ -13,4 +13,6 @@ enum PaymentMethodType: string
 
     case Card = 'card';
     case ApplePay = 'apple_pay';
+    // Owner decision 2026-11-19: her wallet balance, no gateway.
+    case Wallet = 'wallet';
 }

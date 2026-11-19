@@ -78,7 +78,8 @@ class WalletTest extends TestCase
             ->assertJsonPath('data.currency', 'SAR')
             ->assertJsonPath('data.balance.amount', '0.00')
             ->assertJsonPath('data.balance.currency', 'SAR')
-            ->assertJsonPath('data.balance.is_spendable', false)
+            // Owner decision 2026-11-19: a client's balance pays bookings; a provider's stays informational.
+            ->assertJsonPath('data.balance.is_spendable', $who === 'client')
             ->json('data.id');
         $this->assertSame($user->id, Wallet::query()->findOrFail($id)->user_id);
 
@@ -109,7 +110,7 @@ class WalletTest extends TestCase
         $this->actingAsApi($this->client)->withHeader('Accept-Language', 'ar')->postJson(self::CLIENT)->assertCreated()
             ->assertJsonPath('message', 'تم إنشاء المحفظة.')
             ->assertJsonPath('data.status_label', 'نشطة')
-            ->assertJsonPath('data.balance.note', __('wallet.balance_note', [], 'ar'));
+            ->assertJsonPath('data.balance.note', __('wallet.balance_note_client', [], 'ar'));
     }
 
     public function test_each_account_reaches_only_its_own_wallet(): void
@@ -155,7 +156,7 @@ class WalletTest extends TestCase
         $this->as($this->client)->patchJson(self::CLIENT, ['balance' => '1000'])->assertUnprocessable()->assertJsonValidationErrors(['balance']);
         $this->as($this->client)->getJson(self::CLIENT)->assertJsonPath('data.balance.amount', '0.00');
 
-        // No money endpoints exist.
+        // Only `top-ups` exists (owner decision 2026-11-19); nothing else moves money.
         foreach (['deposit', 'withdraw', 'transfer', 'pay', 'refund', 'top-up'] as $action) {
             $this->as($this->client)->postJson(self::CLIENT."/{$action}", ['amount' => 10])->assertStatus(405);
         }
@@ -174,16 +175,19 @@ class WalletTest extends TestCase
         $this->as($this->noura->user)->getJson(self::PROVIDER)->assertJsonPath('data.balance.amount', '100.25')
             ->assertJsonPath('data.balance.is_spendable', false);
 
-        // A wallet with ledger history may be closed (D115): it becomes inactive, its entries stay intact.
+        // A wallet with a balance stays open (owner decision 2026-11-19); once it is back to zero it may be closed (D115)
+        // and its entries stay intact.
+        $this->as($this->noura->user)->deleteJson(self::PROVIDER)->assertStatus(409);
+        $wallet->entries()->create(['type' => 'adjustment', 'amount' => '-100.25', 'status' => WalletLedgerEntry::STATUS_AVAILABLE]);
         $this->as($this->noura->user)->deleteJson(self::PROVIDER)->assertOk();
         $this->assertSame(WalletStatus::Closed, $wallet->fresh()->status);
         $this->assertNull($wallet->fresh()->active_owner_id);
-        $this->assertSame(3, WalletLedgerEntry::query()->where('wallet_id', $wallet->id)->count());
+        $this->assertSame(4, WalletLedgerEntry::query()->where('wallet_id', $wallet->id)->count());
         $this->as($this->noura->user)->getJson(self::PROVIDER)->assertJsonPath('data', null); // never the active wallet again
 
         // A new wallet starts empty; the closed wallet's history is untouched.
         $this->as($this->noura->user)->postJson(self::PROVIDER)->assertCreated()->assertJsonPath('data.balance.amount', '0.00');
-        $this->assertSame(3, WalletLedgerEntry::query()->where('wallet_id', $wallet->id)->count());
+        $this->assertSame(4, WalletLedgerEntry::query()->where('wallet_id', $wallet->id)->count());
         $this->assertSame(1, Wallet::query()->where('user_id', $this->noura->user_id)->where('status', WalletStatus::Active)->count());
     }
 

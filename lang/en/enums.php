@@ -91,7 +91,7 @@ return [
     // Slice 10 (payments).
     'payable_type' => ['offer' => 'Booking offer', 'store_order' => 'Store order'],
     'payment_status' => ['pending' => 'Processing', 'requires_action' => 'Waiting for confirmation', 'succeeded' => 'Paid', 'failed' => 'Failed', 'cancelled' => 'Cancelled', 'unknown' => 'Being checked'],
-    'payment_method_type' => ['card' => 'Card', 'apple_pay' => 'Apple Pay'],
+    'payment_method_type' => ['card' => 'Card', 'apple_pay' => 'Apple Pay', 'wallet' => 'Wallet'],
     'payment_purpose' => ['full' => 'Full payment', 'store' => 'Store order'],
     'fulfilment_status' => ['not_applicable' => 'Not applicable', 'pending' => 'Pending', 'fulfilled' => 'Completed', 'failed' => 'Could not be completed'],
     'refund_status' => ['in_progress' => 'In progress', 'refunded' => 'Refunded', 'failed' => 'Failed'],

@@ -79,6 +79,11 @@ return [
         'catalog_package_updated' => 'Package updated',
         'catalog_package_stopped' => 'Package stopped',
         'catalog_package_activated' => 'Package activated',
+        'catalog_category_moved' => 'Category moved', // BUG-026
+        'catalog_service_moved' => 'Service moved', // BUG-026
+        'catalog_addon_moved' => 'Add-on moved', // BUG-026
+        'catalog_event_type_moved' => 'Occasion type moved', // BUG-026
+        'onboarding_slide_moved' => 'Onboarding slide moved', // BUG-026
         'catalog_package_moved' => 'Package moved',
         'banner_created' => 'Banner created',
         'banner_updated' => 'Banner updated',

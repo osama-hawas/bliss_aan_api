@@ -79,6 +79,11 @@ return [
         'catalog_package_updated' => 'تعديل باقة',
         'catalog_package_stopped' => 'إيقاف باقة',
         'catalog_package_activated' => 'تفعيل باقة',
+        'catalog_category_moved' => 'تغيير ترتيب تصنيف', // BUG-026
+        'catalog_service_moved' => 'تغيير ترتيب خدمة', // BUG-026
+        'catalog_addon_moved' => 'تغيير ترتيب إضافة', // BUG-026
+        'catalog_event_type_moved' => 'تغيير ترتيب نوع مناسبة', // BUG-026
+        'onboarding_slide_moved' => 'تغيير ترتيب شريحة تعريفية', // BUG-026
         'catalog_package_moved' => 'تغيير ترتيب باقة',
         'banner_created' => 'إنشاء بنر',
         'banner_updated' => 'تعديل بنر',

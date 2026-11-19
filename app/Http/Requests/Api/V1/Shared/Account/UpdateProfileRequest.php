@@ -18,7 +18,7 @@ class UpdateProfileRequest extends FormRequest
         $adultBy = now('Asia/Riyadh')->subYears(18)->toDateString();
         $rules = [
             'name' => ['sometimes', 'required', 'string', 'max:255'],
-            'email' => ['sometimes', 'nullable', 'string', 'email', 'max:255'],
+            'email' => ['sometimes', 'nullable', 'string', 'email', 'regex:/^[^@\s]+@[^@\s]+\.[^@\s]+$/', 'max:255'],
             'city_id' => ['sometimes', 'nullable', 'integer', Rule::exists('cities', 'id')->where('is_active', true)],
             'birth_date' => ['sometimes', 'nullable', 'date_format:Y-m-d', 'after_or_equal:1900-01-01', 'before_or_equal:'.$adultBy],
             'locale' => ['sometimes', 'required', Rule::in(['ar', 'en'])],

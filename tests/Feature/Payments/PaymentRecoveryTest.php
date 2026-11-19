@@ -13,6 +13,7 @@ use App\Integrations\Payments\GatewayResult;
 use App\Integrations\Payments\GatewayUnavailable;
 use App\Integrations\Payments\PaymentGateway;
 use App\Integrations\Payments\WebhookEvent;
+use App\Models\AppSetting;
 use App\Models\Booking;
 use App\Models\Offer;
 use App\Models\Payment;
@@ -21,6 +22,7 @@ use App\Services\Availability\DeadlockRetriesExhausted;
 use App\Services\Payments\PaymentFulfilment;
 use App\Services\Payments\PaymentInstrument;
 use App\Services\Payments\PaymentIntents;
+use App\Services\Settings\AppSettings;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
@@ -154,6 +156,9 @@ class PaymentRecoveryTest extends TestCase
 
     public function test_a_failed_automatic_refund_is_retried_then_left_to_staff(): void
     {
+        // Card refunds through the gateway (owner decision 2026-11-19 sends them to the wallet by default).
+        AppSetting::query()->updateOrCreate(['key' => 'payments.refunds_to_wallet'], ['value' => 0]);
+        app(AppSettings::class)->flush();
         $offer = $this->offerFrom($this->matchingProvider());
         [$payment] = $this->create($offer, '3155');
         // The request closes before the bank step, and every refund call fails at the gateway.
@@ -176,6 +181,9 @@ class PaymentRecoveryTest extends TestCase
 
     public function test_a_retried_automatic_refund_that_succeeds_stops_the_retries(): void
     {
+        // Card refunds through the gateway (owner decision 2026-11-19 sends them to the wallet by default).
+        AppSetting::query()->updateOrCreate(['key' => 'payments.refunds_to_wallet'], ['value' => 0]);
+        app(AppSettings::class)->flush();
         $offer = $this->offerFrom($this->matchingProvider());
         [$payment] = $this->create($offer, '3155');
         $offer->serviceRequest->update(['status' => 'cancelled']);

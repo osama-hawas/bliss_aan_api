@@ -45,6 +45,8 @@ return [
             'otp__resend_cooldown_seconds' => 'الانتظار قبل إعادة إرسال الرمز',
             'offers__validity_days' => 'خيارات مدة صلاحية العرض',
             'requests__max_attachments' => 'عدد مرفقات الطلب',
+            'payments__refunds_to_wallet' => 'الاسترداد إلى محفظة العميلة (عند الإيقاف يُسترد مبلغ البطاقة إلى البطاقة)',
+            'wallet__direct_top_up' => 'إضافة شحن المحفظة مباشرة (إلى أن تُربط بوابة الدفع)',
             'requests__max_distance_from_city_km' => 'أقصى بعد للعنوان عن مركز مدينته',
             'bookings__buffer_minutes' => 'الفاصل بين الحجوزات',
             'bookings__start_early_minutes' => 'بدء الحجز مبكرًا بحد أقصى',
