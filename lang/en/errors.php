@@ -48,6 +48,18 @@ return [
     'role_unchanged' => 'The role already has exactly these permissions.',
     'role_super_admin_fixed' => 'The super admin role always has every permission and cannot be edited.',
     'role_system' => 'System roles cannot be renamed or deleted.',
+    // QA 2026-11-23: plain messages for the new-role form.
+    'role_form' => [
+        'key_required' => 'Enter the role key.',
+        'key_format' => 'The key starts with a lowercase English letter and accepts lowercase English letters, digits and _ only, 3 to 40 characters, no spaces or Arabic letters. Example: events_lead.',
+        'key_taken' => 'Another role already uses this key. Choose a different one.',
+        'label_required' => 'Enter the role name in Arabic and English.',
+        'label_ar_required' => 'Enter the role name in Arabic.',
+        'label_en_required' => 'Enter the role name in English.',
+        'label_length' => 'The role name is 2 to 60 characters.',
+        'reason_required' => 'Write the reason.',
+        'reason_length' => 'The reason is 3 to 500 characters.',
+    ],
     'staff_same_role' => 'The staff member already has this role.',
     'staff_already_suspended' => 'This account is already suspended.',
     'staff_not_suspended' => 'This account is not suspended.',

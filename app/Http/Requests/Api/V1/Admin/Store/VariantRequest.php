@@ -10,6 +10,11 @@ use Illuminate\Foundation\Http\FormRequest;
  */
 class VariantRequest extends FormRequest
 {
+    public function messages(): array
+    {
+        return VariantRules::messages('');
+    }
+
     public function rules(): array
     {
         return VariantRules::rules('', $this->isMethod('post'));

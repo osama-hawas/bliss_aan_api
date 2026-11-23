@@ -10,6 +10,11 @@ use Illuminate\Foundation\Http\FormRequest;
  */
 class ProductRequest extends FormRequest
 {
+    public function messages(): array
+    {
+        return VariantRules::messages('variants.*.');
+    }
+
     public function rules(): array
     {
         $creating = $this->isMethod('post');

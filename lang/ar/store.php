@@ -39,6 +39,23 @@ return [
         'stock_now' => 'المخزون الحالي :stock.',
         'stock_unchanged' => 'الكمية الجديدة مساوية للمخزون الحالي.',
         'low_stock_not_configured' => 'لم يُحدَّد حد المخزون المنخفض بعد.',
+        // QA 2026-11-23: plain messages for the product variant fields.
+        'variant_fields' => [
+            'sku_required' => 'أدخلي رمز SKU للخيار.',
+            'sku_format' => 'رمز SKU يقبل حروفًا إنجليزية وأرقامًا و - و _ فقط، بدون مسافات. مثال: DRESS-RED-M.',
+            'sku_length' => 'رمز SKU من 2 إلى 64 حرفًا.',
+            'price_required' => 'أدخلي سعر الخيار.',
+            'price_number' => 'أدخلي سعر الخيار أرقامًا فقط، مثل 150 أو 99.50.',
+            'price_positive' => 'سعر الخيار يجب أن يكون أكبر من صفر.',
+            'price_max' => 'سعر الخيار أكبر من الحد المسموح.',
+            'price_decimals' => 'سعر الخيار يقبل رقمين بعد الفاصلة كحد أقصى، مثل 99.50.',
+            'stock_required' => 'أدخلي كمية المخزون للخيار (0 أو أكثر).',
+            'stock_integer' => 'كمية المخزون رقم صحيح من 0 فأكثر، بدون كسور.',
+            'stock_max' => 'كمية المخزون أكبر من الحد المسموح.',
+            'attribute_ar_required' => 'أدخلي قيمة الخيار بالعربية (مثل المقاس أو اللون).',
+            'attribute_en_required' => 'أدخلي قيمة الخيار بالإنجليزية (مثل المقاس أو اللون).',
+            'attribute_max' => 'قيمة الخيار 40 حرفًا كحد أقصى.',
+        ],
         'messages' => [
             'category_created' => 'تم إنشاء التصنيف.',
             'category_updated' => 'تم تحديث التصنيف.',

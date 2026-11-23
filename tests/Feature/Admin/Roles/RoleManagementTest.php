@@ -205,4 +205,13 @@ class RoleManagementTest extends TestCase
     {
         return Role::query()->whereHas('permissions', fn ($q) => $q->where('name', $permission))->pluck('name')->sort()->values()->all();
     }
+
+    public function test_new_role_errors_are_plain_messages(): void
+    {
+        $body = ['name' => 'مشرفة الحفلات', 'label' => ['ar' => 'مشرفة', 'en' => ''], 'permissions' => [], 'reason' => 'New team'];
+
+        $response = $this->withHeader('Accept-Language', 'ar')->actingAsApi($this->admin)->postJson(self::ROLES_URL, $body)->assertUnprocessable();
+        $this->assertStringStartsWith('المعرّف يبدأ بحرف إنجليزي صغير', $response->json('errors.name.0'));
+        $this->assertSame('أدخلي اسم الدور بالإنجليزية.', $response->json('errors')['label.en'][0]);
+    }
 }

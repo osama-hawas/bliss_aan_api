@@ -39,6 +39,23 @@ return [
         'stock_now' => 'The current stock is :stock.',
         'stock_unchanged' => 'The new stock is the same as the current stock.',
         'low_stock_not_configured' => 'The low-stock level is not set yet.',
+        // QA 2026-11-23: plain messages for the product variant fields.
+        'variant_fields' => [
+            'sku_required' => 'Enter the variant SKU.',
+            'sku_format' => 'The SKU accepts English letters, digits, - and _ only, no spaces. Example: DRESS-RED-M.',
+            'sku_length' => 'The SKU must be 2 to 64 characters.',
+            'price_required' => 'Enter the variant price.',
+            'price_number' => 'Enter the variant price as a number, e.g. 150 or 99.50.',
+            'price_positive' => 'The variant price must be greater than zero.',
+            'price_max' => 'The variant price is above the allowed maximum.',
+            'price_decimals' => 'The variant price allows at most two decimals, e.g. 99.50.',
+            'stock_required' => 'Enter the variant stock (0 or more).',
+            'stock_integer' => 'Stock is a whole number, 0 or more.',
+            'stock_max' => 'Stock is above the allowed maximum.',
+            'attribute_ar_required' => 'Enter the option value in Arabic (e.g. size or color).',
+            'attribute_en_required' => 'Enter the option value in English (e.g. size or color).',
+            'attribute_max' => 'The option value is 40 characters at most.',
+        ],
         'messages' => [
             'category_created' => 'Category created.',
             'category_updated' => 'Category updated.',

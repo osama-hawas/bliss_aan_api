@@ -223,4 +223,21 @@ class ProductAdminTest extends TestCase
             ->assertUnprocessable()->assertJsonPath('code', 'VALIDATION_FAILED')->assertJsonValidationErrors(['variants.0.sku']);
         $this->assertSame(0, Product::query()->where('category_id', $category->id)->count());
     }
+
+    public function test_variant_errors_are_plain_messages_not_raw_keys(): void
+    {
+        $admin = $this->officer();
+        $category = ProductCategory::factory()->create();
+        $bad = ['variants' => [['sku' => 'A 1', 'price' => 'abc', 'stock' => 1.5]]];
+
+        $errors = $this->withHeader('Accept-Language', 'ar')->actingAsApi($admin)->postJson(self::URL, $this->body($category, $bad))
+            ->assertUnprocessable()->json('errors');
+        $this->assertSame('أدخلي سعر الخيار أرقامًا فقط، مثل 150 أو 99.50.', $errors['variants.0.price'][0]);
+        $this->assertSame('كمية المخزون رقم صحيح من 0 فأكثر، بدون كسور.', $errors['variants.0.stock'][0]);
+        $this->assertSame('رمز SKU يقبل حروفًا إنجليزية وأرقامًا و - و _ فقط، بدون مسافات. مثال: DRESS-RED-M.', $errors['variants.0.sku'][0]);
+
+        $errors = $this->withHeader('Accept-Language', 'en')->actingAsApi($admin)->postJson(self::URL, $this->body($category, ['variants' => [['sku' => 'A-1', 'stock' => 1]]]))
+            ->assertUnprocessable()->json('errors');
+        $this->assertSame('Enter the variant price.', $errors['variants.0.price'][0]);
+    }
 }
