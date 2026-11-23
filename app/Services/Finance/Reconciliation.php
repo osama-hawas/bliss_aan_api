@@ -126,7 +126,7 @@ class Reconciliation
                 ->join('provider_ledger_entries as e', fn ($j) => $j->whereRaw("e.entry_key = CONCAT('earning:', b.id)"))
                 ->where('r.status', 'refunded')
                 ->whereNotExists(fn (Builder $q) => $q->from('provider_ledger_entries as ra')->whereRaw("ra.entry_key = CONCAT('refund:', r.id)"))
-                ->whereRaw("NOT JSON_CONTAINS(COALESCE(JSON_EXTRACT(e.meta, '$.netted_refund_ids'), JSON_ARRAY()), CAST(r.id AS JSON))"),
+                ->whereRaw("NOT JSON_CONTAINS(COALESCE(JSON_EXTRACT(e.meta, '$.netted_refund_ids'), JSON_ARRAY()), CAST(r.id AS CHAR))"),
             ReconciliationCheck::NegativeBalances => DB::query()->fromSub($this->balances->negative(), 'n')
                 ->selectRaw("n.id, 'provider' AS kind, NULL AS reference, n.status, n.available_cents AS amount_cents, n.id AS provider_id,
                     n.display_name AS provider_name, NULL AS client_id, NULL AS client_name, 'provider_balance' AS link_type, n.id AS link_id,

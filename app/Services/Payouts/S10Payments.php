@@ -57,7 +57,7 @@ class S10Payments
             ->join('provider_ledger_entries as earning', fn ($join) => $join->on('earning.booking_id', '=', 'bookings.id')
                 ->where('earning.type', '=', 'earning'))
             ->where('refunds.status', self::REFUND_REFUNDED)
-            ->whereRaw("NOT JSON_CONTAINS(COALESCE(JSON_EXTRACT(earning.meta, '$.netted_refund_ids'), JSON_ARRAY()), CAST(refunds.id AS JSON))")
+            ->whereRaw("NOT JSON_CONTAINS(COALESCE(JSON_EXTRACT(earning.meta, '$.netted_refund_ids'), JSON_ARRAY()), CAST(refunds.id AS CHAR))")
             ->whereNotExists(fn ($q) => $q->from('provider_ledger_entries as adjusted')
                 ->whereRaw("adjusted.entry_key = CONCAT('refund:', refunds.id)"))
             ->orderBy('refunds.id')
