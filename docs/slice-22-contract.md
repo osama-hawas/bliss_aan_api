@@ -67,7 +67,7 @@ now links to `/clients/deletion-requests?status=pending`. Settings shows `accoun
 ## 7. Flutter (both apps, shared screen)
 
 Deletion screen: texts now describe automatic deletion after a waiting period; the pending state shows the deletion date
-(or "handled by the Bliss aan team" when null) and a note that open bookings / orders / returns / payouts / tickets
+(or "handled by the Bliss Tale team" when null) and a note that open bookings / orders / returns / payouts / tickets
 postpone it, above the existing withdraw button. `NotificationRouter`: target `account` → deletion screen.
 
 ## 8. Tests

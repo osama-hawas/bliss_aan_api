@@ -5,7 +5,7 @@ Labels: **[C]** confirmed in BRD/designs · **[R]** recommendation · **[?]** op
 
 ## 1. Product
 
-Bliss aan connects **clients** (women planning occasions) with **service providers** (individuals or
+Bliss Tale connects **clients** (women planning occasions) with **service providers** (individuals or
 establishments: event planning, venues, photography, catering, coffee servers, bridesmaids, makeup,
 flowers & gifts). Admin owns a central **service catalog**; providers pick services and set their own
 price or use the admin **guide price**. Clients discover → request → compare offers → book → chat →
@@ -16,7 +16,7 @@ Components [C]:
 | Component | Platform |
 |---|---|
 | Client app | Flutter |
-| Provider app ("Bliss aan Partner") | Flutter (separate app) |
+| Provider app ("Bliss Tale Partner") | Flutter (separate app) |
 | Admin dashboard (incl. Store sections) | React (D10) |
 | Landing site (blissaan.app) | Web (scope not specified) |
 | API | Laravel (this repo) |

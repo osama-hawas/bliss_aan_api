@@ -26,7 +26,7 @@
 | **D258** | Q148 | Staff ticket moves as §6; `closed` final; `resolved → in_progress` reopen; staff reply moves `open`/`in_progress` → `waiting`, refused on `closed`; reason required only to close or reopen |
 | **D259** | Q149 | `support.assign` assigns/unassigns to active staff holding `support.reply`; a `support.reply` holder takes an unassigned ticket, replies and adds notes on any ticket; only the assignee reviews chats |
 | **D260** | Q150 | Chat review: `chats.view_for_ticket` + assignee; ticket not closed and linked; only the linked record's conversations in which the ticket's user takes part; reason required; one `conversation_access_logs` row per page; `support.chat_access_minutes` seeded 30 (null = reason on every page); 10-minute signed attachment URLs; read-only; the user is not told |
-| **D261** | Q151 | Hidden review: out of the public list, the provider's list/summary and the rating; the client sees her review marked "Hidden by Bliss aan" (no reason); no notification |
+| **D261** | Q151 | Hidden review: out of the public list, the provider's list/summary and the rating; the client sees her review marked "Hidden by Bliss Tale" (no reason); no notification |
 | **D262** | Q152 | Content reports: `status open·handled` + `decision actioned·dismissed`, reason, internal note; `actioned` hides the review and closes its other open reports; reporter not told; targets stay `review` |
 | **D263** | Q153 | Refunds only through Slice 10's endpoint/dialog (prefilled `cancellation_request_id`); no automatic refund on staff cancel; E25 `refund_issued` to the client when a staff refund settles `refunded` |
 | **D264** | Q154 | No staff/dashboard notifications; `admin/nav-counts` stays mocked until Slice 21 |
@@ -46,7 +46,7 @@ reviews, reports), `slice-7-contract.md` (chat; Req 42 deferred here), `slice-8-
 `wt-s14b/…/slice-14b-contract.md` (D164 non-destructive seeder), `wt-s15/…/slice-15-contract.md` (D171/D172).
 Earlier decisions kept: D57/D64 (`bookings.view` = complete request), D76 (internal history), D77 (first names),
 D127/D128/D131 (cancellation rules), D129 (reviews never edited/deleted by users), D133/D135/D140 (events; staff
-notifications → here), D160/D161 (ticket statuses; staff shown as "Bliss aan support"), D171 (staff resolve a suspended
+notifications → here), D160/D161 (ticket statuses; staff shown as "Bliss Tale support"), D171 (staff resolve a suspended
 client's open items through operations), D187/D192/D194 (staff refunds; refund events revisited here), OD3, OD23
 (reschedule = chat/ticket then cancel), OD29 (chat flag = warning only, no manual moderation).
 
@@ -76,7 +76,7 @@ client's open items through operations), D187/D192/D194 (staff refunds; refund e
 3. Cancellations: the existing decide flow becomes its own live list/detail pages; refunds are started from there
    through **S10's** refund endpoint (no second refund service).
 4. Support tickets (admin): queue, detail with internal notes, assignment, staff status moves, staff replies
-   (shown as "Bliss aan support", D161), user notifications, optional auto-close command (null setting = off).
+   (shown as "Bliss Tale support", D161), user notifications, optional auto-close command (null setting = off).
 5. Chat review only through an assigned ticket, with a required reason, each access logged in
    `conversation_access_logs` (Req 42).
 6. Review moderation: hide / restore with a reason; rating cache recomputed; content reports decided
@@ -138,7 +138,7 @@ from the request detail.
 ### 5.2 Writes — `bookings.view` + `bookings.intervene`
 
 Every write: `DeadlockRetry`, lock order request → booking → its cancellation requests (`BookingLocks`), audit row
-with before/after status, history entry visible to **all** with the actor shown as "Bliss aan support" to the parties
+with before/after status, history entry visible to **all** with the actor shown as "Bliss Tale support" to the parties
 (D161 pattern; staff name only in the dashboard), notifications through `Notifier` inside the transaction.
 
 | Method & path | From → to | Body | Notes |
@@ -211,7 +211,7 @@ notification, nothing in her app). Audit: the log table itself is the audit trai
 | `POST admin/content-reports/{id}/decide` | `decision` (`actioned · dismissed`), `reason` (3–500), `internal_note` | Only `open` (else `409`). `actioned` on a published review hides it in the same transaction (= hide above, the report's reason) and closes the review's other open reports as `actioned`; `dismissed` closes this report only. Audit `content_report.decided` |
 
 Effect of `hidden` (Q151): left out of the public list, the provider's `GET provider/reviews` list and summary, and the
-rating cache; the client's own booking still returns her review with `status: hidden` and a label "Hidden by Bliss aan"
+rating cache; the client's own booking still returns her review with `status: hidden` and a label "Hidden by Bliss Tale"
 (no reason, no staff name); `can_review` stays false (one review per booking). No notification (Q151).
 
 ## 9. Notifications (Slice 8 `Notifier`, transactional, stored + push)
@@ -267,7 +267,7 @@ assignee for chat review), `NOT_FOUND` (404), `VALIDATION_FAILED` (422), S10's `
 | **Q148** | Ticket statuses moved by staff, and the effect of a staff reply | Moves as in §6 (`closed` final; `resolved → in_progress` reopen). A staff reply moves `open`/`in_progress` → `waiting`, leaves `waiting`/`resolved` unchanged, refused on `closed`. Reason required only to close or reopen. The user's reply rules stay D160 |
 | **Q149** | Assignment and who may reply | `support.assign` assigns/unassigns to any active staff holding `support.reply`; a `support.reply` holder may take an unassigned ticket. Any `support.reply` holder may reply and add notes (assignment is a queue marker); only the assignee may review chats |
 | **Q150** | Chat review rules (Req 42) | `chats.view_for_ticket` **and** ticket assignee; ticket not closed and linked to a request/booking; only conversations of that record in which the ticket's user takes part; reason required; every page read writes a `conversation_access_logs` row; further pages within `support.chat_access_minutes` (seed **30**, technical window; null = reason on every page) reuse the reason; attachments as 10-minute signed URLs; read-only; the user is **not** notified; logs visible on the ticket to `support.view` |
-| **Q151** | Review moderation effects | Hide/restore with a reason (audit, rating recomputed). Hidden = out of the public list, the provider's list/summary and the rating; the client still sees her own review marked "Hidden by Bliss aan" without the reason. No notification to client or provider. Users still can't edit/delete (D129) |
+| **Q151** | Review moderation effects | Hide/restore with a reason (audit, rating recomputed). Hidden = out of the public list, the provider's list/summary and the rating; the client still sees her own review marked "Hidden by Bliss Tale" without the reason. No notification to client or provider. Users still can't edit/delete (D129) |
 | **Q152** | Content report decisions | Keep `status open · handled`, add `decision actioned · dismissed` + reason + internal note. `actioned` hides the review and closes its other open reports; `dismissed` closes one report. The reporter is not notified. Targets stay `review` only (no message/user reports, OD29) |
 | **Q153** | Refunds in operations; refund notification (D194 said "revisit in Slice 17") | Only S10's endpoint and dialog, opened from the cancellation and booking pages with `cancellation_request_id` prefilled; no automatic refund on staff cancel (OD3). Add E25 `refund_issued` to the client when a **staff** refund settles `refunded` (listener on `RefundSettled`); automatic refunds stay without a push |
 | **Q154** | Staff notifications / live nav badges (D140 deferred them here) | Not built in S17: no staff push or in-dashboard alerts; `admin/nav-counts` stays mocked until Slice 21 (KPIs). Queues have status filters and "assigned to me" instead |
@@ -283,7 +283,7 @@ Answered: Q146–Q155 → **D256–D265**; **D255** = contract and scope approva
   S11's marked ledger call runs for staff completions too. If S11's call sits elsewhere, S17 adds the same call in a
   marked block.
 - **S12b:** extends `support_tickets` (two columns), `TicketStatus` gains no value; mobile resources unchanged
-  (`is_internal` stays hidden; staff = "Bliss aan support"). Mobile ticket detail shows staff moves already.
+  (`is_internal` stays hidden; staff = "Bliss Tale support"). Mobile ticket detail shows staff moves already.
 - **S9b:** `store_order` ticket links not added (Q155).
 - **S14b:** no permission names and **no seeder change** (all permissions exist and are mapped to `operations_support`).
 - Shared files (append-only / marked S17 blocks): `NotificationEvent`, `NotificationTargetType`,
@@ -329,9 +329,9 @@ business rule added):
   `actions {can_cancel, can_add_note}`; booking detail has the same `history` / `staff_notes`. Ticket `actions.transitions`
   is a list of status values. Status-change reasons are kept in the audit row, not in the history entry (it is on the
   user's side, §6).
-- Every audience's booking `review` item gains `status` + `status_label` (hidden → "Hidden by Bliss aan", D261); the
+- Every audience's booking `review` item gains `status` + `status_label` (hidden → "Hidden by Bliss Tale", D261); the
   provider's own review list now filters `published` (`ReviewQueries::providerList`).
-- `GET client|provider` cancellation items show `requested_by = staff` with the label "Bliss aan support"; the app shows
+- `GET client|provider` cancellation items show `requested_by = staff` with the label "Bliss Tale support"; the app shows
   that label (Flutter `BookingCancellationModel.requestedByStaff`).
 - Flutter: `NotificationRouter` opens `support_ticket` targets (E20/E21) on the ticket screen; hidden review tag on the
   booking screen. Test `test/operations_unit_test.dart`.

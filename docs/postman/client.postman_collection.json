@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "Bliss aan — client",
+    "name": "Bliss Tale — client",
     "description": "Audience folder `client/` (client token from the Auth collection). Slice 5a (approved contract revision 3): direct-request availability check.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },

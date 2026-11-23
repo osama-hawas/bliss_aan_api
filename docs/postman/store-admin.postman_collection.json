@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "Bliss aan — store management (Slice 18, admin)",
+    "name": "Bliss Tale — store management (Slice 18, admin)",
     "description": "S18 admin endpoints for store categories, products, variants and stock (`docs/slice-18-contract.md`). Orders, shipments and promo codes are S9b's. Needs `products.manage`. Uses the shared environment (`base_url`, `lang`, `admin_token`).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },

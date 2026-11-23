@@ -65,7 +65,7 @@ class ReviewModerationTest extends TestCase
         $this->asProvider($this->noura)->getJson('/api/v1/provider/reviews')->assertJsonCount(1, 'data')->assertJsonPath('meta.summary.count', 1);
         $this->asClient()->getJson("/api/v1/client/bookings/{$bad->booking_id}")->assertOk()
             ->assertJsonPath('data.review.status', 'hidden')
-            ->assertJsonPath('data.review.status_label', 'Hidden by Bliss aan')
+            ->assertJsonPath('data.review.status_label', 'Hidden by Bliss Tale')
             ->assertJsonMissing(['hidden_reason' => 'Abusive language'])
             ->assertJsonPath('data.actions.can_review', false);
         $this->assertSame([], array_values(array_filter($this->events($this->client), fn ($e) => str_contains($e, 'review_h'))));

@@ -170,7 +170,7 @@ return [
         'refunded_on' => 'Refunded on',
         'net' => 'Net paid',
         'not_tax_invoice' => 'This is a payment receipt, not a tax invoice.',
-        'footer' => 'Bliss aan',
+        'footer' => 'Bliss Tale',
         'card' => 'Card ending :last4',
         'apple_pay' => 'Apple Pay',
     ],

@@ -1,9 +1,9 @@
-# Bliss aan API — Project Guide
+# Bliss Tale API — Project Guide
 
-Laravel 12 (PHP 8.3) backend for **Bliss aan**, a Saudi women-only platform for occasion services
+Laravel 12 (PHP 8.3) backend for **Bliss Tale**, a Saudi women-only platform for occasion services
 (weddings, engagements, events) plus an integrated supplies store.
 
-Clients: two Flutter apps (Client app, Provider app "Bliss aan Partner") and one React admin
+Clients: two Flutter apps (Client app, Provider app "Bliss Tale Partner") and one React admin
 dashboard (which also contains the Store sections). Owner of the BRD: Awamer AlShabaka.
 
 ## Read before any work
@@ -273,7 +273,7 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
 - `shared/support-tickets` (client/provider): `Services\Support\SupportTickets` — scoped to the owner (foreign → 404),
   `TK-` references (`TicketReferenceGenerator`, retried), create idempotent by `Idempotency-Key`, replies by
   `client_uuid` under the ticket row lock; her reply: `resolved → open`, `waiting → in_progress`, `closed` → 409 (D160).
-  Staff are shown only as "Bliss aan support"; internal messages and `assigned_to` never reach mobile (D161).
+  Staff are shown only as "Bliss Tale support"; internal messages and `assigned_to` never reach mobile (D161).
   No admin endpoints (Slice 17). Tests: `tests/Feature/Support/*`, `tests/Feature/Database/TicketReplyLockingTest.php`.
 
 ## Payments (Slice 10)
@@ -358,7 +358,7 @@ Designs: https://design.kazamiza.com/Bliss_aan/ (client + provider mobile only; 
   the window never slides) reuse the reason. Read-only, nobody notified.
 - Moderation (`reviews.moderate`): `Services\Reviews\ReviewModeration` (hide/restore, rating recomputed, actioned report hides the
   review and closes its other reports), `ReviewModerationQueries`. Hidden reviews leave the public and provider lists; the client
-  sees `status_label` "Hidden by Bliss aan".
+  sees `status_label` "Hidden by Bliss Tale".
 - E25 `refund_issued`: `Listeners\Operations\NotifyRefundIssued`, bound by class name to Slice 10's `App\Events\Payments\RefundSettled`
   in `AppServiceProvider` (staff refunds settled `refunded`, booking payments only).
 - Tests: `Tests\Concerns\BuildsOperations`; `tests/Feature/{Operations,Support,Reviews}/*` (S17 files),

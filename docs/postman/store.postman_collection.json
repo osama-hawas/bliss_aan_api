@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "Bliss aan — store (Slice 9 + 9b)",
+    "name": "Bliss Tale — store (Slice 9 + 9b)",
     "description": "Slice 9 catalogue and cart, Slice 9b checkout, orders, promo codes and shipments (`docs/slice-9-contract.md`, `docs/slice-9b-contract.md`). Uses the shared environment (`base_url`, `lang`, `client_token`, `admin_token`). Payments use the Slice 10 fake tokens (`tok_fake_visa_4242_1230`).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },

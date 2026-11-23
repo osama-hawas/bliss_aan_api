@@ -170,7 +170,7 @@ return [
         'refunded_on' => 'تاريخ الاسترداد',
         'net' => 'صافي المدفوع',
         'not_tax_invoice' => 'هذا إيصال دفع وليس فاتورة ضريبية.',
-        'footer' => 'بليس آن',
+        'footer' => 'بليس تيل',
         'card' => 'بطاقة تنتهي بـ :last4',
         'apple_pay' => 'Apple Pay',
     ],

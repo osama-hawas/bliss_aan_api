@@ -80,7 +80,7 @@ class BookingInterventionTest extends TestCase
 
         $this->asClient()->getJson("/api/v1/client/bookings/{$booking->id}")->assertOk()
             ->assertJsonPath('data.cancellation_requests.0.requested_by', 'staff')
-            ->assertJsonPath('data.cancellation_requests.0.requested_by_label', 'Bliss aan support')
+            ->assertJsonPath('data.cancellation_requests.0.requested_by_label', 'Bliss Tale support')
             ->assertJsonPath('data.cancellation_requests.0.is_mine', false)
             ->assertJsonMissingPath('data.cancellation_requests.0.internal_note');
     }

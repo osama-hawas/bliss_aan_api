@@ -35,7 +35,7 @@ return [
         ],
     ],
 
-    // Bliss aan vendors (Q8 open). Only `fake` drivers exist so far.
+    // Bliss Tale vendors (Q8 open). Only `fake` drivers exist so far.
     'sms' => [
         'driver' => env('SMS_DRIVER', 'fake'),
         // Dev only (D31): every OTP is this code while APP_ENV=local. Ignored in any other environment.

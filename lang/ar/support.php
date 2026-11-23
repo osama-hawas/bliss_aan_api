@@ -2,12 +2,12 @@
 
 // Slice 12b support tickets.
 return [
-    'team_name' => 'دعم Bliss aan',
+    'team_name' => 'دعم بليس تيل',
     'ticket_opened' => 'تم إرسال تذكرتك، وسيرد فريق الدعم هنا.',
     'reply_sent' => 'تم إرسال الرد.',
     'related_invalid' => 'اختاري أحد طلباتك أو حجوزاتك.',
     // Slice 17 (staff side)
-    'review_hidden_label' => 'أخفاه فريق Bliss aan',
+    'review_hidden_label' => 'أخفاه فريق بليس تيل',
     'access_expired' => 'انتهت جلسة مراجعة المحادثة. اذكري السبب لفتحها مجددًا.',
     'staff_replied' => 'أُرسل الرد إلى المستخدمة.',
     'note_added' => 'أُضيفت الملاحظة الداخلية.',

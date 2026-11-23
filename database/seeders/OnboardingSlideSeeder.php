@@ -32,7 +32,7 @@ class OnboardingSlideSeeder extends Seeder
             ],
             Audience::Provider->value => [
                 [
-                    ['ar' => 'انضمي إلى بليس آن', 'en' => 'Join Bliss aan'],
+                    ['ar' => 'انضمي إلى بليس تيل', 'en' => 'Join Bliss Tale'],
                     ['ar' => 'سجّلي نشاطك وارفعي مستنداتك، وبعد المراجعة يظهر ملفك لعميلات يبحثن عن خدماتك.', 'en' => 'Register your business and upload your documents. Once reviewed, your profile reaches clients looking for your services.'],
                 ],
                 [

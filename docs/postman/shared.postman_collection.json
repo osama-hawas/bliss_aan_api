@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "Bliss aan — shared",
+    "name": "Bliss Tale — shared",
     "description": "Audience folder `shared/`. Get tokens from the Auth collection (Login / Register save `client_token` and `provider_token`). Slice 5a (approved contract revision 3): provider availability.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },

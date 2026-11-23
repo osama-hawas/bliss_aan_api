@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "Bliss aan — support (Slice 12b)",
+    "name": "Bliss Tale — support (Slice 12b)",
     "description": "Slice 12b: public FAQs and pages, and her own support tickets (client and provider) (`docs/slice-12b-contract.md`, D157–D163). No admin ticket handling (Slice 17). Uses the shared environment (`base_url`, `lang`, `client_token`, `provider_token`).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },

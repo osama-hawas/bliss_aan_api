@@ -37,12 +37,12 @@ return [
         'payout_paid' => ['title' => 'Payout transferred', 'body' => 'Your payout :reference was transferred to your bank account.'],
         'payout_rejected' => ['title' => 'Payout request rejected', 'body' => 'Your payout request :reference was rejected. Open it to see the reason.'],
         // Slice 17 (E20–E25). :amount is a display amount (E25 only).
-        'support_replied' => ['title' => 'Support replied', 'body' => 'Bliss aan support replied to your ticket :reference.'],
+        'support_replied' => ['title' => 'Support replied', 'body' => 'Bliss Tale support replied to your ticket :reference.'],
         'support_ticket_resolved' => ['title' => 'Ticket resolved', 'body' => 'Your ticket :reference was marked resolved. Reply if you still need help.'],
         'support_ticket_closed' => ['title' => 'Ticket closed', 'body' => 'Your ticket :reference was closed. Open a new ticket if you need more help.'],
-        'request_cancelled_by_staff' => ['title' => 'Request cancelled', 'body' => 'Bliss aan support cancelled request :reference.'],
-        'booking_cancelled_by_staff' => ['title' => 'Booking cancelled', 'body' => 'Bliss aan support cancelled booking :reference.'],
-        'booking_completed_by_staff' => ['title' => 'Booking completed', 'body' => 'Bliss aan support marked booking :reference as completed.'],
+        'request_cancelled_by_staff' => ['title' => 'Request cancelled', 'body' => 'Bliss Tale support cancelled request :reference.'],
+        'booking_cancelled_by_staff' => ['title' => 'Booking cancelled', 'body' => 'Bliss Tale support cancelled booking :reference.'],
+        'booking_completed_by_staff' => ['title' => 'Booking completed', 'body' => 'Bliss Tale support marked booking :reference as completed.'],
         'refund_issued' => ['title' => 'Refund issued', 'body' => 'A refund of :amount was issued for :reference.'],
         // Slice 19 (S19).
         'ledger_credit_posted' => ['title' => 'Balance credited', 'body' => ':amount :currency was added to your balance (:reference).'],

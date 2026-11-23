@@ -207,7 +207,7 @@ class SupportTicketTest extends TestCase
         $response = $this->actingAsApi($this->client)->withHeader('Accept-Language', 'en')->getJson(self::URL."/{$id}")->assertOk()
             ->assertJsonCount(2, 'data.messages')
             ->assertJsonPath('data.messages.1.from_staff', true)
-            ->assertJsonPath('data.messages.1.author_name', 'Bliss aan support')
+            ->assertJsonPath('data.messages.1.author_name', 'Bliss Tale support')
             ->assertJsonPath('data.messages.1.body', 'We are checking.')
             ->assertJsonMissingPath('data.assigned_to');
 

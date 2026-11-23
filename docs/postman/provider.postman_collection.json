@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "Bliss aan — provider",
+    "name": "Bliss Tale — provider",
     "description": "Audience folder `provider/` (provider token from the Auth collection: register with `app=provider`, D37). Slice 3 (+ follow-up 3a: coverage, event-location confirmation). Her own application only. Slice 5a (approved contract revision 3): calendar and availability blocks.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },

@@ -55,7 +55,7 @@ class TicketStaffReplyTest extends TestCase
         // She sees the support team, never the staff name (D161); her reply moves waiting → in_progress (D160).
         $this->actingAsApi($this->sara)->withHeader('Accept-Language', 'en')->getJson("/api/v1/shared/support-tickets/{$this->t->id}")
             ->assertJsonPath('data.messages.1.from_staff', true)
-            ->assertJsonPath('data.messages.1.author_name', 'Bliss aan support')
+            ->assertJsonPath('data.messages.1.author_name', 'Bliss Tale support')
             ->assertJsonMissing(['author_name' => 'Hind Staff']);
         $this->actingAsApi($this->sara)->postJson("/api/v1/shared/support-tickets/{$this->t->id}/messages", ['body' => 'Thanks', 'client_uuid' => (string) Str::uuid()])
             ->assertCreated()->assertJsonPath('data.status', 'in_progress');

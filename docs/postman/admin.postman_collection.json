@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "Bliss aan — admin",
+    "name": "Bliss Tale — admin",
     "description": "Audience folder `admin/` (staff token: OTP login with `app=dashboard`, D29). Every route checks a permission. Editable text comes as `{ar, en}`. Slice 3: provider applications and standing.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
